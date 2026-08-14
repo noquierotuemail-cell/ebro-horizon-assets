@@ -1,0 +1,6 @@
+# Deployment-only files: do not publish as static assets
+wrangler.jsonc
+README.md
+.assetsignore
+.git
+.git/**
