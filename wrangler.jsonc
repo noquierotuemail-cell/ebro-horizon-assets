@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "ebro-remoteapp-landing",
+  "compatibility_date": "2026-08-14",
+  "workers_dev": true,
+  "assets": {
+    "directory": "."
+  },
+  "routes": [
+    {
+      "pattern": "habroremote.com",
+      "custom_domain": true
+    }
+  ]
+}
