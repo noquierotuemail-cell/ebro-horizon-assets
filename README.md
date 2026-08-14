@@ -1,3 +1,3 @@
-# SEEBRO RemoteApp HA Landing
+# EBRO Horizon Assets
 
-Landing pública del proyecto comunitario SEEBRO RemoteApp HA, desplegada automáticamente mediante Cloudflare desde la rama `main`.
+Static landing assets for HABRO RemoteApp / Ebro Tech Lab.
