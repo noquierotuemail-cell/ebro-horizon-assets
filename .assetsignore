@@ -2,5 +2,7 @@
 wrangler.jsonc
 README.md
 .assetsignore
+src
+src/**
 .git
 .git/**
