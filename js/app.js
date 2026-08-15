@@ -13,9 +13,14 @@
     }
   });
 
-  // La versión HABRO de mantenimiento.webp quedó excesivamente comprimida y muestra
-  // bloques de decodificación en Safari. Usamos la última versión íntegra del asset
-  // mientras se conserva el resto de recursos desde el Worker.
+  const footerGrid = document.querySelector('.footer-grid');
+  if (footerGrid) {
+    const footerIntro = footerGrid.firstElementChild;
+    if (footerIntro) {
+      footerIntro.innerHTML = '<strong>HABRO RemoteApp</strong><p class="footer-project-copy">Proyecto en versión beta. Desarrollado de modo colaborativo para la integración a través del grupo Ebro TechLab en Telegram. La versión web y las funcionalidades actuales de HABRO han sido desarrolladas por Rafa Criado.</p><div class="footer-actions"><a class="footer-telegram primary" href="https://t.me/el_pedrajas" target="_blank" rel="noopener">Contactar por Telegram</a><a class="footer-telegram" href="https://t.me/+m0X9_yvOGphhYjQ0" target="_blank" rel="noopener">Grupo Ebro TechLab · Dudas y consultas</a></div>';
+    }
+  }
+
   const maintenanceAsset = 'https://raw.githubusercontent.com/noquierotuemail-cell/ebro-horizon-assets/912d7837bdf9c0e268df6effc6c8fab1903e353e/assets/mantenimiento.webp';
   document.querySelectorAll('img[src="assets/mantenimiento.webp"]').forEach(img => {
     img.src = maintenanceAsset;
