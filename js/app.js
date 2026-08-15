@@ -42,7 +42,7 @@
   if (!frame) return;
 
   const ids = ['view-inicio', 'view-clima', 'view-energia', 'view-solar'];
-  const AUTOPLAY_MS = 4800;
+  const AUTOPLAY_MS = 1500;
   let currentIndex = 0;
   let autoplayTimer = null;
   let startX = null;
