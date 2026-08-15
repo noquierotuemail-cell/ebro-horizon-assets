@@ -1,53 +1,102 @@
 (() => {
-    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const revealTargets = document.querySelectorAll('.reveal-scroll,.reveal-left,.reveal-right');
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const revealTargets = document.querySelectorAll('.reveal-scroll,.reveal-left,.reveal-right');
 
-    if (!reduceMotion && 'IntersectionObserver' in window) {
-      try {
-        document.documentElement.classList.add('motion-ready');
-        const observer = new IntersectionObserver(entries => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('is-visible');
-              observer.unobserve(entry.target);
-            }
-          });
-        }, { threshold: 0.10, rootMargin: '0px 0px -4% 0px' });
-        revealTargets.forEach(el => {
-          if (!el.classList.contains('is-visible')) observer.observe(el);
+  if (!reduceMotion && 'IntersectionObserver' in window) {
+    try {
+      document.documentElement.classList.add('motion-ready');
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
         });
-        window.setTimeout(() => {
-          revealTargets.forEach(el => el.classList.add('is-visible'));
-        }, 1800);
-      } catch (err) {
-        document.documentElement.classList.remove('motion-ready');
+      }, { threshold: 0.10, rootMargin: '0px 0px -4% 0px' });
+      revealTargets.forEach(el => {
+        if (!el.classList.contains('is-visible')) observer.observe(el);
+      });
+      window.setTimeout(() => {
         revealTargets.forEach(el => el.classList.add('is-visible'));
-      }
-    } else {
+      }, 1800);
+    } catch (err) {
+      document.documentElement.classList.remove('motion-ready');
       revealTargets.forEach(el => el.classList.add('is-visible'));
     }
+  } else {
+    revealTargets.forEach(el => el.classList.add('is-visible'));
+  }
 
-    const frame = document.getElementById('interactive-device');
-    if (!frame) return;
-    const ids = ['view-inicio','view-clima','view-energia','view-solar'];
-    let startX = null;
-    const selectedIndex = () => {
-      const checked = document.querySelector('input[name="remoteapp-view"]:checked');
-      if (!checked || checked.id === 'view-auto') return 0;
-      const i = ids.indexOf(checked.id);
-      return i < 0 ? 0 : i;
-    };
-    frame.addEventListener('touchstart', e => {
-      if (e.changedTouches && e.changedTouches[0]) startX = e.changedTouches[0].clientX;
-    }, {passive:true});
-    frame.addEventListener('touchend', e => {
-      if (startX === null || !e.changedTouches || !e.changedTouches[0]) return;
-      const delta = e.changedTouches[0].clientX - startX;
-      startX = null;
-      if (Math.abs(delta) < 42) return;
-      let next = selectedIndex() + (delta < 0 ? 1 : -1);
-      next = (next + ids.length) % ids.length;
-      const input = document.getElementById(ids[next]);
-      if (input) input.checked = true;
-    }, {passive:true});
-  })();
+  const frame = document.getElementById('interactive-device');
+  if (!frame) return;
+
+  const ids = ['view-inicio', 'view-clima', 'view-energia', 'view-solar'];
+  const AUTOPLAY_MS = 4800;
+  let currentIndex = 0;
+  let autoplayTimer = null;
+  let startX = null;
+
+  const checkedIndex = () => {
+    const checked = document.querySelector('input[name="remoteapp-view"]:checked');
+    if (!checked || checked.id === 'view-auto') return currentIndex;
+    const index = ids.indexOf(checked.id);
+    return index < 0 ? currentIndex : index;
+  };
+
+  const showView = index => {
+    currentIndex = (index + ids.length) % ids.length;
+    const input = document.getElementById(ids[currentIndex]);
+    if (input) input.checked = true;
+  };
+
+  const stopAutoplay = () => {
+    if (autoplayTimer !== null) {
+      window.clearInterval(autoplayTimer);
+      autoplayTimer = null;
+    }
+  };
+
+  const startAutoplay = () => {
+    stopAutoplay();
+    if (document.hidden) return;
+    autoplayTimer = window.setInterval(() => {
+      showView(currentIndex + 1);
+    }, AUTOPLAY_MS);
+  };
+
+  document.querySelectorAll('input[name="remoteapp-view"]').forEach(input => {
+    input.addEventListener('change', () => {
+      if (input.id === 'view-auto') {
+        showView(0);
+      } else {
+        const index = ids.indexOf(input.id);
+        if (index >= 0) currentIndex = index;
+      }
+      startAutoplay();
+    });
+  });
+
+  frame.addEventListener('touchstart', event => {
+    if (event.changedTouches && event.changedTouches[0]) {
+      startX = event.changedTouches[0].clientX;
+    }
+  }, { passive: true });
+
+  frame.addEventListener('touchend', event => {
+    if (startX === null || !event.changedTouches || !event.changedTouches[0]) return;
+    const delta = event.changedTouches[0].clientX - startX;
+    startX = null;
+    if (Math.abs(delta) < 42) return;
+    const baseIndex = checkedIndex();
+    showView(baseIndex + (delta < 0 ? 1 : -1));
+    startAutoplay();
+  }, { passive: true });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopAutoplay();
+    else startAutoplay();
+  });
+
+  showView(0);
+  startAutoplay();
+})();
