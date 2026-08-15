@@ -4,5 +4,7 @@ README.md
 .assetsignore
 src
 src/**
+chatkit-backend
+chatkit-backend/**
 .git
 .git/**
