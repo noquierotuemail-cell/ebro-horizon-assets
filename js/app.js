@@ -13,6 +13,15 @@
     }
   });
 
+  // La versión HABRO de mantenimiento.webp quedó excesivamente comprimida y muestra
+  // bloques de decodificación en Safari. Usamos la última versión íntegra del asset
+  // mientras se conserva el resto de recursos desde el Worker.
+  const maintenanceAsset = 'https://raw.githubusercontent.com/noquierotuemail-cell/ebro-horizon-assets/912d7837bdf9c0e268df6effc6c8fab1903e353e/assets/mantenimiento.webp';
+  document.querySelectorAll('img[src="assets/mantenimiento.webp"]').forEach(img => {
+    img.src = maintenanceAsset;
+    img.removeAttribute('srcset');
+  });
+
   if (!reduceMotion && 'IntersectionObserver' in window) {
     try {
       document.documentElement.classList.add('motion-ready');
