@@ -13,11 +13,16 @@
     }
   });
 
+  const telegramIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.6 3.2 18.4 20c-.24 1.19-.87 1.48-1.77.92l-4.87-3.59-2.35 2.26c-.26.26-.48.48-.98.48l.35-4.96 9.02-8.15c.39-.35-.09-.55-.61-.2L6.04 13.78 1.24 12.28c-1.04-.33-1.06-1.04.22-1.54L20.22 3.5c.87-.32 1.63.2 1.38-.3Z"/></svg>';
   const footerGrid = document.querySelector('.footer-grid');
   if (footerGrid) {
     const footerIntro = footerGrid.firstElementChild;
+    const footerLegal = footerGrid.querySelector('.legal');
     if (footerIntro) {
-      footerIntro.innerHTML = '<strong>HABRO RemoteApp</strong><p class="footer-project-copy">Proyecto en versión beta. Desarrollado de modo colaborativo para la integración a través del grupo Ebro TechLab en Telegram. La versión web y las funcionalidades actuales de HABRO han sido desarrolladas por Rafa Criado.</p><div class="footer-actions"><a class="footer-telegram primary" href="https://t.me/el_pedrajas" target="_blank" rel="noopener">Contactar por Telegram</a><a class="footer-telegram" href="https://t.me/+m0X9_yvOGphhYjQ0" target="_blank" rel="noopener">Grupo Ebro TechLab · Dudas y consultas</a></div>';
+      footerIntro.innerHTML = '<strong>HABRO RemoteApp</strong><p class="footer-project-copy">Proyecto comunitario e independiente desarrollado de modo colaborativo para la integración de EBRO AUTO en Home Assistant, dentro del grupo Ebro Tech Lab. La versión web y las funcionalidades actuales de HABRO han sido desarrolladas íntegramente por Rafa Criado para esta versión beta.</p><div class="footer-actions"><a class="footer-telegram primary" href="https://t.me/el_pedrjas" target="_blank" rel="noopener">' + telegramIcon + '<span>Escribir a @el_pedrjas</span></a><a class="footer-telegram" href="https://t.me/+m0X9_yvOGphhYjQ0" target="_blank" rel="noopener">' + telegramIcon + '<span>Entrar en Ebro Tech Lab</span></a></div>';
+    }
+    if (footerLegal) {
+      footerLegal.textContent = 'HABRO no es una aplicación oficial ni supervisada por EBRO SUV S.L. ni implica afiliación con la marca. EBRO y las marcas relacionadas pertenecen a sus respectivos titulares y no han participado en el desarrollo de ninguna de las funcionalidades actuales.';
     }
   }
 
