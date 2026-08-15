@@ -2,6 +2,17 @@
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const revealTargets = document.querySelectorAll('.reveal-scroll,.reveal-left,.reveal-right');
 
+  const storeSub = document.querySelector('.store-sub');
+  if (storeSub) storeSub.textContent = 'Aplicación web beta';
+
+  document.querySelectorAll('.store-stat').forEach(stat => {
+    const title = stat.querySelector('strong');
+    const copy = stat.querySelector('span');
+    if (title && copy && title.textContent.trim() === 'EBRO PHEV') {
+      copy.textContent = 'Control y telemetría disponibles para S900 y en desarrollo para otros modelos.';
+    }
+  });
+
   if (!reduceMotion && 'IntersectionObserver' in window) {
     try {
       document.documentElement.classList.add('motion-ready');
