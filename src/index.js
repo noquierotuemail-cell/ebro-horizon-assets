@@ -29,6 +29,8 @@ export default {
 };
 
 const VISITOR_COOKIE = "habro_chat_visitor";
+const CHATKIT_BACKEND_URL = "https://ebro-horizon-assets.onrender.com/chatkit";
+const CHATKIT_DOMAIN_KEY = "domain_pk_6a8168a3f250819492ae3c9a4df255c400ee8b3e878e05df";
 
 function applySecurityHeaders(headers) {
   headers.set("Strict-Transport-Security", "max-age=31536000");
@@ -75,23 +77,19 @@ function jsonResponse(payload, status = 200, extraHeaders = {}) {
 
 function chatkitConfig(request, env) {
   const visitor = visitorFromRequest(request);
-  const enabled = Boolean(
-    env.CHATKIT_BACKEND_URL &&
-    env.CHATKIT_DOMAIN_KEY &&
-    env.CHATKIT_BACKEND_TOKEN
-  );
+  const enabled = Boolean(env.CHATKIT_BACKEND_TOKEN);
   const headers = visitor.isNew ? { "Set-Cookie": visitorCookie(visitor.id) } : {};
 
   return jsonResponse({
     enabled,
     apiUrl: "/chatkit",
-    domainKey: enabled ? env.CHATKIT_DOMAIN_KEY : "",
+    domainKey: enabled ? CHATKIT_DOMAIN_KEY : "",
     assistantName: "HABRO Assistant"
   }, 200, headers);
 }
 
 async function proxyChatKit(request, env, incomingUrl) {
-  if (!env.CHATKIT_BACKEND_URL || !env.CHATKIT_BACKEND_TOKEN) {
+  if (!env.CHATKIT_BACKEND_TOKEN) {
     return jsonResponse({
       error: "chatkit_not_configured",
       message: "HABRO Assistant todavía no tiene un backend configurado."
@@ -99,7 +97,7 @@ async function proxyChatKit(request, env, incomingUrl) {
   }
 
   const visitor = visitorFromRequest(request);
-  const target = new URL(env.CHATKIT_BACKEND_URL);
+  const target = new URL(CHATKIT_BACKEND_URL);
   target.search = incomingUrl.search;
 
   const headers = new Headers(request.headers);
