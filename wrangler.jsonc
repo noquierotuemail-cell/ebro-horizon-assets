@@ -4,6 +4,10 @@
   "main": "src/index.js",
   "compatibility_date": "2026-08-14",
   "workers_dev": true,
+  "vars": {
+    "CHATKIT_BACKEND_URL": "https://ebro-horizon-assets.onrender.com/chatkit",
+    "CHATKIT_DOMAIN_KEY": "domain_pk_6a8168a3f250819492ae3c9a4df255c400ee8b3e878e05df"
+  },
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
