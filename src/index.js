@@ -39,6 +39,7 @@ export default {
 const VISITOR_COOKIE = "habro_chat_visitor";
 const CHATKIT_BACKEND_URL = "https://ebro-horizon-assets.onrender.com/chatkit";
 const CHATKIT_DOMAIN_KEY = "domain_pk_6a8168a3f250819492ae3c9a4df255c400ee8b3e878e05df";
+const FAVICON_VERSION = "webhabro-20260816";
 
 function countryFromRequest(request) {
   return String((request.cf && request.cf.country) || request.headers.get("CF-IPCountry") || "").toUpperCase();
@@ -63,11 +64,19 @@ function injectChatKit(response, request) {
   const country = JSON.stringify(geo.country);
   const language = JSON.stringify(geo.language);
   const geoBootstrap = `<script>(()=>{const country=${country};const language=${language};window.__HABRO_GEO__={country,language};try{const params=new URLSearchParams(location.search);const explicit=params.get('lang');if(explicit==='es'||explicit==='pt'){localStorage.setItem('habro-language-choice','manual');localStorage.setItem('habro-language',explicit);}else if(localStorage.getItem('habro-language-choice')!=='manual'){localStorage.setItem('habro-language',language);}}catch(e){}document.addEventListener('click',e=>{const t=e.target&&e.target.closest?e.target.closest('.language-toggle'):null;if(t){try{localStorage.setItem('habro-language-choice','manual');}catch(err){}}},true);})();</script>`;
+  const faviconMarkup = `<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=${FAVICON_VERSION}"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=${FAVICON_VERSION}"><link rel="manifest" href="/site.webmanifest?v=${FAVICON_VERSION}">`;
 
   const rewritten = new HTMLRewriter()
+    .on('link[rel="icon"]', {
+      element(element) {
+        element.setAttribute("href", `/favicon.ico?v=${FAVICON_VERSION}`);
+        element.setAttribute("type", "image/x-icon");
+      }
+    })
     .on("head", {
       element(element) {
         element.append(geoBootstrap, { html: true });
+        element.append(faviconMarkup, { html: true });
         element.append('<link rel="stylesheet" href="/css/chatkit.css">', { html: true });
       }
     })
