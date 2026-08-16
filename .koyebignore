@@ -1,0 +1,13 @@
+# Do not redeploy the ChatKit backend for landing-only changes.
+README.md
+assets/
+css/
+js/
+src/
+index.html
+wrangler.jsonc
+.assetsignore
+
+# Documentation/config examples do not change the running backend.
+chatkit-backend/README.md
+chatkit-backend/.env.example
