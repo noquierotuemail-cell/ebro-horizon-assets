@@ -75,7 +75,11 @@ function jsonResponse(payload, status = 200, extraHeaders = {}) {
 
 function chatkitConfig(request, env) {
   const visitor = visitorFromRequest(request);
-  const enabled = Boolean(env.CHATKIT_BACKEND_URL && env.CHATKIT_DOMAIN_KEY);
+  const enabled = Boolean(
+    env.CHATKIT_BACKEND_URL &&
+    env.CHATKIT_DOMAIN_KEY &&
+    env.CHATKIT_BACKEND_TOKEN
+  );
   const headers = visitor.isNew ? { "Set-Cookie": visitorCookie(visitor.id) } : {};
 
   return jsonResponse({
@@ -87,7 +91,7 @@ function chatkitConfig(request, env) {
 }
 
 async function proxyChatKit(request, env, incomingUrl) {
-  if (!env.CHATKIT_BACKEND_URL) {
+  if (!env.CHATKIT_BACKEND_URL || !env.CHATKIT_BACKEND_TOKEN) {
     return jsonResponse({
       error: "chatkit_not_configured",
       message: "HABRO Assistant todavía no tiene un backend configurado."
@@ -99,8 +103,17 @@ async function proxyChatKit(request, env, incomingUrl) {
   target.search = incomingUrl.search;
 
   const headers = new Headers(request.headers);
-  ["host", "cookie", "cf-connecting-ip", "cf-ray", "cf-worker", "x-forwarded-proto"].forEach(name => headers.delete(name));
+  [
+    "host",
+    "cookie",
+    "cf-connecting-ip",
+    "cf-ray",
+    "cf-worker",
+    "x-forwarded-proto",
+    "x-habro-backend-token"
+  ].forEach(name => headers.delete(name));
   headers.set("X-HABRO-Visitor-ID", visitor.id);
+  headers.set("X-HABRO-Backend-Token", env.CHATKIT_BACKEND_TOKEN);
   const localeHeader = request.headers.get("x-habro-locale") || "es";
   headers.set("X-HABRO-Locale", localeHeader.toLowerCase().startsWith("pt") ? "pt" : "es");
 
