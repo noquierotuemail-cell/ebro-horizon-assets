@@ -3,15 +3,19 @@
   root.className = 'habro-chat';
   root.innerHTML = `
     <button class="habro-chat-launcher" type="button" aria-expanded="false" aria-controls="habro-chat-panel">
-      <img src="/assets/app-icon.webp" alt="" width="56" height="56">
+      <img src="/assets/bro-assistant.webp" alt="" width="56" height="56">
       <span class="habro-chat-status" aria-hidden="true"></span>
       <span class="habro-chat-label">Asistente</span>
+    </button>
+    <button class="habro-chat-welcome" type="button" hidden aria-label="Abrir HABRO Assistant">
+      <strong class="habro-chat-welcome-title">Soy tu BRO</strong>
+      <span class="habro-chat-welcome-text">Estoy aquí para lo que necesites.</span>
     </button>
     <div class="habro-chat-backdrop" hidden></div>
     <section class="habro-chat-panel" id="habro-chat-panel" aria-hidden="true" aria-label="HABRO Assistant">
       <header class="habro-chat-header">
         <div class="habro-chat-identity">
-          <img src="/assets/app-icon.webp" alt="" width="38" height="38">
+          <img src="/assets/bro-assistant.webp" alt="" width="38" height="38">
           <div><strong>HABRO Assistant</strong><span class="habro-chat-subtitle">Asistente de soporte</span></div>
         </div>
         <button class="habro-chat-close" type="button" aria-label="Cerrar asistente">
@@ -23,6 +27,9 @@
   document.body.appendChild(root);
 
   const launcher = root.querySelector('.habro-chat-launcher');
+  const welcome = root.querySelector('.habro-chat-welcome');
+  const welcomeTitle = root.querySelector('.habro-chat-welcome-title');
+  const welcomeText = root.querySelector('.habro-chat-welcome-text');
   const panel = root.querySelector('.habro-chat-panel');
   const backdrop = root.querySelector('.habro-chat-backdrop');
   const closeButton = root.querySelector('.habro-chat-close');
@@ -31,11 +38,14 @@
   const launcherLabel = root.querySelector('.habro-chat-label');
   const subtitle = root.querySelector('.habro-chat-subtitle');
 
+  const WELCOME_KEY = 'habro-bro-welcome-seen-v1';
+  const CHIRP_KEY = 'habro-bro-chirp-played-v1';
   let config = null;
   let configPromise = null;
   let chatkit = null;
   let chatkitScriptPromise = null;
   let open = false;
+  let welcomeTimer = null;
 
   const copy = () => {
     const portuguese = document.documentElement.lang.toLowerCase().startsWith('pt');
@@ -44,6 +54,8 @@
       close: 'Fechar assistente',
       label: 'Assistente',
       subtitle: 'Assistente de suporte',
+      welcomeTitle: 'Sou o teu BRO',
+      welcomeText: 'Estou aqui para o que precisares.',
       greeting: 'Como posso ajudar com a HABRO?',
       placeholder: 'Escreva a sua dúvida sobre a HABRO…',
       unavailableTitle: 'HABRO Assistant está quase pronto',
@@ -64,6 +76,8 @@
       close: 'Cerrar asistente',
       label: 'Asistente',
       subtitle: 'Asistente de soporte',
+      welcomeTitle: 'Soy tu BRO',
+      welcomeText: 'Estoy aquí para lo que necesites.',
       greeting: '¿En qué puedo ayudarte con HABRO?',
       placeholder: 'Escribe tu duda sobre HABRO…',
       unavailableTitle: 'HABRO Assistant está casi listo',
@@ -88,9 +102,81 @@
     const t = copy();
     launcher.setAttribute('aria-label', t.open);
     launcherLabel.textContent = t.label;
+    welcome.setAttribute('aria-label', t.open);
+    welcomeTitle.textContent = t.welcomeTitle;
+    welcomeText.textContent = t.welcomeText;
     closeButton.setAttribute('aria-label', t.close);
     subtitle.textContent = t.subtitle;
     panel.setAttribute('aria-label', 'HABRO Assistant');
+  };
+
+  const hasLocalFlag = key => {
+    try { return localStorage.getItem(key) === '1'; } catch (error) { return false; }
+  };
+
+  const setLocalFlag = key => {
+    try { localStorage.setItem(key, '1'); } catch (error) {}
+  };
+
+  const hideWelcome = () => {
+    if (welcomeTimer) {
+      window.clearTimeout(welcomeTimer);
+      welcomeTimer = null;
+    }
+    root.classList.remove('is-welcoming');
+    welcome.classList.remove('is-visible');
+    window.setTimeout(() => {
+      if (!welcome.classList.contains('is-visible')) welcome.hidden = true;
+    }, 240);
+  };
+
+  const showWelcomeOnce = () => {
+    if (hasLocalFlag(WELCOME_KEY) || open) return;
+    setLocalFlag(WELCOME_KEY);
+    window.setTimeout(() => {
+      if (open) return;
+      welcome.hidden = false;
+      root.classList.add('is-welcoming');
+      requestAnimationFrame(() => welcome.classList.add('is-visible'));
+      welcomeTimer = window.setTimeout(hideWelcome, 8500);
+    }, 900);
+  };
+
+  const playBroChirpOnce = () => {
+    if (hasLocalFlag(CHIRP_KEY)) return;
+    setLocalFlag(CHIRP_KEY);
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextCtor) return;
+
+    try {
+      const ctx = new AudioContextCtor();
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(0.0001, ctx.currentTime);
+      master.gain.exponentialRampToValueAtTime(0.055, ctx.currentTime + 0.012);
+      master.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.29);
+      master.connect(ctx.destination);
+
+      [
+        { at: 0, freq: 720, duration: 0.075 },
+        { at: 0.085, freq: 1040, duration: 0.065 },
+        { at: 0.16, freq: 830, duration: 0.085 }
+      ].forEach(note => {
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(note.freq, ctx.currentTime + note.at);
+        oscillator.frequency.exponentialRampToValueAtTime(note.freq * 1.08, ctx.currentTime + note.at + note.duration);
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime + note.at);
+        gain.gain.exponentialRampToValueAtTime(0.7, ctx.currentTime + note.at + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + note.at + note.duration);
+        oscillator.connect(gain);
+        gain.connect(master);
+        oscillator.start(ctx.currentTime + note.at);
+        oscillator.stop(ctx.currentTime + note.at + note.duration + 0.015);
+      });
+
+      window.setTimeout(() => ctx.close().catch(() => {}), 500);
+    } catch (error) {}
   };
 
   const getConfig = () => {
@@ -103,6 +189,7 @@
         .then(value => {
           config = value;
           statusDot.classList.toggle('is-ready', Boolean(value.enabled));
+          if (value.enabled) showWelcomeOnce();
           return value;
         })
         .catch(error => {
@@ -123,7 +210,7 @@
     const t = copy();
     body.innerHTML = `
       <div class="habro-chat-state habro-chat-state--message">
-        <img src="/assets/app-icon.webp" alt="" width="68" height="68">
+        <img src="/assets/bro-assistant.webp" alt="" width="68" height="68">
         <h2>${error ? t.errorTitle : t.unavailableTitle}</h2>
         <p>${error ? t.errorBody : t.unavailableBody}</p>
         <div class="habro-chat-support-links">
@@ -204,6 +291,7 @@
 
   const setOpen = next => {
     open = Boolean(next);
+    if (open) hideWelcome();
     root.classList.toggle('is-open', open);
     panel.setAttribute('aria-hidden', open ? 'false' : 'true');
     launcher.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -217,7 +305,16 @@
     }
   };
 
-  launcher.addEventListener('click', () => setOpen(!open));
+  const openWithChirp = () => {
+    playBroChirpOnce();
+    setOpen(true);
+  };
+
+  launcher.addEventListener('click', () => {
+    if (open) setOpen(false);
+    else openWithChirp();
+  });
+  welcome.addEventListener('click', openWithChirp);
   closeButton.addEventListener('click', () => setOpen(false));
   backdrop.addEventListener('click', () => setOpen(false));
   document.addEventListener('keydown', event => {
