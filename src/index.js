@@ -21,6 +21,11 @@ export default {
       return proxyChatKit(request, env, url);
     }
 
+    const screenshotSource = SCREENSHOT_ASSETS[url.pathname];
+    if (screenshotSource) {
+      return serveScreenshot(request, env, screenshotSource);
+    }
+
     const assetResponse = await env.ASSETS.fetch(request);
     const contentType = assetResponse.headers.get("content-type") || "";
     const response = contentType.includes("text/html")
@@ -40,6 +45,14 @@ const VISITOR_COOKIE = "habro_chat_visitor";
 const CHATKIT_BACKEND_URL = "https://ebro-horizon-assets.onrender.com/chatkit";
 const CHATKIT_DOMAIN_KEY = "domain_pk_6a8168a3f250819492ae3c9a4df255c400ee8b3e878e05df";
 const FAVICON_VERSION = "webhabro-20260816";
+const SCREENSHOT_VERSION = "habro-ui-20260817";
+const SCREENSHOT_ASSETS = {
+  "/assets/inicio-alert.webp": "/assets/inicio-alert-new.b64",
+  "/assets/energia.webp": "/assets/energia-new.b64",
+  "/assets/clima.webp": "/assets/clima-new.b64",
+  "/assets/mantenimiento.webp": "/assets/mantenimiento-new.b64",
+  "/assets/solar.webp": "/assets/solar-new.b64"
+};
 
 function countryFromRequest(request) {
   return String((request.cf && request.cf.country) || request.headers.get("CF-IPCountry") || "").toUpperCase();
@@ -59,18 +72,58 @@ function applySecurityHeaders(headers) {
   headers.set("X-Content-Type-Options", "nosniff");
 }
 
+async function serveScreenshot(request, env, base64Path) {
+  const currentUrl = new URL(request.url);
+  const storedUrl = new URL(base64Path, currentUrl.origin);
+  const stored = await env.ASSETS.fetch(new Request(storedUrl.toString(), {
+    method: "GET",
+    headers: request.headers
+  }));
+
+  if (!stored.ok) {
+    const response = new Response(stored.body, stored);
+    applySecurityHeaders(response.headers);
+    return response;
+  }
+
+  const encoded = (await stored.text()).trim();
+  const binary = atob(encoded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  const headers = new Headers();
+  headers.set("Content-Type", "image/webp");
+  headers.set("Cache-Control", "public, max-age=31536000, immutable");
+  headers.set("ETag", `\"${SCREENSHOT_VERSION}-${base64Path}\"`);
+  applySecurityHeaders(headers);
+  return new Response(request.method === "HEAD" ? null : bytes, { status: 200, headers });
+}
+
 function injectChatKit(response, request) {
   const geo = localeFromRequest(request);
   const country = JSON.stringify(geo.country);
   const language = JSON.stringify(geo.language);
   const geoBootstrap = `<script>(()=>{const country=${country};const language=${language};window.__HABRO_GEO__={country,language};try{const params=new URLSearchParams(location.search);const explicit=params.get('lang');if(explicit==='es'||explicit==='pt'){localStorage.setItem('habro-language-choice','manual');localStorage.setItem('habro-language',explicit);}else if(localStorage.getItem('habro-language-choice')!=='manual'){localStorage.setItem('habro-language',language);}}catch(e){}document.addEventListener('click',e=>{const t=e.target&&e.target.closest?e.target.closest('.language-toggle'):null;if(t){try{localStorage.setItem('habro-language-choice','manual');}catch(err){}}},true);})();</script>`;
   const faviconMarkup = `<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=${FAVICON_VERSION}"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=${FAVICON_VERSION}"><link rel="manifest" href="/site.webmanifest?v=${FAVICON_VERSION}">`;
+  const maintenanceFix = `<script>window.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('img').forEach(img=>{const src=img.getAttribute('src')||'';if(src.includes('mantenimiento.webp')){img.src='/assets/mantenimiento.webp?v=${SCREENSHOT_VERSION}';img.removeAttribute('srcset');}});});</script>`;
 
   const rewritten = new HTMLRewriter()
     .on('link[rel="icon"]', {
       element(element) {
         element.setAttribute("href", `/favicon.ico?v=${FAVICON_VERSION}`);
         element.setAttribute("type", "image/x-icon");
+      }
+    })
+    .on("img", {
+      element(element) {
+        const src = element.getAttribute("src") || "";
+        const normalized = src.startsWith("/") ? src : `/${src}`;
+        if (SCREENSHOT_ASSETS[normalized]) {
+          element.setAttribute("src", `${normalized}?v=${SCREENSHOT_VERSION}`);
+          element.removeAttribute("srcset");
+        }
       }
     })
     .on("head", {
@@ -83,6 +136,7 @@ function injectChatKit(response, request) {
     .on("body", {
       element(element) {
         element.append('<script src="/js/chatkit-launcher.js" defer></script>', { html: true });
+        element.append(maintenanceFix, { html: true });
       }
     })
     .transform(response);
