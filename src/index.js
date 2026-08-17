@@ -21,6 +21,10 @@ export default {
       return proxyChatKit(request, env, url);
     }
 
+    if (url.pathname === "/assets/inicio-first.webp") {
+      return serveMultipartScreenshot(request, env, FIRST_PHONE_PARTS);
+    }
+
     const screenshotSource = SCREENSHOT_ASSETS[url.pathname];
     if (screenshotSource) {
       return serveScreenshot(request, env, screenshotSource);
@@ -46,6 +50,17 @@ const CHATKIT_BACKEND_URL = "https://ebro-horizon-assets.onrender.com/chatkit";
 const CHATKIT_DOMAIN_KEY = "domain_pk_6a8168a3f250819492ae3c9a4df255c400ee8b3e878e05df";
 const FAVICON_VERSION = "webhabro-20260816";
 const SCREENSHOT_VERSION = "habro-ui-20260817-1008";
+const FIRST_PHONE_VERSION = "inicio-first-20260817-1036";
+const FIRST_PHONE_PARTS = [
+  "/assets/inicio-first-0.b64",
+  "/assets/inicio-first-1.b64",
+  "/assets/inicio-first-2.b64",
+  "/assets/inicio-first-3.b64",
+  "/assets/inicio-first-4.b64",
+  "/assets/inicio-first-5.b64",
+  "/assets/inicio-first-6.b64",
+  "/assets/inicio-first-7.b64"
+];
 const SCREENSHOT_ASSETS = {
   "/assets/inicio-alert.webp": "/assets/inicio-alert-new.b64",
   "/assets/energia.webp": "/assets/energia-new.b64",
@@ -72,6 +87,39 @@ function applySecurityHeaders(headers) {
   headers.set("X-Content-Type-Options", "nosniff");
 }
 
+async function decodeBase64Webp(encoded, request, cacheControl = "no-store, max-age=0") {
+  const binary = atob(encoded.replace(/\s+/g, ""));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  const headers = new Headers();
+  headers.set("Content-Type", "image/webp");
+  headers.set("Content-Length", String(bytes.byteLength));
+  headers.set("Cache-Control", cacheControl);
+  applySecurityHeaders(headers);
+  return new Response(request.method === "HEAD" ? null : bytes, { status: 200, headers });
+}
+
+async function serveMultipartScreenshot(request, env, partPaths) {
+  const currentUrl = new URL(request.url);
+  const parts = [];
+
+  for (const partPath of partPaths) {
+    const storedUrl = new URL(partPath, currentUrl.origin);
+    const stored = await env.ASSETS.fetch(new Request(storedUrl.toString(), { method: "GET" }));
+    if (!stored.ok) {
+      const response = new Response(stored.body, stored);
+      applySecurityHeaders(response.headers);
+      return response;
+    }
+    parts.push(await stored.text());
+  }
+
+  return decodeBase64Webp(parts.join(""), request, "public, max-age=3600");
+}
+
 async function serveScreenshot(request, env, base64Path) {
   const currentUrl = new URL(request.url);
   const storedUrl = new URL(base64Path, currentUrl.origin);
@@ -88,21 +136,7 @@ async function serveScreenshot(request, env, base64Path) {
     return response;
   }
 
-  const encoded = (await stored.text()).replace(/\s+/g, "");
-  const binary = atob(encoded);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  const headers = new Headers();
-  headers.set("Content-Type", "image/webp");
-  headers.set("Content-Length", String(bytes.byteLength));
-  headers.set("Cache-Control", "no-store, max-age=0");
-  headers.set("Pragma", "no-cache");
-  headers.set("Expires", "0");
-  applySecurityHeaders(headers);
-  return new Response(request.method === "HEAD" ? null : bytes, { status: 200, headers });
+  return decodeBase64Webp(await stored.text(), request);
 }
 
 function injectChatKit(response, request) {
@@ -120,10 +154,18 @@ function injectChatKit(response, request) {
         element.setAttribute("type", "image/x-icon");
       }
     })
+    .on("figure.phone.one img", {
+      element(element) {
+        element.setAttribute("src", `/assets/inicio-first.webp?v=${FIRST_PHONE_VERSION}`);
+        element.setAttribute("width", "1206");
+        element.setAttribute("height", "2004");
+        element.removeAttribute("srcset");
+      }
+    })
     .on("img", {
       element(element) {
         const src = element.getAttribute("src") || "";
-        const normalized = src.startsWith("/") ? src : `/${src}`;
+        const normalized = src.startsWith("/") ? src.split("?")[0] : `/${src.split("?")[0]}`;
         if (SCREENSHOT_ASSETS[normalized]) {
           element.setAttribute("src", `${normalized}?v=${SCREENSHOT_VERSION}`);
           element.removeAttribute("srcset");
