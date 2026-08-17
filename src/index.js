@@ -45,7 +45,7 @@ const VISITOR_COOKIE = "habro_chat_visitor";
 const CHATKIT_BACKEND_URL = "https://ebro-horizon-assets.onrender.com/chatkit";
 const CHATKIT_DOMAIN_KEY = "domain_pk_6a8168a3f250819492ae3c9a4df255c400ee8b3e878e05df";
 const FAVICON_VERSION = "webhabro-20260816";
-const SCREENSHOT_VERSION = "habro-ui-20260817-0945";
+const SCREENSHOT_VERSION = "habro-ui-20260817-1008";
 const SCREENSHOT_ASSETS = {
   "/assets/inicio-alert.webp": "/assets/inicio-alert-new.b64",
   "/assets/energia.webp": "/assets/energia-new.b64",
@@ -75,9 +75,11 @@ function applySecurityHeaders(headers) {
 async function serveScreenshot(request, env, base64Path) {
   const currentUrl = new URL(request.url);
   const storedUrl = new URL(base64Path, currentUrl.origin);
+
+  // Important: do not forward Range / conditional image headers to the Base64
+  // source asset. A partial Base64 response decodes into a corrupt WebP.
   const stored = await env.ASSETS.fetch(new Request(storedUrl.toString(), {
-    method: "GET",
-    headers: request.headers
+    method: "GET"
   }));
 
   if (!stored.ok) {
@@ -86,7 +88,7 @@ async function serveScreenshot(request, env, base64Path) {
     return response;
   }
 
-  const encoded = (await stored.text()).trim();
+  const encoded = (await stored.text()).replace(/\s+/g, "");
   const binary = atob(encoded);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i += 1) {
@@ -95,8 +97,10 @@ async function serveScreenshot(request, env, base64Path) {
 
   const headers = new Headers();
   headers.set("Content-Type", "image/webp");
-  headers.set("Cache-Control", "public, max-age=31536000, immutable");
-  headers.set("ETag", `\"${SCREENSHOT_VERSION}-${base64Path}\"`);
+  headers.set("Content-Length", String(bytes.byteLength));
+  headers.set("Cache-Control", "no-store, max-age=0");
+  headers.set("Pragma", "no-cache");
+  headers.set("Expires", "0");
   applySecurityHeaders(headers);
   return new Response(request.method === "HEAD" ? null : bytes, { status: 200, headers });
 }
