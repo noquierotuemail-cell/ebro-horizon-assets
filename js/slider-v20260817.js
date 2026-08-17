@@ -1,16 +1,18 @@
 (() => {
   const AUTOPLAY_MS = 1500;
+  const VERSION = '20260817-2212';
   const frame = document.getElementById('interactive-device');
   if (!frame) return;
+
   const viewport = frame.querySelector('.device-viewport');
   if (!viewport) return;
 
   const screens = [
-    { src: 'assets/slider-01-inicio-20260817-2204.webp', alt: 'Inicio: estado del vehículo, autonomía y accesos remotos' },
-    { src: 'assets/slider-02-energia-20260817-2204.webp', alt: 'Energía: carga, consumo y telemetría de batería' },
-    { src: 'assets/slider-03-clima-20260817-2204.webp', alt: 'Climatización: consigna, modos rápidos y confort del vehículo' },
-    { src: 'assets/slider-04-vehiculo-20260817-2204.webp', alt: 'Vehículo: mantenimiento, neumáticos, accesos y avisos' },
-    { src: 'assets/slider-05-mantenimiento-20260817-2204.webp', alt: 'Mantenimiento: kilometraje, intervalo y próxima revisión' }
+    { b64: `assets/slider-01-inicio-v3.b64.txt?v=${VERSION}`, alt: 'Inicio: estado del vehículo, autonomía y accesos remotos' },
+    { b64: `assets/slider-02-energia-v3.b64.txt?v=${VERSION}`, alt: 'Energía: carga, consumo y telemetría de batería' },
+    { b64: `assets/slider-03-clima-v3.b64.txt?v=${VERSION}`, alt: 'Climatización: consigna, modos rápidos y confort del vehículo' },
+    { b64: `assets/slider-04-vehiculo-20260817.webp.b64.txt?v=${VERSION}`, alt: 'Vehículo: mantenimiento, neumáticos, accesos y avisos' },
+    { b64: `assets/slider-05-mantenimiento-20260817.webp.b64.txt?v=${VERSION}`, alt: 'Mantenimiento: kilometraje, intervalo y próxima revisión' }
   ];
 
   viewport.querySelectorAll('.device-screen').forEach(node => node.remove());
@@ -21,12 +23,13 @@
     const img = document.createElement('img');
     img.alt = item.alt;
     img.decoding = 'async';
-    img.loading = 'eager';
-    if (index === 0) img.fetchPriority = 'high';
-    img.src = item.src;
+    img.loading = index === 0 ? 'eager' : 'lazy';
+    img.style.objectFit = 'contain';
+    img.style.objectPosition = 'center top';
+    img.style.background = '#05070b';
     screen.appendChild(img);
     viewport.insertBefore(screen, anchor);
-    return { screen, img };
+    return { screen, img, item };
   });
 
   const renderLabels = () => {
@@ -63,15 +66,33 @@
       timer = null;
     }
   };
+
   const start = () => {
     stop();
-    if (!document.hidden) timer = setInterval(() => show(current + 1), AUTOPLAY_MS);
+    if (document.hidden) return;
+    timer = setInterval(() => show(current + 1), AUTOPLAY_MS);
   };
+
+  const loadNode = ({ img, item }) => fetch(item.b64, { cache: 'no-store' })
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP ${response.status} loading ${item.b64}`);
+      return response.text();
+    })
+    .then(base64 => {
+      const data = base64.trim();
+      if (!data.startsWith('UklGR')) throw new Error(`Invalid WebP data in ${item.b64}`);
+      img.src = `data:image/webp;base64,${data}`;
+      return img.decode ? img.decode().catch(() => undefined) : undefined;
+    });
+
+  const firstReady = loadNode(nodes[0]);
+  const restReady = Promise.allSettled(nodes.slice(1).map(loadNode));
 
   frame.addEventListener('touchstart', event => {
     const touch = event.changedTouches && event.changedTouches[0];
     if (touch) startX = touch.clientX;
   }, { passive: true });
+
   frame.addEventListener('touchend', event => {
     const touch = event.changedTouches && event.changedTouches[0];
     if (startX === null || !touch) return;
@@ -82,7 +103,11 @@
     start();
   }, { passive: true });
 
-  [['.nav-hit-inicio', 0], ['.nav-hit-energia', 1], ['.nav-hit-clima', 2]].forEach(([selector, index]) => {
+  [
+    ['.nav-hit-inicio', 0],
+    ['.nav-hit-energia', 1],
+    ['.nav-hit-clima', 2]
+  ].forEach(([selector, index]) => {
     const hit = frame.querySelector(selector);
     if (hit) hit.addEventListener('click', event => {
       event.preventDefault();
@@ -90,6 +115,7 @@
       start();
     });
   });
+
   const more = frame.querySelector('.nav-hit-solar');
   if (more) more.addEventListener('click', event => {
     event.preventDefault();
@@ -98,12 +124,17 @@
   });
 
   document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
-  show(0);
 
-  const ready = Promise.allSettled(nodes.map(({ img }) => new Promise(resolve => {
-    if (img.complete) return resolve();
-    img.addEventListener('load', resolve, { once: true });
-    img.addEventListener('error', resolve, { once: true });
-  })));
-  Promise.race([ready, new Promise(resolve => setTimeout(resolve, 800))]).finally(start);
+  show(0);
+  firstReady
+    .then(start)
+    .catch(error => {
+      console.error('HABRO slider first image failed', error);
+      start();
+    });
+  restReady.then(results => {
+    results.forEach(result => {
+      if (result.status === 'rejected') console.error('HABRO slider image failed', result.reason);
+    });
+  });
 })();
