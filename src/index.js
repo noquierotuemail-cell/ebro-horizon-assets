@@ -49,7 +49,7 @@ const VISITOR_COOKIE = "habro_chat_visitor";
 const CHATKIT_BACKEND_URL = "https://ebro-horizon-assets.onrender.com/chatkit";
 const CHATKIT_DOMAIN_KEY = "domain_pk_6a8168a3f250819492ae3c9a4df255c400ee8b3e878e05df";
 const FAVICON_VERSION = "webhabro-20260816";
-const SCREENSHOT_VERSION = "habro-ui-20260817-1008";
+const SCREENSHOT_VERSION = "habro-ui-20260817-1246";
 const FIRST_PHONE_VERSION = "inicio-first-20260817-1036";
 const FIRST_PHONE_PARTS = [
   "/assets/inicio-first-0.b64",
@@ -156,9 +156,35 @@ function injectChatKit(response, request) {
     })
     .on("figure.phone.one img", {
       element(element) {
-        element.setAttribute("src", `/assets/inicio-first.webp?v=${FIRST_PHONE_VERSION}`);
+        element.setAttribute("src", `/assets/inicio-alert.webp?v=${SCREENSHOT_VERSION}`);
         element.setAttribute("width", "1206");
         element.setAttribute("height", "2004");
+        element.setAttribute("alt", "Pantalla de inicio de HABRO RemoteApp");
+        element.removeAttribute("srcset");
+      }
+    })
+    .on("figure.phone.two img", {
+      element(element) {
+        element.setAttribute("src", `/assets/energia.webp?v=${SCREENSHOT_VERSION}`);
+        element.setAttribute("width", "1206");
+        element.setAttribute("height", "1970");
+        element.setAttribute("alt", "Pantalla de energía de HABRO RemoteApp");
+        element.removeAttribute("srcset");
+      }
+    })
+    .on("figure.phone.three img", {
+      element(element) {
+        element.setAttribute("src", `/assets/clima.webp?v=${SCREENSHOT_VERSION}`);
+        element.setAttribute("width", "1206");
+        element.setAttribute("height", "2207");
+        element.setAttribute("alt", "Pantalla de climatización de HABRO RemoteApp");
+        element.removeAttribute("srcset");
+      }
+    })
+    .on(".device-screen.screen-3 img", {
+      element(element) {
+        element.setAttribute("src", `/assets/solar.webp?v=${SCREENSHOT_VERSION}`);
+        element.setAttribute("alt", "Vehículo: mantenimiento, neumáticos, accesos y avisos");
         element.removeAttribute("srcset");
       }
     })
