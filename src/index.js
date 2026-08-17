@@ -21,25 +21,17 @@ export default {
       return proxyChatKit(request, env, url);
     }
 
-    if (url.pathname === "/assets/inicio-first.webp") {
-      return serveMultipartScreenshot(request, env, FIRST_PHONE_PARTS);
-    }
-
-    const screenshotSource = SCREENSHOT_ASSETS[url.pathname];
-    if (screenshotSource) {
-      return serveScreenshot(request, env, screenshotSource);
-    }
-
     const assetResponse = await env.ASSETS.fetch(request);
     const contentType = assetResponse.headers.get("content-type") || "";
     const response = contentType.includes("text/html")
-      ? injectChatKit(assetResponse, request)
+      ? injectSite(assetResponse, request)
       : new Response(assetResponse.body, assetResponse);
 
     if (contentType.includes("text/html")) {
       response.headers.set("Cache-Control", "private, no-store");
       response.headers.set("Vary", "CF-IPCountry");
     }
+
     applySecurityHeaders(response.headers);
     return response;
   }
@@ -49,25 +41,15 @@ const VISITOR_COOKIE = "habro_chat_visitor";
 const CHATKIT_BACKEND_URL = "https://ebro-horizon-assets.onrender.com/chatkit";
 const CHATKIT_DOMAIN_KEY = "domain_pk_6a8168a3f250819492ae3c9a4df255c400ee8b3e878e05df";
 const FAVICON_VERSION = "webhabro-20260816";
-const SCREENSHOT_VERSION = "habro-ui-20260817-1246";
-const FIRST_PHONE_VERSION = "inicio-first-20260817-1036";
-const FIRST_PHONE_PARTS = [
-  "/assets/inicio-first-0.b64",
-  "/assets/inicio-first-1.b64",
-  "/assets/inicio-first-2.b64",
-  "/assets/inicio-first-3.b64",
-  "/assets/inicio-first-4.b64",
-  "/assets/inicio-first-5.b64",
-  "/assets/inicio-first-6.b64",
-  "/assets/inicio-first-7.b64"
-];
-const SCREENSHOT_ASSETS = {
-  "/assets/inicio-alert.webp": "/assets/inicio-alert-new.b64",
-  "/assets/energia.webp": "/assets/energia-new.b64",
-  "/assets/clima.webp": "/assets/clima-new.b64",
-  "/assets/mantenimiento.webp": "/assets/mantenimiento-new.b64",
-  "/assets/solar.webp": "/assets/solar-new.b64"
-};
+const SCREENSHOT_VERSION = "habro-ui-20260817-static-1";
+const SCREENSHOT_PATHS = new Set([
+  "/assets/inicio-alert.webp",
+  "/assets/energia.webp",
+  "/assets/clima.webp",
+  "/assets/mantenimiento.webp",
+  "/assets/solar.webp",
+  "/assets/vehiculo.webp"
+]);
 
 function countryFromRequest(request) {
   return String((request.cf && request.cf.country) || request.headers.get("CF-IPCountry") || "").toUpperCase();
@@ -87,65 +69,12 @@ function applySecurityHeaders(headers) {
   headers.set("X-Content-Type-Options", "nosniff");
 }
 
-async function decodeBase64Webp(encoded, request, cacheControl = "no-store, max-age=0") {
-  const binary = atob(encoded.replace(/\s+/g, ""));
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  const headers = new Headers();
-  headers.set("Content-Type", "image/webp");
-  headers.set("Content-Length", String(bytes.byteLength));
-  headers.set("Cache-Control", cacheControl);
-  applySecurityHeaders(headers);
-  return new Response(request.method === "HEAD" ? null : bytes, { status: 200, headers });
-}
-
-async function serveMultipartScreenshot(request, env, partPaths) {
-  const currentUrl = new URL(request.url);
-  const parts = [];
-
-  for (const partPath of partPaths) {
-    const storedUrl = new URL(partPath, currentUrl.origin);
-    const stored = await env.ASSETS.fetch(new Request(storedUrl.toString(), { method: "GET" }));
-    if (!stored.ok) {
-      const response = new Response(stored.body, stored);
-      applySecurityHeaders(response.headers);
-      return response;
-    }
-    parts.push(await stored.text());
-  }
-
-  return decodeBase64Webp(parts.join(""), request, "public, max-age=3600");
-}
-
-async function serveScreenshot(request, env, base64Path) {
-  const currentUrl = new URL(request.url);
-  const storedUrl = new URL(base64Path, currentUrl.origin);
-
-  // Important: do not forward Range / conditional image headers to the Base64
-  // source asset. A partial Base64 response decodes into a corrupt WebP.
-  const stored = await env.ASSETS.fetch(new Request(storedUrl.toString(), {
-    method: "GET"
-  }));
-
-  if (!stored.ok) {
-    const response = new Response(stored.body, stored);
-    applySecurityHeaders(response.headers);
-    return response;
-  }
-
-  return decodeBase64Webp(await stored.text(), request);
-}
-
-function injectChatKit(response, request) {
+function injectSite(response, request) {
   const geo = localeFromRequest(request);
   const country = JSON.stringify(geo.country);
   const language = JSON.stringify(geo.language);
   const geoBootstrap = `<script>(()=>{const country=${country};const language=${language};window.__HABRO_GEO__={country,language};try{const params=new URLSearchParams(location.search);const explicit=params.get('lang');if(explicit==='es'||explicit==='pt'){localStorage.setItem('habro-language-choice','manual');localStorage.setItem('habro-language',explicit);}else if(localStorage.getItem('habro-language-choice')!=='manual'){localStorage.setItem('habro-language',language);}}catch(e){}document.addEventListener('click',e=>{const t=e.target&&e.target.closest?e.target.closest('.language-toggle'):null;if(t){try{localStorage.setItem('habro-language-choice','manual');}catch(err){}}},true);})();</script>`;
   const faviconMarkup = `<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=${FAVICON_VERSION}"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=${FAVICON_VERSION}"><link rel="manifest" href="/site.webmanifest?v=${FAVICON_VERSION}">`;
-  const maintenanceFix = `<script>window.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('img').forEach(img=>{const src=img.getAttribute('src')||'';if(src.includes('mantenimiento.webp')){img.src='/assets/mantenimiento.webp?v=${SCREENSHOT_VERSION}';img.removeAttribute('srcset');}});});</script>`;
 
   const rewritten = new HTMLRewriter()
     .on('link[rel="icon"]', {
@@ -181,18 +110,12 @@ function injectChatKit(response, request) {
         element.removeAttribute("srcset");
       }
     })
-    .on(".device-screen.screen-3 img", {
-      element(element) {
-        element.setAttribute("src", `/assets/solar.webp?v=${SCREENSHOT_VERSION}`);
-        element.setAttribute("alt", "Vehículo: mantenimiento, neumáticos, accesos y avisos");
-        element.removeAttribute("srcset");
-      }
-    })
     .on("img", {
       element(element) {
         const src = element.getAttribute("src") || "";
-        const normalized = src.startsWith("/") ? src.split("?")[0] : `/${src.split("?")[0]}`;
-        if (SCREENSHOT_ASSETS[normalized]) {
+        const base = src.split("?")[0];
+        const normalized = base.startsWith("/") ? base : `/${base}`;
+        if (SCREENSHOT_PATHS.has(normalized)) {
           element.setAttribute("src", `${normalized}?v=${SCREENSHOT_VERSION}`);
           element.removeAttribute("srcset");
         }
@@ -208,7 +131,6 @@ function injectChatKit(response, request) {
     .on("body", {
       element(element) {
         element.append('<script src="/js/chatkit-launcher.js" defer></script>', { html: true });
-        element.append(maintenanceFix, { html: true });
       }
     })
     .transform(response);
