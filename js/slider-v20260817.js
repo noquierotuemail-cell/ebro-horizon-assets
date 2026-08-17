@@ -7,11 +7,11 @@
   if (!viewport) return;
 
   const screens = [
-    { src: 'assets/slider-01-inicio-20260817.webp?v=20260817-2108', alt: 'Inicio: estado del vehículo, autonomía y accesos remotos' },
-    { src: 'assets/slider-02-energia-20260817.webp?v=20260817-2108', alt: 'Energía: carga, consumo y telemetría de batería' },
-    { src: 'assets/slider-03-clima-20260817.webp?v=20260817-2108', alt: 'Climatización: consigna, modos rápidos y confort del vehículo' },
-    { b64: 'assets/slider-04-vehiculo-20260817.webp.b64.txt?v=20260817-2108', alt: 'Vehículo: mantenimiento, neumáticos, accesos y avisos' },
-    { src: 'assets/slider-05-mantenimiento-20260817.webp?v=20260817-2108', alt: 'Mantenimiento: kilometraje, intervalo y próxima revisión' }
+    { src: 'assets/slider-01-inicio-20260817.webp?v=20260817-2115', alt: 'Inicio: estado del vehículo, autonomía y accesos remotos' },
+    { src: 'assets/slider-02-energia-20260817.webp?v=20260817-2115', alt: 'Energía: carga, consumo y telemetría de batería' },
+    { src: 'assets/slider-03-clima-20260817.webp?v=20260817-2115', alt: 'Climatización: consigna, modos rápidos y confort del vehículo' },
+    { b64: 'assets/slider-04-vehiculo-20260817.webp.b64.txt?v=20260817-2115', alt: 'Vehículo: mantenimiento, neumáticos, accesos y avisos' },
+    { src: 'assets/slider-05-mantenimiento-20260817.webp?v=20260817-2115', alt: 'Mantenimiento: kilometraje, intervalo y próxima revisión' }
   ];
 
   document.querySelectorAll('.device-screen').forEach(node => node.remove());
@@ -31,10 +31,19 @@
     return { screen, img, item };
   });
 
-  const title = document.querySelector('#pantallas .showcase-copy .section-title');
-  if (title) title.textContent = 'Una app. Cinco vistas esenciales.';
-  const points = document.querySelector('#pantallas .showcase-points');
-  if (points) points.innerHTML = '<span><b>01</b> Inicio</span><span><b>02</b> Energía</span><span><b>03</b> Climatización</span><span><b>04</b> Vehículo</span><span><b>05</b> Mantenimiento</span>';
+  const renderLabels = () => {
+    const pt = (document.documentElement.lang || '').toLowerCase().startsWith('pt');
+    const title = document.querySelector('#pantallas .showcase-copy .section-title');
+    if (title) title.textContent = pt ? 'Uma app. Cinco vistas essenciais.' : 'Una app. Cinco vistas esenciales.';
+    const points = document.querySelector('#pantallas .showcase-points');
+    if (points) {
+      points.innerHTML = pt
+        ? '<span><b>01</b> Início</span><span><b>02</b> Energia</span><span><b>03</b> Climatização</span><span><b>04</b> Veículo</span><span><b>05</b> Manutenção</span>'
+        : '<span><b>01</b> Inicio</span><span><b>02</b> Energía</span><span><b>03</b> Climatización</span><span><b>04</b> Vehículo</span><span><b>05</b> Mantenimiento</span>';
+    }
+  };
+  renderLabels();
+  new MutationObserver(renderLabels).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
 
   let current = 0;
   let timer = null;
@@ -101,13 +110,14 @@
   document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
 
   show(0);
-  start();
 
   const vehicleNode = nodes[3];
-  if (vehicleNode && vehicleNode.item.b64) {
-    fetch(vehicleNode.item.b64, { cache: 'force-cache' })
-      .then(response => response.ok ? response.text() : Promise.reject(new Error(`HTTP ${response.status}`)))
-      .then(base64 => { vehicleNode.img.src = `data:image/webp;base64,${base64.trim()}`; })
-      .catch(() => { vehicleNode.img.src = 'assets/mantenimiento.webp'; });
-  }
+  const vehicleReady = vehicleNode && vehicleNode.item.b64
+    ? fetch(vehicleNode.item.b64, { cache: 'force-cache' })
+        .then(response => response.ok ? response.text() : Promise.reject(new Error(`HTTP ${response.status}`)))
+        .then(base64 => { vehicleNode.img.src = `data:image/webp;base64,${base64.trim()}`; })
+        .catch(() => { vehicleNode.img.src = 'assets/mantenimiento.webp'; })
+    : Promise.resolve();
+
+  Promise.race([vehicleReady, new Promise(resolve => setTimeout(resolve, 900))]).finally(start);
 })();
