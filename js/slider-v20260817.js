@@ -1,6 +1,6 @@
 (() => {
   const AUTOPLAY_MS = 1500;
-  const VERSION = '20260817-2220';
+  const VERSION = '20260817-2224';
   const frame = document.getElementById('interactive-device');
   if (!frame) return;
 
