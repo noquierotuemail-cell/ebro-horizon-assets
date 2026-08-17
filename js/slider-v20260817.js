@@ -2,19 +2,18 @@
   const AUTOPLAY_MS = 1500;
   const frame = document.getElementById('interactive-device');
   if (!frame) return;
-
   const viewport = frame.querySelector('.device-viewport');
   if (!viewport) return;
 
   const screens = [
-    { src: 'assets/slider-01-inicio-20260817.webp?v=20260817-2115', alt: 'Inicio: estado del vehículo, autonomía y accesos remotos' },
-    { src: 'assets/slider-02-energia-20260817.webp?v=20260817-2115', alt: 'Energía: carga, consumo y telemetría de batería' },
-    { src: 'assets/slider-03-clima-20260817.webp?v=20260817-2115', alt: 'Climatización: consigna, modos rápidos y confort del vehículo' },
-    { b64: 'assets/slider-04-vehiculo-20260817.webp.b64.txt?v=20260817-2115', alt: 'Vehículo: mantenimiento, neumáticos, accesos y avisos' },
-    { src: 'assets/slider-05-mantenimiento-20260817.webp?v=20260817-2115', alt: 'Mantenimiento: kilometraje, intervalo y próxima revisión' }
+    { src: 'assets/slider-01-inicio-20260817-2204.webp', alt: 'Inicio: estado del vehículo, autonomía y accesos remotos' },
+    { src: 'assets/slider-02-energia-20260817-2204.webp', alt: 'Energía: carga, consumo y telemetría de batería' },
+    { src: 'assets/slider-03-clima-20260817-2204.webp', alt: 'Climatización: consigna, modos rápidos y confort del vehículo' },
+    { src: 'assets/slider-04-vehiculo-20260817-2204.webp', alt: 'Vehículo: mantenimiento, neumáticos, accesos y avisos' },
+    { src: 'assets/slider-05-mantenimiento-20260817-2204.webp', alt: 'Mantenimiento: kilometraje, intervalo y próxima revisión' }
   ];
 
-  document.querySelectorAll('.device-screen').forEach(node => node.remove());
+  viewport.querySelectorAll('.device-screen').forEach(node => node.remove());
   const anchor = viewport.querySelector('.device-bottombar');
   const nodes = screens.map((item, index) => {
     const screen = document.createElement('div');
@@ -22,13 +21,12 @@
     const img = document.createElement('img');
     img.alt = item.alt;
     img.decoding = 'async';
-    img.loading = index === 0 ? 'eager' : 'lazy';
-    img.style.objectFit = 'contain';
-    img.style.background = '#080b11';
-    if (item.src) img.src = item.src;
+    img.loading = 'eager';
+    if (index === 0) img.fetchPriority = 'high';
+    img.src = item.src;
     screen.appendChild(img);
     viewport.insertBefore(screen, anchor);
-    return { screen, img, item };
+    return { screen, img };
   });
 
   const renderLabels = () => {
@@ -65,18 +63,15 @@
       timer = null;
     }
   };
-
   const start = () => {
     stop();
-    if (document.hidden) return;
-    timer = setInterval(() => show(current + 1), AUTOPLAY_MS);
+    if (!document.hidden) timer = setInterval(() => show(current + 1), AUTOPLAY_MS);
   };
 
   frame.addEventListener('touchstart', event => {
     const touch = event.changedTouches && event.changedTouches[0];
     if (touch) startX = touch.clientX;
   }, { passive: true });
-
   frame.addEventListener('touchend', event => {
     const touch = event.changedTouches && event.changedTouches[0];
     if (startX === null || !touch) return;
@@ -87,12 +82,7 @@
     start();
   }, { passive: true });
 
-  const navMap = [
-    ['.nav-hit-inicio', 0],
-    ['.nav-hit-energia', 1],
-    ['.nav-hit-clima', 2]
-  ];
-  navMap.forEach(([selector, index]) => {
+  [['.nav-hit-inicio', 0], ['.nav-hit-energia', 1], ['.nav-hit-clima', 2]].forEach(([selector, index]) => {
     const hit = frame.querySelector(selector);
     if (hit) hit.addEventListener('click', event => {
       event.preventDefault();
@@ -108,16 +98,12 @@
   });
 
   document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
-
   show(0);
 
-  const vehicleNode = nodes[3];
-  const vehicleReady = vehicleNode && vehicleNode.item.b64
-    ? fetch(vehicleNode.item.b64, { cache: 'force-cache' })
-        .then(response => response.ok ? response.text() : Promise.reject(new Error(`HTTP ${response.status}`)))
-        .then(base64 => { vehicleNode.img.src = `data:image/webp;base64,${base64.trim()}`; })
-        .catch(() => { vehicleNode.img.src = 'assets/mantenimiento.webp'; })
-    : Promise.resolve();
-
-  Promise.race([vehicleReady, new Promise(resolve => setTimeout(resolve, 900))]).finally(start);
+  const ready = Promise.allSettled(nodes.map(({ img }) => new Promise(resolve => {
+    if (img.complete) return resolve();
+    img.addEventListener('load', resolve, { once: true });
+    img.addEventListener('error', resolve, { once: true });
+  })));
+  Promise.race([ready, new Promise(resolve => setTimeout(resolve, 800))]).finally(start);
 })();
