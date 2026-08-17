@@ -45,7 +45,7 @@ const VISITOR_COOKIE = "habro_chat_visitor";
 const CHATKIT_BACKEND_URL = "https://ebro-horizon-assets.onrender.com/chatkit";
 const CHATKIT_DOMAIN_KEY = "domain_pk_6a8168a3f250819492ae3c9a4df255c400ee8b3e878e05df";
 const FAVICON_VERSION = "webhabro-20260816";
-const SCREENSHOT_VERSION = "habro-ui-20260817";
+const SCREENSHOT_VERSION = "habro-ui-20260817-0945";
 const SCREENSHOT_ASSETS = {
   "/assets/inicio-alert.webp": "/assets/inicio-alert-new.b64",
   "/assets/energia.webp": "/assets/energia-new.b64",
