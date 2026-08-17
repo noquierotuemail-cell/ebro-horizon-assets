@@ -1,6 +1,6 @@
 (() => {
   const AUTOPLAY_MS = 1500;
-  const VERSION = '20260817-2212';
+  const VERSION = '20260817-2220';
   const frame = document.getElementById('interactive-device');
   if (!frame) return;
 
@@ -11,8 +11,8 @@
     { b64: `assets/slider-01-inicio-v3.b64.txt?v=${VERSION}`, alt: 'Inicio: estado del vehículo, autonomía y accesos remotos' },
     { b64: `assets/slider-02-energia-v3.b64.txt?v=${VERSION}`, alt: 'Energía: carga, consumo y telemetría de batería' },
     { b64: `assets/slider-03-clima-v3.b64.txt?v=${VERSION}`, alt: 'Climatización: consigna, modos rápidos y confort del vehículo' },
-    { b64: `assets/slider-04-vehiculo-20260817.webp.b64.txt?v=${VERSION}`, alt: 'Vehículo: mantenimiento, neumáticos, accesos y avisos' },
-    { b64: `assets/slider-05-mantenimiento-20260817.webp.b64.txt?v=${VERSION}`, alt: 'Mantenimiento: kilometraje, intervalo y próxima revisión' }
+    { b64: `assets/slider-04-vehiculo-v3.b64.txt?v=${VERSION}`, alt: 'Vehículo: mantenimiento, neumáticos, accesos y avisos' },
+    { b64: `assets/slider-05-mantenimiento-v3.b64.txt?v=${VERSION}`, alt: 'Mantenimiento: kilometraje, intervalo y próxima revisión' }
   ];
 
   viewport.querySelectorAll('.device-screen').forEach(node => node.remove());
