@@ -41,7 +41,7 @@ const VISITOR_COOKIE = "habro_chat_visitor";
 const CHATKIT_BACKEND_URL = "https://ebro-horizon-assets.onrender.com/chatkit";
 const CHATKIT_DOMAIN_KEY = "domain_pk_6a8168a3f250819492ae3c9a4df255c400ee8b3e878e05df";
 const FAVICON_VERSION = "webhabro-20260816";
-const SCREENSHOT_VERSION = "habro-ui-20260817-final-1818";
+const SCREENSHOT_VERSION = "habro-ui-20260817-rebuilt-1845";
 const SCREENSHOT_PATHS = new Set([
   "/assets/inicio-alert.webp",
   "/assets/energia.webp",
@@ -86,8 +86,8 @@ function injectSite(response, request) {
     .on("figure.phone.one img", {
       element(element) {
         element.setAttribute("src", `/assets/inicio-alert.webp?v=${SCREENSHOT_VERSION}`);
-        element.setAttribute("width", "1206");
-        element.setAttribute("height", "2004");
+        element.setAttribute("width", "360");
+        element.setAttribute("height", "598");
         element.setAttribute("alt", "Pantalla de inicio de HABRO RemoteApp");
         element.removeAttribute("srcset");
       }
@@ -95,8 +95,8 @@ function injectSite(response, request) {
     .on("figure.phone.two img", {
       element(element) {
         element.setAttribute("src", `/assets/energia.webp?v=${SCREENSHOT_VERSION}`);
-        element.setAttribute("width", "1206");
-        element.setAttribute("height", "1970");
+        element.setAttribute("width", "360");
+        element.setAttribute("height", "588");
         element.setAttribute("alt", "Pantalla de energía de HABRO RemoteApp");
         element.removeAttribute("srcset");
       }
@@ -104,8 +104,8 @@ function injectSite(response, request) {
     .on("figure.phone.three img", {
       element(element) {
         element.setAttribute("src", `/assets/clima.webp?v=${SCREENSHOT_VERSION}`);
-        element.setAttribute("width", "1206");
-        element.setAttribute("height", "2207");
+        element.setAttribute("width", "360");
+        element.setAttribute("height", "659");
         element.setAttribute("alt", "Pantalla de climatización de HABRO RemoteApp");
         element.removeAttribute("srcset");
       }
