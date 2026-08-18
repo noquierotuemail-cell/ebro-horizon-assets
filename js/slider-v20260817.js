@@ -1,11 +1,45 @@
 (() => {
   const AUTOPLAY_MS = 1500;
-  const VERSION = '20260818-0748';
+  const VERSION = '20260818-0810';
   const frame = document.getElementById('interactive-device');
   if (!frame) return;
 
   const viewport = frame.querySelector('.device-viewport');
   if (!viewport) return;
+
+  /* Keep this showcase phone physically identical to the phone mockups used in the hero. */
+  const style = document.createElement('style');
+  style.id = 'habro-showcase-phone-geometry';
+  style.textContent = `
+    #pantallas .device-shell{width:min(292px,100%)!important;max-width:100%!important;margin:0 auto!important}
+    #pantallas .device-frame{position:relative!important;width:100%!important;height:auto!important;aspect-ratio:430/932!important;padding:10px!important;border-radius:42px!important;background:#0b0d12!important;overflow:hidden!important;box-shadow:0 28px 90px rgba(15,23,42,.18)!important}
+    #pantallas .device-viewport{position:relative!important;width:100%!important;height:100%!important;aspect-ratio:auto!important;border-radius:32px!important;overflow:hidden!important;background:#0b0d12!important}
+    #pantallas .device-topbar,#pantallas .device-bottombar{position:absolute!important;left:0!important;right:0!important;z-index:22!important;pointer-events:none!important}
+    #pantallas .device-topbar{top:0!important;height:34px!important;background:linear-gradient(180deg,#0c1016 0%,#090d13 100%)!important}
+    #pantallas .device-topbar::before{content:'9:41'!important;position:absolute!important;left:14px!important;top:8px!important;transform:none!important;color:rgba(255,255,255,.94)!important;font-size:11px!important;font-weight:700!important}
+    #pantallas .device-topbar::after{content:'⋮ 5G 100%'!important;position:absolute!important;right:14px!important;top:8px!important;transform:none!important;color:rgba(255,255,255,.92)!important;font-size:10px!important;font-weight:700!important}
+    #pantallas .device-island{position:absolute!important;left:50%!important;top:6px!important;transform:translateX(-50%)!important;width:104px!important;height:17px!important;border-radius:999px!important;background:#020305!important;z-index:23!important}
+    #pantallas .device-screen{position:absolute!important;left:0!important;right:0!important;top:40px!important;bottom:46px!important;overflow:hidden!important;background:#0b0d12!important}
+    #pantallas .device-screen>img{display:block!important;position:absolute!important;left:0!important;top:0!important;right:auto!important;bottom:auto!important;width:100%!important;height:auto!important;max-width:none!important;object-fit:unset!important;object-position:initial!important;transform:none!important;border-radius:0!important;background:transparent!important;opacity:1!important;visibility:visible!important}
+    #pantallas .device-bottombar{bottom:0!important;height:46px!important;background:linear-gradient(180deg,#090d13 0%,#0b0d12 100%)!important}
+    #pantallas .device-bottombar::before{content:'◁ ○ ▢'!important;position:absolute!important;left:50%!important;top:14px!important;transform:translateX(-50%)!important;color:rgba(255,255,255,.34)!important;font-size:12px!important;letter-spacing:.55em!important;white-space:pre!important}
+    #pantallas .device-bottombar::after{content:''!important;position:absolute!important;left:50%!important;bottom:8px!important;transform:translateX(-50%)!important;width:92px!important;height:4px!important;border-radius:999px!important;background:rgba(255,255,255,.24)!important}
+    #pantallas .device-appnav{left:0!important;right:0!important;bottom:46px!important;height:56px!important}
+    @media(max-width:640px){
+      #pantallas .device-shell{width:min(258px,calc(100vw - 84px))!important}
+      #pantallas .device-frame{padding:8px!important;border-radius:38px!important}
+      #pantallas .device-viewport{border-radius:30px!important}
+      #pantallas .device-topbar{height:32px!important}
+      #pantallas .device-topbar::before{left:12px!important;font-size:11px!important}
+      #pantallas .device-topbar::after{right:12px!important;font-size:10px!important}
+      #pantallas .device-island{top:6px!important;width:92px!important;height:16px!important}
+      #pantallas .device-screen{top:38px!important;bottom:44px!important}
+      #pantallas .device-bottombar{height:44px!important}
+      #pantallas .device-appnav{bottom:44px!important;height:54px!important}
+    }
+  `;
+  document.getElementById(style.id)?.remove();
+  document.head.appendChild(style);
 
   const screens = [
     { b64: `assets/slider-safe-inicio.b64?v=${VERSION}`, alt: 'Inicio: estado del vehículo, autonomía y accesos remotos' },
@@ -39,11 +73,12 @@
     img.loading = index === 0 ? 'eager' : 'lazy';
     img.style.display = 'block';
     img.style.width = '100%';
-    img.style.height = '100%';
-    img.style.objectFit = 'contain';
-    img.style.objectPosition = 'center top';
+    img.style.height = 'auto';
+    img.style.objectFit = 'unset';
+    img.style.objectPosition = 'initial';
     img.style.opacity = '1';
     img.style.visibility = 'visible';
+    img.style.transform = 'none';
 
     const response = await fetch(item.b64, { cache: 'no-store' });
     if (!response.ok) throw new Error(`${item.b64}: HTTP ${response.status}`);
