@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = '20260818-0730';
+  const VERSION = '20260818-0748';
   const frame = document.getElementById('interactive-device');
   if (frame) frame.id = 'interactive-device-core-paused';
 
