@@ -1,6 +1,6 @@
 (() => {
   const AUTOPLAY_MS = 1500;
-  const VERSION = '20260818-0730';
+  const VERSION = '20260818-0748';
   const frame = document.getElementById('interactive-device');
   if (!frame) return;
 
@@ -8,37 +8,35 @@
   if (!viewport) return;
 
   const screens = [
-    { src: `assets/inicio-alert.webp?v=${VERSION}`, alt: 'Inicio: estado del vehículo, autonomía y accesos remotos' },
-    { src: `assets/energia.webp?v=${VERSION}`, alt: 'Energía: carga, consumo y telemetría de batería' },
-    { src: `assets/clima.webp?v=${VERSION}`, alt: 'Climatización: consigna, modos rápidos y confort del vehículo' },
-    { src: `assets/vehiculo.webp?v=${VERSION}`, alt: 'Vehículo: mantenimiento, neumáticos, accesos y avisos' },
-    { src: `assets/mantenimiento.webp?v=${VERSION}`, alt: 'Mantenimiento: kilometraje, intervalo y próxima revisión' }
+    { b64: `assets/slider-safe-inicio.b64?v=${VERSION}`, alt: 'Inicio: estado del vehículo, autonomía y accesos remotos' },
+    { b64: `assets/slider-safe-energia.b64?v=${VERSION}`, alt: 'Energía: carga, consumo y telemetría de batería' },
+    { b64: `assets/slider-safe-clima.b64?v=${VERSION}`, alt: 'Climatización: consigna, modos rápidos y confort del vehículo' },
+    { b64: `assets/slider-safe-vehiculo.b64?v=${VERSION}`, alt: 'Vehículo: mantenimiento, neumáticos, accesos y avisos' },
+    { b64: `assets/slider-safe-mantenimiento.b64?v=${VERSION}`, alt: 'Mantenimiento: kilometraje, intervalo y próxima revisión' }
   ];
 
-  const existing = Array.from(viewport.querySelectorAll('.device-screen'));
+  let nodes = Array.from(viewport.querySelectorAll('.device-screen'));
   const anchor = viewport.querySelector('.device-bottombar');
 
-  while (existing.length < screens.length) {
-    const node = document.createElement('div');
-    node.className = `device-screen screen-${existing.length}`;
-    const img = document.createElement('img');
-    node.appendChild(img);
-    viewport.insertBefore(node, anchor);
-    existing.push(node);
+  while (nodes.length < screens.length) {
+    const screen = document.createElement('div');
+    screen.className = `device-screen screen-${nodes.length}`;
+    screen.appendChild(document.createElement('img'));
+    viewport.insertBefore(screen, anchor);
+    nodes.push(screen);
   }
-  while (existing.length > screens.length) existing.pop().remove();
+  nodes.slice(screens.length).forEach(node => node.remove());
+  nodes = nodes.slice(0, screens.length);
 
-  const nodes = existing.map((screen, index) => {
-    screen.className = `device-screen screen-${index}`;
+  const loadScreen = async (screen, item, index) => {
     let img = screen.querySelector('img');
     if (!img) {
       img = document.createElement('img');
       screen.appendChild(img);
     }
-    img.alt = screens[index].alt;
+    img.alt = item.alt;
     img.decoding = 'async';
     img.loading = index === 0 ? 'eager' : 'lazy';
-    img.src = screens[index].src;
     img.style.display = 'block';
     img.style.width = '100%';
     img.style.height = '100%';
@@ -46,8 +44,14 @@
     img.style.objectPosition = 'center top';
     img.style.opacity = '1';
     img.style.visibility = 'visible';
-    return screen;
-  });
+
+    const response = await fetch(item.b64, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`${item.b64}: HTTP ${response.status}`);
+    const base64 = (await response.text()).trim();
+    if (!base64.startsWith('UklGR')) throw new Error(`${item.b64}: invalid WebP payload`);
+    img.src = `data:image/webp;base64,${base64}`;
+    if (img.decode) await img.decode();
+  };
 
   const renderLabels = () => {
     const pt = (document.documentElement.lang || '').toLowerCase().startsWith('pt');
@@ -71,7 +75,8 @@
     const next = (index + nodes.length) % nodes.length;
     nodes.forEach((screen, i) => {
       screen.classList.toggle('is-active', i === next);
-      screen.classList.remove('is-leaving');
+      screen.classList.toggle('is-leaving', i === current && i !== next);
+      if (i !== current && i !== next) screen.classList.remove('is-leaving');
       screen.style.opacity = i === next ? '1' : '0';
       screen.style.visibility = i === next ? 'visible' : 'hidden';
       screen.style.pointerEvents = i === next ? 'auto' : 'none';
@@ -88,15 +93,18 @@
       timer = null;
     }
   };
+
   const start = () => {
     stop();
-    if (!document.hidden) timer = setInterval(() => show(current + 1), AUTOPLAY_MS);
+    if (document.hidden) return;
+    timer = setInterval(() => show(current + 1), AUTOPLAY_MS);
   };
 
   frame.addEventListener('touchstart', event => {
     const touch = event.changedTouches && event.changedTouches[0];
     if (touch) startX = touch.clientX;
   }, { passive: true });
+
   frame.addEventListener('touchend', event => {
     const touch = event.changedTouches && event.changedTouches[0];
     if (startX === null || !touch) return;
@@ -107,12 +115,11 @@
     start();
   }, { passive: true });
 
-  const navMap = [
+  [
     ['.nav-hit-inicio', 0],
     ['.nav-hit-energia', 1],
     ['.nav-hit-clima', 2]
-  ];
-  navMap.forEach(([selector, index]) => {
+  ].forEach(([selector, index]) => {
     const hit = frame.querySelector(selector);
     if (hit) hit.addEventListener('click', event => {
       event.preventDefault();
@@ -120,6 +127,7 @@
       start();
     });
   });
+
   const more = frame.querySelector('.nav-hit-solar');
   if (more) more.addEventListener('click', event => {
     event.preventDefault();
@@ -129,5 +137,7 @@
 
   document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
   show(0);
-  start();
+  Promise.all(screens.map((item, index) => loadScreen(nodes[index], item, index)))
+    .catch(error => console.error('HABRO slider:', error))
+    .finally(start);
 })();
