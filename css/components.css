@@ -15,15 +15,15 @@
 .hero-visual .phone .phone-screen>img{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center top!important;border-radius:13px!important;background:#05070b!important}
 
 /* Interactive slider phone: same inset on desktop, tablet and mobile. */
-.showcase-section .device-screen{left:var(--habro-screen-side)!important;right:var(--habro-screen-side)!important;top:var(--habro-screen-top)!important;bottom:var(--habro-screen-bottom)!important;inset:auto!important;border-radius:var(--habro-screen-radius)!important;overflow:hidden!important;background:#05070b!important}
+.showcase-section .device-screen{inset:auto!important;left:var(--habro-screen-side)!important;right:var(--habro-screen-side)!important;top:var(--habro-screen-top)!important;bottom:var(--habro-screen-bottom)!important;border-radius:var(--habro-screen-radius)!important;overflow:hidden!important;background:#05070b!important}
 .showcase-section .device-screen>img,.showcase-section .device-screen.screen-0>img{display:block!important;width:100%!important;height:100%!important;max-width:none!important;object-fit:contain!important;object-position:center top!important;border-radius:13px!important;background:#05070b!important}
 
 /* Maintenance phone below “Seguimiento visual…”: use the exact same interior geometry. */
 #funciones .section-copy+div[style*="max-width:420px"]{padding:0!important}
-#funciones .section-copy+div[style*="max-width:420px"] img{position:absolute!important;left:var(--habro-screen-side)!important;top:var(--habro-screen-top)!important;width:calc(100% - (2 * var(--habro-screen-side)))!important;height:calc(100% - var(--habro-screen-top) - var(--habro-screen-bottom))!important;max-width:none!important;object-fit:contain!important;object-position:center top!important;border-radius:var(--habro-screen-radius)!important;background:#05070b!important;z-index:1!important}
+#funciones .section-copy+div[style*="max-width:420px"] img{position:absolute!important;left:5.2%!important;top:7.4%!important;width:89.6%!important;height:83.9%!important;max-width:none!important;object-fit:contain!important;object-position:center top!important;border-radius:var(--habro-screen-radius)!important;background:#05070b!important;z-index:1!important}
 
 /* Keep the fake phone chrome aligned with the new inset. */
 #funciones .section-copy+div[style*="max-width:420px"]::before{left:var(--habro-screen-side)!important;right:var(--habro-screen-side)!important}
 #funciones .section-copy+div[style*="max-width:420px"]::after{left:var(--habro-screen-side)!important;right:var(--habro-screen-side)!important}
 
-@media (max-width:640px){:root{--habro-screen-side:5.6%;--habro-screen-top:7.6%;--habro-screen-bottom:8.9%;--habro-screen-radius:15px}}
+@media (max-width:640px){:root{--habro-screen-side:5.6%;--habro-screen-top:7.6%;--habro-screen-bottom:8.9%;--habro-screen-radius:15px}#funciones .section-copy+div[style*="max-width:420px"] img{left:5.6%!important;top:7.6%!important;width:88.8%!important;height:83.5%!important}}
