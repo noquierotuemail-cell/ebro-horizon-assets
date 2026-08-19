@@ -5,3 +5,25 @@
 #funciones .section-copy+div[style*="max-width:420px"]::before{content:"9:41                         5G 100%";position:absolute;left:10px;right:10px;top:10px;height:34px;z-index:4;box-sizing:border-box;padding:8px 14px;color:rgba(255,255,255,.94);font-size:11px;font-weight:700;letter-spacing:.01em;white-space:pre;background:radial-gradient(ellipse 52px 9px at 50% 50%,#020305 98%,transparent 100%),linear-gradient(180deg,#0c1016 0%,#090d13 100%);pointer-events:none}
 #funciones .section-copy+div[style*="max-width:420px"]::after{content:"◁  ○  ▢";position:absolute;left:10px;right:10px;bottom:10px;height:46px;z-index:4;box-sizing:border-box;padding-top:13px;text-align:center;color:rgba(255,255,255,.34);font-size:12px;letter-spacing:.45em;background:linear-gradient(180deg,#090d13 0%,#0b0d12 100%);pointer-events:none}
 #funciones .section-copy+div[style*="max-width:420px"] img{display:block!important;width:100%!important;height:100%!important;max-width:none!important;object-fit:cover!important;object-position:center top!important;border-radius:0!important;background:#05070b!important}
+
+/* Unified phone-screen fit — 2026-08-19.
+   Every screenshot sits inside a visible black bezel instead of touching the device edge. */
+:root{--habro-screen-side:5.2%;--habro-screen-top:7.4%;--habro-screen-bottom:8.7%;--habro-screen-radius:17px}
+
+/* Hero phones: keep the existing chrome, but move the screenshot further inside the bezel. */
+.hero-visual .phone .phone-screen{left:var(--habro-screen-side)!important;right:var(--habro-screen-side)!important;top:var(--habro-screen-top)!important;bottom:var(--habro-screen-bottom)!important;border-radius:var(--habro-screen-radius)!important;overflow:hidden!important;background-color:#05070b!important;background-clip:padding-box!important}
+.hero-visual .phone .phone-screen>img{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center top!important;border-radius:13px!important;background:#05070b!important}
+
+/* Interactive slider phone: same inset on desktop, tablet and mobile. */
+.showcase-section .device-screen{left:var(--habro-screen-side)!important;right:var(--habro-screen-side)!important;top:var(--habro-screen-top)!important;bottom:var(--habro-screen-bottom)!important;inset:auto!important;border-radius:var(--habro-screen-radius)!important;overflow:hidden!important;background:#05070b!important}
+.showcase-section .device-screen>img,.showcase-section .device-screen.screen-0>img{display:block!important;width:100%!important;height:100%!important;max-width:none!important;object-fit:contain!important;object-position:center top!important;border-radius:13px!important;background:#05070b!important}
+
+/* Maintenance phone below “Seguimiento visual…”: use the exact same interior geometry. */
+#funciones .section-copy+div[style*="max-width:420px"]{padding:0!important}
+#funciones .section-copy+div[style*="max-width:420px"] img{position:absolute!important;left:var(--habro-screen-side)!important;top:var(--habro-screen-top)!important;width:calc(100% - (2 * var(--habro-screen-side)))!important;height:calc(100% - var(--habro-screen-top) - var(--habro-screen-bottom))!important;max-width:none!important;object-fit:contain!important;object-position:center top!important;border-radius:var(--habro-screen-radius)!important;background:#05070b!important;z-index:1!important}
+
+/* Keep the fake phone chrome aligned with the new inset. */
+#funciones .section-copy+div[style*="max-width:420px"]::before{left:var(--habro-screen-side)!important;right:var(--habro-screen-side)!important}
+#funciones .section-copy+div[style*="max-width:420px"]::after{left:var(--habro-screen-side)!important;right:var(--habro-screen-side)!important}
+
+@media (max-width:640px){:root{--habro-screen-side:5.6%;--habro-screen-top:7.6%;--habro-screen-bottom:8.9%;--habro-screen-radius:15px}}
