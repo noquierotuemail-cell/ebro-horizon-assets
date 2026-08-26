@@ -31,4 +31,8 @@
   const setLang=lang=>{const l=lang==='pt'?'pt':'es';document.documentElement.lang=l==='pt'?'pt-PT':'es';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(copy[l][k])el.textContent=copy[l][k]});if(btn){btn.textContent=l==='pt'?'ES':'PT';btn.setAttribute('aria-label',l==='pt'?'Mudar para espanhol':'Cambiar a portugués')}try{localStorage.setItem('habro-apple-lang',l)}catch(e){}};
   let initial='es';try{initial=localStorage.getItem('habro-apple-lang')==='pt'?'pt':'es'}catch(e){}setLang(initial);btn?.addEventListener('click',()=>setLang(document.documentElement.lang.startsWith('pt')?'es':'pt'));
   const nodes=[...document.querySelectorAll('.reveal')];if('IntersectionObserver'in window&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const o=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('is-visible');o.unobserve(e.target)}}),{threshold:.12,rootMargin:'0px 0px -40px'});nodes.forEach(n=>o.observe(n))}else nodes.forEach(n=>n.classList.add('is-visible'));
+  const hydrateInlineImage=async(selector,url)=>{const img=document.querySelector(selector);if(!img)return;try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)return;const b64=(await r.text()).replace(/\s+/g,'');if(b64)img.src=`data:image/jpeg;base64,${b64}`}catch(e){}};
+  hydrateInlineImage('.hero-header-media img','assets/hero-inline-20260827.b64');
+  hydrateInlineImage('.lifestyle-media img','assets/woman-phone-inline-20260827.b64');
+  hydrateInlineImage('.voice-photo img','assets/woman-watch-inline-20260827.b64');
 })();
