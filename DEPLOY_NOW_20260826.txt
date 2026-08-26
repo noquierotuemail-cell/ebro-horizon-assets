@@ -1,0 +1,4 @@
+Force production deployment for HABRO editorial redesign.
+Build marker: 2026-08-26T21:00+02:00
+Target: habroremote.com
+Expected main commit before trigger: 6c622bb2e4a468b76edbb1fbff5222f4111d012f
