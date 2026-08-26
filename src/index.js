@@ -21,6 +21,10 @@ export default {
       return proxyChatKit(request, env, url);
     }
 
+    if (REMOTE_IMAGE_PATHS.has(url.pathname)) {
+      return proxyRepositoryImage(url.pathname);
+    }
+
     const assetResponse = await env.ASSETS.fetch(request);
     const contentType = assetResponse.headers.get("content-type") || "";
     const response = contentType.includes("text/html")
@@ -42,6 +46,12 @@ const CHATKIT_BACKEND_URL = "https://ebro-horizon-assets.onrender.com/chatkit";
 const CHATKIT_DOMAIN_KEY = "domain_pk_6a8168a3f250819492ae3c9a4df255c400ee8b3e878e05df";
 const FAVICON_VERSION = "webhabro-20260816";
 const SCREENSHOT_VERSION = "habro-ui-20260817-rebuilt-1845";
+const REPOSITORY_RAW_BASE = "https://raw.githubusercontent.com/noquierotuemail-cell/ebro-horizon-assets/main";
+const REMOTE_IMAGE_PATHS = new Set([
+  "/assets/hero-header-20260826.webp",
+  "/assets/lifestyle-woman-phone-20260826.webp",
+  "/assets/lifestyle-woman-watch-trunk-20260826.webp"
+]);
 const SCREENSHOT_PATHS = new Set([
   "/assets/inicio-alert.webp",
   "/assets/energia.webp",
@@ -50,6 +60,29 @@ const SCREENSHOT_PATHS = new Set([
   "/assets/solar.webp",
   "/assets/vehiculo.webp"
 ]);
+
+async function proxyRepositoryImage(pathname) {
+  try {
+    const upstream = await fetch(`${REPOSITORY_RAW_BASE}${pathname}`, {
+      cf: { cacheTtl: 3600, cacheEverything: true }
+    });
+    if (!upstream.ok) {
+      return new Response("Image unavailable", { status: upstream.status });
+    }
+    const headers = new Headers(upstream.headers);
+    headers.set("Content-Type", "image/webp");
+    headers.set("Cache-Control", "public, max-age=3600, s-maxage=3600");
+    headers.delete("content-disposition");
+    const response = new Response(upstream.body, { status: 200, headers });
+    applySecurityHeaders(response.headers);
+    return response;
+  } catch (error) {
+    return new Response("Image unavailable", {
+      status: 502,
+      headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" }
+    });
+  }
+}
 
 function countryFromRequest(request) {
   return String((request.cf && request.cf.country) || request.headers.get("CF-IPCountry") || "").toUpperCase();
