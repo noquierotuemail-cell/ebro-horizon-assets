@@ -5,6 +5,9 @@
   let queued = false;
   const update = () => {
     topbar.classList.toggle('is-scrolled', window.scrollY > 12);
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+    topbar.style.setProperty('--scroll-progress', progress.toFixed(4));
     queued = false;
   };
 
