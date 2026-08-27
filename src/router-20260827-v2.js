@@ -53,6 +53,24 @@ async function serveImage(url) {
   });
 }
 
+async function serveCleanMarketingJs(request, env) {
+  const original = await env.ASSETS.fetch(request);
+  let js = await original.text();
+  const marker = '\n  const hydrateInlineImage=';
+  const start = js.indexOf(marker);
+  const end = js.lastIndexOf('\n})();');
+  if (start !== -1 && end > start) {
+    js = js.slice(0, start) + js.slice(end);
+  }
+  const headers = new Headers(original.headers);
+  headers.delete('content-length');
+  headers.delete('content-encoding');
+  headers.set('Content-Type', 'application/javascript; charset=utf-8');
+  headers.set('Cache-Control', 'private, no-store');
+  headers.set('X-HABRO-JS-Mode', 'no-image-overrides');
+  return new Response(js, { status: 200, headers });
+}
+
 async function inlineImages(response, request) {
   const html = await response.text();
   const origin = new URL(request.url).origin;
@@ -85,12 +103,13 @@ async function inlineImages(response, request) {
     }
   });
 
+  rewritten = rewritten.replace(/js\/apple-20260826\.js\?v=[^"']+/g, 'js/apple-20260826.js?v=20260827-0730');
   rewritten = rewritten.replace('</head>', '<style id="habro-render-failsafe">.reveal{opacity:1!important;transform:none!important}</style></head>');
   const headers = new Headers(response.headers);
   headers.delete('content-length');
   headers.delete('content-encoding');
   headers.set('Cache-Control', 'private, no-store');
-  headers.set('X-HABRO-Render-Mode', 'github-inline-v2');
+  headers.set('X-HABRO-Render-Mode', 'github-inline-v2-no-overrides');
   return new Response(rewritten, { status: response.status, statusText: response.statusText, headers });
 }
 
@@ -99,9 +118,13 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === '/api/asset-diagnostics') {
-      return new Response(JSON.stringify({ ok: true, mode: 'github-inline-v2' }, null, 2), {
+      return new Response(JSON.stringify({ ok: true, mode: 'github-inline-v2-no-overrides' }, null, 2), {
         headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }
       });
+    }
+
+    if (url.pathname === '/js/apple-20260826.js') {
+      return serveCleanMarketingJs(request, env);
     }
 
     if (url.pathname.startsWith('/assets/') && IMAGE_EXT.test(url.pathname)) {
