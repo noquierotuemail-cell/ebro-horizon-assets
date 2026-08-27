@@ -44,9 +44,9 @@ img{display:block;max-width:100%}
 .bro-portrait{position:relative;display:grid;place-items:center;aspect-ratio:1;border-radius:38px;background:radial-gradient(circle at 50% 42%,#16354a,#071019 70%);overflow:hidden}
 .bro-portrait img{position:relative;z-index:2;width:78%;filter:drop-shadow(0 25px 28px rgba(0,0,0,.35));animation:broFloat 4s ease-in-out infinite}
 .bro-portrait span{position:absolute;inset:18%;border:1px solid rgba(84,189,236,.4);border-radius:50%;box-shadow:0 0 50px rgba(84,189,236,.22)}
-.bro-copy .eyebrow{color:#1779a4}
-.bro-copy h2{font-size:clamp(2.3rem,4vw,4.7rem)}
-.bro-copy>p{color:#566671}
+.bro-copy .eyebrow{margin-bottom:14px;color:#1779a4}
+.bro-copy h2{margin:0;font-size:clamp(2.3rem,4vw,4.7rem);line-height:.96;letter-spacing:-.055em;text-wrap:balance}
+.bro-copy>p{margin:22px 0 0;color:#566671;font-size:clamp(1rem,1.5vw,1.25rem);line-height:1.6}
 .bro-questions{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0}
 .bro-questions button{padding:10px 14px;border:1px solid #d6dde2;border-radius:999px;background:#f7f9fa;color:#263b49;cursor:pointer;transition:.22s}
 .bro-questions button:hover{border-color:#228ebc;background:#edf8fc}
@@ -75,7 +75,7 @@ img{display:block;max-width:100%}
   .launch-hero{min-height:920px;align-items:end}.launch-backdrop{object-position:62% center}.launch-overlay{background:linear-gradient(0deg,#050a0f 1%,rgba(2,7,11,.8) 47%,rgba(2,7,11,.18) 100%)}
   .launch-content{width:calc(100% - 36px);margin:0 18px;padding:145px 0 95px}.launch-content h1{font-size:clamp(3.15rem,15vw,5.7rem);line-height:.91}.launch-copy{font-size:1rem}.launch-actions{display:grid}.button-primary,.button-glass{width:100%}
   .scroll-cue{display:none}.orbit-one{width:110vw;height:110vw;right:-60vw}.orbit-two{display:none}
-  .bro-section{padding:80px 18px}.bro-card{grid-template-columns:1fr;gap:35px;padding:22px;border-radius:30px}.bro-portrait{max-width:280px;margin:auto}.bro-copy{padding:0 6px 12px}.bro-copy h2{font-size:2.55rem}.bro-questions{display:grid}.bro-questions button{text-align:left}.privacy-note{font-size:.74rem}
+  .bro-section{padding:48px 14px 64px}.bro-card{grid-template-columns:1fr;gap:22px;padding:18px 16px 24px;border-radius:28px;overflow:hidden}.bro-portrait{max-width:190px;margin:auto;border-radius:28px}.bro-copy{min-width:0;padding:0 2px}.bro-copy .eyebrow{margin-bottom:10px;font-size:.68rem;letter-spacing:.13em}.bro-copy h2{font-size:clamp(2.05rem,9.5vw,2.45rem);line-height:1;letter-spacing:-.045em}.bro-copy>p{margin-top:16px;font-size:1rem;line-height:1.48}.bro-questions{display:flex;flex-wrap:nowrap;gap:8px;margin:18px 0 16px;padding:0 2px 6px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}.bro-questions::-webkit-scrollbar{display:none}.bro-questions button{flex:0 0 auto;min-height:44px;padding:9px 14px;scroll-snap-align:start;text-align:left;white-space:nowrap}.bro-button{min-height:50px}.privacy-note{margin-top:13px;font-size:.72rem}
   .finale{min-height:680px}.finale>img{object-position:58% center}.finale-copy h2{font-size:clamp(3rem,14vw,5.3rem)}
   .soon-footer{grid-template-columns:1fr;gap:22px;padding:36px 20px}.soon-footer p{justify-self:start}
 }
