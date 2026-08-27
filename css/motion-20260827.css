@@ -1,0 +1,186 @@
+:root {
+  --motion-ease: cubic-bezier(.2, .8, .2, 1);
+  --motion-soft: cubic-bezier(.22, 1, .36, 1);
+}
+
+.topbar {
+  transition: background-color .35s ease, box-shadow .35s ease, border-color .35s ease;
+}
+
+.topbar.is-scrolled {
+  background: rgba(245, 245, 247, .96);
+  border-color: rgba(0, 0, 0, .09);
+  box-shadow: 0 10px 32px rgba(15, 23, 42, .08);
+}
+
+.reveal {
+  transform: translate3d(0, 28px, 0);
+  transition: opacity .78s ease, transform .88s var(--motion-soft), box-shadow .32s var(--motion-ease), border-color .32s ease, background-color .32s ease;
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  transform: translate3d(0, 0, 0);
+  will-change: auto;
+}
+
+.hero-media.reveal {
+  transform: translate3d(0, 14px, 0) scale(.985);
+  transition-duration: .95s;
+}
+
+.hero-media.reveal.is-visible {
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.hero-caption.reveal {
+  transition-delay: .08s;
+}
+
+.hero-copy.reveal {
+  transition-delay: .14s;
+}
+
+.hero-media img,
+.story-media img,
+.voice-photo img {
+  transition: transform 1.25s var(--motion-soft);
+}
+
+.hero-media.reveal:not(.is-visible) img,
+.story-media.reveal:not(.is-visible) img,
+.voice-photo.reveal:not(.is-visible) img {
+  transform: scale(1.035);
+}
+
+.hero-media.reveal.is-visible img,
+.story-media.reveal.is-visible img,
+.voice-photo.reveal.is-visible img {
+  transform: scale(1);
+}
+
+.screen-card.reveal,
+.voice-card.reveal,
+.app-card.reveal,
+.maint-panel.reveal,
+.status-card.reveal {
+  transform: translate3d(0, 34px, 0) scale(.982);
+}
+
+.screen-card.reveal.is-visible,
+.voice-card.reveal.is-visible,
+.app-card.reveal.is-visible,
+.maint-panel.reveal.is-visible,
+.status-card.reveal.is-visible {
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.screen-card:nth-child(2),
+.voice-card:nth-child(2),
+.app-card:nth-child(2),
+.maint-panel:nth-child(2),
+.status-card:nth-child(2) {
+  transition-delay: .08s;
+}
+
+.screen-card:nth-child(3),
+.voice-card:nth-child(3),
+.app-card:nth-child(3),
+.status-card:nth-child(3) {
+  transition-delay: .16s;
+}
+
+.app-card:nth-child(4) {
+  transition-delay: .08s;
+}
+
+.app-card:nth-child(5) {
+  transition-delay: .16s;
+}
+
+.phone-product {
+  transition: transform .95s var(--motion-soft), filter .45s ease !important;
+}
+
+.reveal:not(.is-visible) .phone-product {
+  transform: scaleX(1.05) translate3d(0, 18px, 0) scale(.975);
+}
+
+.reveal.is-visible .phone-product {
+  transform: scaleX(1.05) translate3d(0, 0, 0) scale(1);
+}
+
+.button-primary,
+.button-secondary,
+.smart-card,
+.metric {
+  transition-property: transform, box-shadow, border-color, background-color;
+  transition-duration: .32s;
+  transition-timing-function: var(--motion-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button-primary:hover,
+  .button-secondary:hover {
+    transform: translateY(-2px);
+  }
+
+  .reveal.is-visible.voice-card:hover,
+  .reveal.is-visible.app-card:hover,
+  .reveal.is-visible.status-card:hover,
+  .smart-card:hover,
+  .metric:hover {
+    transform: translateY(-5px);
+    border-color: rgba(35, 79, 112, .18);
+    box-shadow: 0 20px 48px rgba(15, 23, 42, .09);
+  }
+}
+
+@media (max-width: 780px) {
+  .reveal {
+    transform: translate3d(0, 22px, 0);
+    transition-duration: .7s;
+  }
+
+  .screen-card:nth-child(n),
+  .voice-card:nth-child(n),
+  .app-card:nth-child(n),
+  .maint-panel:nth-child(n),
+  .status-card:nth-child(n) {
+    transition-delay: 0s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topbar,
+  .reveal,
+  .phone-product,
+  .hero-media img,
+  .story-media img,
+  .voice-photo img,
+  .button-primary,
+  .button-secondary,
+  .voice-card,
+  .app-card,
+  .status-card,
+  .smart-card,
+  .metric {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .reveal,
+  .reveal.is-visible,
+  .reveal .phone-product,
+  .hero-media img,
+  .story-media img,
+  .voice-photo img {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .phone-product,
+  .reveal .phone-product {
+    transform: scaleX(1.05) !important;
+  }
+}
