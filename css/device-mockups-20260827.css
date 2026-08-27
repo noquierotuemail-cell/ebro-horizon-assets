@@ -1,0 +1,84 @@
+.device-preview {
+  position: relative;
+  aspect-ratio: auto;
+  padding: 31px 10px 23px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 42px;
+  background: linear-gradient(145deg, #26292e 0%, #0c0d10 34%, #020304 100%);
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, .2),
+    inset 1px 1px 0 rgba(255, 255, 255, .18),
+    inset -1px -1px 0 rgba(255, 255, 255, .05);
+  overflow: hidden;
+}
+
+.device-preview::before {
+  top: 8px;
+  width: 84px;
+  height: 17px;
+  border: 1px solid rgba(255, 255, 255, .025);
+  background: #000;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .02);
+}
+
+.device-preview::after {
+  bottom: 8px;
+  width: 82px;
+  height: 4px;
+  background: rgba(255, 255, 255, .42);
+}
+
+.device-preview-screen {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 29px;
+  background: #05070b;
+  box-shadow: 0 0 0 2px #020304, inset 0 0 12px rgba(0, 0, 0, .55);
+  overflow: hidden;
+}
+
+.device-preview-screen img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  aspect-ratio: 9 / 16 !important;
+  border-radius: 28px !important;
+  background: #05070b !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+.screen-card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.screen-label {
+  align-self: end;
+}
+
+@media (max-width: 680px) {
+  .device-preview {
+    padding: 28px 9px 21px;
+    border-radius: 38px;
+  }
+
+  .device-preview::before {
+    top: 7px;
+    width: 76px;
+    height: 15px;
+  }
+
+  .device-preview-screen {
+    border-radius: 26px;
+  }
+
+  .device-preview-screen img {
+    border-radius: 25px !important;
+  }
+}
