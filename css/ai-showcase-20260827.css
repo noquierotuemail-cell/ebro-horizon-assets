@@ -93,6 +93,21 @@
     object-position: center;
   }
 
+  #voz .voice-photo {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  #voz .voice-photo img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: auto;
+    object-fit: contain;
+    object-position: center;
+  }
+
   .phone-showcase,
   .phone-maint-showcase {
     display: flex;
