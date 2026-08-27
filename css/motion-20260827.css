@@ -40,6 +40,21 @@
   will-change: auto;
 }
 
+.habro-motion-ready .reveal h1,
+.habro-motion-ready .reveal h2 {
+  opacity: 0;
+  transform: translate3d(-42px, 0, 0);
+  transition: opacity .72s ease, transform .92s var(--motion-soft);
+  will-change: opacity, transform;
+}
+
+.habro-motion-ready .reveal.is-visible h1,
+.habro-motion-ready .reveal.is-visible h2 {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  will-change: auto;
+}
+
 .hero-media.reveal {
   transform: translate3d(0, 28px, 0) scale(.94);
   transition-duration: 1.15s;
@@ -187,6 +202,8 @@
 @media (prefers-reduced-motion: reduce) {
   .topbar,
   .reveal,
+  .reveal h1,
+  .reveal h2,
   .phone-product,
   .hero-media img,
   .story-media img,
@@ -208,6 +225,8 @@
 
   .reveal,
   .reveal.is-visible,
+  .reveal h1,
+  .reveal h2,
   .reveal .phone-product,
   .hero-media img,
   .story-media img,
