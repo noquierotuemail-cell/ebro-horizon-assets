@@ -45,10 +45,10 @@
 @media(max-width:640px){
   body.habro-chat-open{overflow:hidden}
   .habro-chat{right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom))}
-  .habro-chat-launcher{width:62px;height:62px;border-radius:20px}
-  .habro-chat-launcher img{width:56px;height:56px;border-radius:17px}
+  .habro-chat-launcher{width:54px;height:54px;border-radius:17px}
+  .habro-chat-launcher img{width:48px;height:48px;border-radius:14px}
   .habro-chat-label{display:none}
-  .habro-chat-welcome{right:0;bottom:76px;width:min(272px,calc(100vw - 28px));padding:14px 16px 15px;border-radius:18px}
+  .habro-chat-welcome{right:0;bottom:68px;width:min(272px,calc(100vw - 28px));padding:14px 16px 15px;border-radius:18px}
   .habro-chat-welcome-title{font-size:14px}
   .habro-chat-welcome-text{font-size:12.5px}
   .habro-chat-panel{position:fixed;left:8px;right:8px;top:max(8px,env(safe-area-inset-top));bottom:max(8px,env(safe-area-inset-bottom));width:auto;height:auto;max-height:none;border-radius:24px;transform:translateY(18px) scale(.985);transform-origin:center bottom}
