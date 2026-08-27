@@ -23,7 +23,19 @@
 
 .hero .hero-copy {
   margin-top: 56px;
+  margin-right: auto;
   margin-bottom: 0;
+  margin-left: 0;
+  text-align: left;
+}
+
+.hero .hero-lede {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.hero .hero-actions {
+  justify-content: flex-start;
 }
 
 .phone-showcase .screen-card {
