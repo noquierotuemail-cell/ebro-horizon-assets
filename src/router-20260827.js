@@ -114,6 +114,17 @@ async function assetDiagnostics(env, origin) {
   });
 }
 
+function injectImageHydrator(response) {
+  const rewritten = new HTMLRewriter()
+    .on('body', {
+      element(element) {
+        element.append('<script src="/js/github-image-hydrator-20260827.js?v=20260827-0625" defer></script>', { html: true });
+      }
+    })
+    .transform(response);
+  return new Response(rewritten.body, rewritten);
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -126,6 +137,11 @@ export default {
       return serveImage(request, env, url);
     }
 
-    return app.fetch(request, env, ctx);
+    const response = await app.fetch(request, env, ctx);
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('text/html')) {
+      return injectImageHydrator(response);
+    }
+    return response;
   }
 };
