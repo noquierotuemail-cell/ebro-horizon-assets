@@ -8,6 +8,8 @@
   background: transparent !important;
   object-fit: contain !important;
   object-position: center !important;
+  transform: scaleX(1.05);
+  transform-origin: center;
   filter: drop-shadow(0 26px 24px rgba(0, 0, 0, .16));
 }
 
