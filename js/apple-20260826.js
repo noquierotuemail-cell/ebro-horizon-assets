@@ -33,8 +33,12 @@
       ctaTitle:'O próximo passo para o seu EBRO está mais perto.', ctaCopy:'Estamos a preparar o primeiro acesso à HABRO. Descubra o que vem aí e pergunte ao BRO tudo o que quiser saber.', community:'Ebro Tech Lab', footerCopy:'Projeto comunitário e independente desenvolvido no Ebro Tech Lab.', footerLegal:'HABRO não é uma aplicação oficial nem supervisionada pela EBRO SUV S.L. e não implica afiliação com a marca.'
     }
   };
+  const heroTitleLines={
+    es:['Tu EBRO,','más inteligente y','conectado contigo.'],
+    pt:['O seu EBRO,','mais inteligente e','ligado a si.']
+  };
   const btn=document.querySelector('[data-language-toggle]');
-  const setLang=lang=>{const l=lang==='pt'?'pt':'es';document.documentElement.lang=l==='pt'?'pt-PT':'es';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(copy[l][k])el.textContent=copy[l][k]});if(btn){btn.textContent=l==='pt'?'ES':'PT';btn.setAttribute('aria-label',l==='pt'?'Mudar para espanhol':'Cambiar a portugués')}try{localStorage.setItem('habro-apple-lang',l)}catch(e){}};
+  const setLang=lang=>{const l=lang==='pt'?'pt':'es';document.documentElement.lang=l==='pt'?'pt-PT':'es';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(!copy[l][k])return;if(k==='heroTitle'){el.replaceChildren(...heroTitleLines[l].map(line=>{const span=document.createElement('span');span.className='hero-title-line';span.textContent=line;return span}))}else el.textContent=copy[l][k]});if(btn){btn.textContent=l==='pt'?'ES':'PT';btn.setAttribute('aria-label',l==='pt'?'Mudar para espanhol':'Cambiar a portugués')}try{localStorage.setItem('habro-apple-lang',l)}catch(e){}};
   let initial='es';try{initial=localStorage.getItem('habro-apple-lang')==='pt'?'pt':'es'}catch(e){}setLang(initial);btn?.addEventListener('click',()=>setLang(document.documentElement.lang.startsWith('pt')?'es':'pt'));
   const nodes=[...document.querySelectorAll('.reveal')];if('IntersectionObserver'in window&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const o=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('is-visible');o.unobserve(e.target)}}),{threshold:.12,rootMargin:'0px 0px -40px'});nodes.forEach(n=>o.observe(n))}else nodes.forEach(n=>n.classList.add('is-visible'));
 })();

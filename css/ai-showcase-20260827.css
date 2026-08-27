@@ -38,6 +38,14 @@
   justify-content: flex-start;
 }
 
+.hero-title-line {
+  display: inline;
+}
+
+.hero-title-line:not(:last-child)::after {
+  content: " ";
+}
+
 .phone-showcase .screen-card {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
@@ -208,7 +216,16 @@
   }
 
   .hero h1 {
-    font-size: clamp(46px, 13vw, 54px);
+    font-size: clamp(38px, 10.3vw, 42px);
+  }
+
+  .hero-title-line {
+    display: block;
+    white-space: nowrap;
+  }
+
+  .hero-title-line:not(:last-child)::after {
+    content: none;
   }
 
   .hero-lede {
