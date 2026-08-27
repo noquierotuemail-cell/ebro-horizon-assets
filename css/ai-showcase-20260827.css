@@ -11,6 +11,19 @@
   filter: drop-shadow(0 26px 24px rgba(0, 0, 0, .16));
 }
 
+.hero {
+  padding-top: 32px;
+}
+
+.hero-media.hero-header-media {
+  margin-top: 0;
+}
+
+.hero .hero-copy {
+  margin-top: 56px;
+  margin-bottom: 0;
+}
+
 .phone-showcase .screen-card {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
@@ -75,6 +88,10 @@
 }
 
 @media (max-width: 780px) {
+  .hero {
+    padding-top: 0;
+  }
+
   .hero-media.hero-header-media {
     width: 100vw;
     margin-left: calc(50% - 50vw);
@@ -169,7 +186,11 @@
   }
 
   .hero {
-    padding: 54px 0 52px;
+    padding: 0 0 52px;
+  }
+
+  .hero .hero-copy {
+    margin-top: 42px;
   }
 
   .hero h1 {
@@ -178,10 +199,6 @@
 
   .hero-lede {
     font-size: 18px;
-  }
-
-  .hero-media.hero-header-media {
-    margin-top: 34px;
   }
 
   .hero-caption {
