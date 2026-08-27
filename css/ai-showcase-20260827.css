@@ -35,7 +35,7 @@
 }
 
 .phone-showcase .phone-product {
-  max-width: 310px;
+  max-width: 279px;
 }
 
 .phone-showcase .screen-label {
@@ -61,7 +61,7 @@
 }
 
 .energy-visual .phone-product {
-  max-width: 370px;
+  max-width: 333px;
 }
 
 .phone-maint-showcase {
@@ -84,7 +84,7 @@
 
 .phone-maint-showcase .phone-product {
   align-self: end;
-  max-width: 330px;
+  max-width: 297px;
 }
 
 @media (max-width: 780px) {
@@ -159,7 +159,7 @@
 
   .phone-showcase .phone-product,
   .phone-maint-showcase .phone-product {
-    max-width: 290px;
+    max-width: 261px;
   }
 }
 
