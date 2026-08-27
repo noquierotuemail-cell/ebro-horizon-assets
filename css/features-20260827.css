@@ -191,7 +191,7 @@
 .route-feature { position: relative; min-height: 680px; display: grid; align-items: center; overflow: hidden; color: #fff; background: #15191d; }
 .route-feature > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
 .route-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5, 8, 11, .86) 0%, rgba(5, 8, 11, .58) 37%, rgba(5, 8, 11, .04) 70%); }
-.route-copy { position: relative; z-index: 2; width: 100%; }
+.route-copy { position: relative; z-index: 2; width: min(calc(100% - 40px), var(--max)); }
 .route-copy h2 { max-width: 650px; margin: 12px 0 20px; font-size: clamp(46px, 6vw, 80px); line-height: .98; letter-spacing: -.06em; }
 .route-copy p { max-width: 610px; margin: 0; color: #d7dbe0; font-size: clamp(17px, 2vw, 21px); line-height: 1.5; }
 .route-status { display: inline-flex; margin-top: 26px; padding: 9px 14px; border: 1px solid rgba(255, 255, 255, .2); border-radius: 999px; background: rgba(0, 0, 0, .26); font-size: 12px; font-weight: 800; }
@@ -213,7 +213,7 @@
   .route-feature { min-height: 760px; align-items: end; }
   .route-feature > img { object-position: 64% center; }
   .route-shade { background: linear-gradient(0deg, rgba(5, 8, 11, .92) 0%, rgba(5, 8, 11, .55) 46%, rgba(5, 8, 11, .05) 78%); }
-  .route-copy { padding-bottom: 58px; }
+  .route-copy { width: min(calc(100% - 28px), var(--max)); padding-bottom: 58px; }
 }
 
 @media (max-width: 520px) {
