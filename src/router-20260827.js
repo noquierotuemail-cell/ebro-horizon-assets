@@ -20,6 +20,15 @@ function decodeBase64(value) {
   return bytes;
 }
 
+function encodeBase64(bytes) {
+  let binary = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunk, bytes.length)));
+  }
+  return btoa(binary);
+}
+
 async function fetchRepoFile(pathname) {
   const path = pathname.replace(/^\//, '');
   const apiUrl = `https://api.github.com/repos/${REPO}/contents/${path}?ref=main`;
@@ -28,11 +37,9 @@ async function fetchRepoFile(pathname) {
       'Accept': 'application/vnd.github+json',
       'User-Agent': 'HABRO-RemoteApp-Worker'
     },
-    cf: { cacheTtl: 300, cacheEverything: true }
+    cf: { cacheTtl: 86400, cacheEverything: true }
   });
-  if (!upstream.ok) {
-    return { ok: false, status: upstream.status, source: 'github-api' };
-  }
+  if (!upstream.ok) return { ok: false, status: upstream.status, source: 'github-api' };
   const payload = await upstream.json();
   if (!payload || payload.type !== 'file' || !payload.content) {
     return { ok: false, status: 502, source: 'github-api' };
@@ -41,33 +48,90 @@ async function fetchRepoFile(pathname) {
   return { ok: true, status: 200, bytes, sha: payload.sha, source: 'github-api' };
 }
 
-async function serveImage(request, env, url) {
+async function assetBytes(env, origin, pathname) {
   try {
-    const repo = await fetchRepoFile(url.pathname);
-    if (repo.ok) {
-      const headers = new Headers();
-      headers.set('Content-Type', mimeFor(url.pathname));
-      headers.set('Content-Length', String(repo.bytes.byteLength));
-      headers.set('Cache-Control', 'public, max-age=300, s-maxage=300');
-      headers.set('X-HABRO-Asset-Source', repo.source);
-      headers.set('X-HABRO-Asset-SHA', repo.sha || '');
-      headers.set('X-Content-Type-Options', 'nosniff');
-      return new Response(repo.bytes, { status: 200, headers });
+    const asset = await env.ASSETS.fetch(new Request(`${origin}${pathname}`));
+    if (asset.ok) {
+      const bytes = new Uint8Array(await asset.arrayBuffer());
+      if (bytes.byteLength > 0) {
+        return {
+          ok: true,
+          bytes,
+          contentType: asset.headers.get('content-type') || mimeFor(pathname),
+          source: 'cloudflare-assets'
+        };
+      }
     }
-  } catch (error) {
-    // Fall through to Cloudflare Static Assets.
+  } catch (_) {}
+
+  try {
+    const repo = await fetchRepoFile(pathname);
+    if (repo.ok) {
+      return { ok: true, bytes: repo.bytes, contentType: mimeFor(pathname), source: repo.source };
+    }
+  } catch (_) {}
+
+  return { ok: false };
+}
+
+async function serveImage(request, env, url) {
+  const resolved = await assetBytes(env, url.origin, url.pathname);
+  if (!resolved.ok) return new Response('Image unavailable', { status: 404 });
+  const headers = new Headers();
+  headers.set('Content-Type', resolved.contentType || mimeFor(url.pathname));
+  headers.set('Content-Length', String(resolved.bytes.byteLength));
+  headers.set('Cache-Control', 'public, max-age=300, s-maxage=300');
+  headers.set('X-HABRO-Asset-Source', resolved.source || 'unknown');
+  headers.set('X-Content-Type-Options', 'nosniff');
+  return new Response(resolved.bytes, { status: 200, headers });
+}
+
+async function inlineSiteImages(response, request, env) {
+  const html = await response.text();
+  const origin = new URL(request.url).origin;
+  const matches = [...html.matchAll(/<img\b[^>]*?\bsrc=(['"])([^'"]+)\1[^>]*>/gi)];
+  const unique = new Map();
+
+  for (const match of matches) {
+    const raw = match[2];
+    if (!raw || raw.startsWith('data:')) continue;
+    let pathname;
+    try {
+      pathname = new URL(raw, origin).pathname;
+    } catch (_) {
+      continue;
+    }
+    if (!pathname.startsWith('/assets/') || !IMAGE_EXT.test(pathname)) continue;
+    if (!unique.has(pathname)) unique.set(pathname, null);
   }
 
-  const fallback = await env.ASSETS.fetch(request);
-  const headers = new Headers(fallback.headers);
-  headers.set('Cache-Control', 'public, max-age=60, s-maxage=60');
-  headers.set('X-HABRO-Asset-Source', 'cloudflare-fallback');
-  headers.delete('content-disposition');
-  return new Response(fallback.body, {
-    status: fallback.status,
-    statusText: fallback.statusText,
-    headers
+  await Promise.all([...unique.keys()].map(async pathname => {
+    const resolved = await assetBytes(env, origin, pathname);
+    if (!resolved.ok) return;
+    const mime = resolved.contentType || mimeFor(pathname);
+    unique.set(pathname, `data:${mime};base64,${encodeBase64(resolved.bytes)}`);
+  }));
+
+  let rewritten = html.replace(/<img\b([^>]*?)\bsrc=(['"])([^'"]+)\2([^>]*)>/gi, (full, before, quote, raw, after) => {
+    let pathname;
+    try {
+      pathname = new URL(raw, origin).pathname;
+    } catch (_) {
+      return full;
+    }
+    const dataUri = unique.get(pathname);
+    if (!dataUri) return full;
+    return `<img${before}src=${quote}${dataUri}${quote}${after}>`;
   });
+
+  const failSafeStyle = '<style id="habro-render-failsafe">.reveal{opacity:1!important;transform:none!important}.reveal.is-visible{opacity:1!important;transform:none!important}</style>';
+  rewritten = rewritten.replace('</head>', `${failSafeStyle}</head>`);
+
+  const headers = new Headers(response.headers);
+  headers.delete('content-length');
+  headers.delete('content-encoding');
+  headers.set('Cache-Control', 'private, no-store');
+  return new Response(rewritten, { status: response.status, statusText: response.statusText, headers });
 }
 
 async function assetDiagnostics(env, origin) {
@@ -84,45 +148,35 @@ async function assetDiagnostics(env, origin) {
   ];
   const results = [];
   for (const pathname of paths) {
-    let cloudflare = null;
-    let github = null;
+    const item = { pathname };
     try {
       const r = await env.ASSETS.fetch(new Request(`${origin}${pathname}`));
-      cloudflare = {
+      const bytes = r.ok ? new Uint8Array(await r.arrayBuffer()) : new Uint8Array();
+      item.cloudflare = {
         status: r.status,
         contentType: r.headers.get('content-type'),
-        contentLength: r.headers.get('content-length')
+        bytes: bytes.byteLength,
+        magic: [...bytes.slice(0, 12)].map(v => v.toString(16).padStart(2, '0')).join(' ')
       };
     } catch (error) {
-      cloudflare = { error: String(error) };
+      item.cloudflare = { error: String(error) };
     }
     try {
       const r = await fetchRepoFile(pathname);
-      github = r.ok
-        ? { status: 200, bytes: r.bytes.byteLength, sha: r.sha }
-        : { status: r.status };
+      item.github = r.ok ? {
+        status: 200,
+        bytes: r.bytes.byteLength,
+        sha: r.sha,
+        magic: [...r.bytes.slice(0, 12)].map(v => v.toString(16).padStart(2, '0')).join(' ')
+      } : { status: r.status };
     } catch (error) {
-      github = { error: String(error) };
+      item.github = { error: String(error) };
     }
-    results.push({ pathname, cloudflare, github });
+    results.push(item);
   }
-  return new Response(JSON.stringify({ ok: true, results }, null, 2), {
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': 'no-store'
-    }
+  return new Response(JSON.stringify({ ok: true, mode: 'server-inline-v1', results }, null, 2), {
+    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }
   });
-}
-
-function injectImageHydrator(response) {
-  const rewritten = new HTMLRewriter()
-    .on('body', {
-      element(element) {
-        element.append('<script src="/js/github-image-hydrator-20260827.js?v=20260827-0625" defer></script>', { html: true });
-      }
-    })
-    .transform(response);
-  return new Response(rewritten.body, rewritten);
 }
 
 export default {
@@ -140,7 +194,7 @@ export default {
     const response = await app.fetch(request, env, ctx);
     const contentType = response.headers.get('content-type') || '';
     if (contentType.includes('text/html')) {
-      return injectImageHydrator(response);
+      return inlineSiteImages(response, request, env);
     }
     return response;
   }
