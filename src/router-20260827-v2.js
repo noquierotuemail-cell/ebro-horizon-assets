@@ -104,7 +104,8 @@ async function inlineImages(response, request) {
   });
 
   rewritten = rewritten.replace(/js\/apple-20260826\.js\?v=[^"']+/g, 'js/apple-20260826.js?v=20260827-0730');
-  rewritten = rewritten.replace('</head>', '<style id="habro-render-failsafe">.reveal{opacity:1!important;transform:none!important}</style></head>');
+  const failSafeScript = '<script id="habro-render-failsafe">window.addEventListener("load",()=>setTimeout(()=>{if(!document.documentElement.classList.contains("habro-motion-ready")){document.querySelectorAll(".reveal").forEach(el=>el.classList.add("is-visible"))}},2200),{once:true})<\/script>';
+  rewritten = rewritten.replace('</head>', `${failSafeScript}</head>`);
   const headers = new Headers(response.headers);
   headers.delete('content-length');
   headers.delete('content-encoding');

@@ -124,8 +124,8 @@ async function inlineSiteImages(response, request, env) {
     return `<img${before}src=${quote}${dataUri}${quote}${after}>`;
   });
 
-  const failSafeStyle = '<style id="habro-render-failsafe">.reveal{opacity:1!important;transform:none!important}.reveal.is-visible{opacity:1!important;transform:none!important}</style>';
-  rewritten = rewritten.replace('</head>', `${failSafeStyle}</head>`);
+  const failSafeScript = '<script id="habro-render-failsafe">window.addEventListener("load",()=>setTimeout(()=>{if(!document.documentElement.classList.contains("habro-motion-ready")){document.querySelectorAll(".reveal").forEach(el=>el.classList.add("is-visible"))}},2200),{once:true})<\/script>';
+  rewritten = rewritten.replace('</head>', `${failSafeScript}</head>`);
 
   const headers = new Headers(response.headers);
   headers.delete('content-length');

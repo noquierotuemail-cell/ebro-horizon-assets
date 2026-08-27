@@ -1,4 +1,22 @@
 (() => {
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const revealNodes = [...document.querySelectorAll('.reveal:not(.is-visible)')];
+
+  if (!reduceMotion && 'IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        revealObserver.unobserve(entry.target);
+      });
+    }, { threshold: .12, rootMargin: '0px 0px -40px' });
+    revealNodes.forEach(node => revealObserver.observe(node));
+  } else {
+    revealNodes.forEach(node => node.classList.add('is-visible'));
+  }
+
+  document.documentElement.classList.add('habro-motion-ready');
+
   const topbar = document.querySelector('.topbar');
   if (!topbar) return;
 
