@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f5f5f7">
   <meta name="robots" content="index,follow,max-image-preview:large">
-  <title>HABRO RemoteApp para EBRO S900 | Control, voz y automatización</title>
-  <meta name="description" content="HABRO RemoteApp conecta tu EBRO S900 con Home Assistant: control remoto, Siri y Google Assistant, SMART Actions, energía, mantenimiento, avisos y nuevas aplicaciones de recarga.">
+  <title>HABRO RemoteApp para EBRO S900 | Más inteligente y conectado contigo</title>
+  <meta name="description" content="HABRO RemoteApp conecta tu EBRO S900 contigo: control remoto, avisos por WhatsApp y Push, consumos, puntos de recarga y planificación de rutas.">
   <link rel="canonical" href="https://habroremote.com/">
   <link rel="icon" href="assets/app-icon.webp" type="image/webp">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -15,8 +15,8 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="HABRO RemoteApp">
   <meta property="og:url" content="https://habroremote.com/">
-  <meta property="og:title" content="HABRO RemoteApp — Tu EBRO, en tu mano">
-  <meta property="og:description" content="Control remoto, voz, SMART Actions, energía y aplicaciones para EBRO S900 sobre Home Assistant.">
+  <meta property="og:title" content="HABRO RemoteApp — Tu EBRO, más inteligente y conectado contigo">
+  <meta property="og:description" content="Control remoto, voz, SMART Actions, avisos, consumos, energía, recarga y rutas inteligentes para EBRO S900.">
   <meta property="og:image" content="https://habroremote.com/assets/hero-header-20260826.webp">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://habroremote.com/assets/hero-header-20260826.webp">
@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="css/apple-refine-20260826.css?v=20260826-1">
   <link rel="stylesheet" href="css/ai-showcase-20260827.css?v=20260827-8">
   <link rel="stylesheet" href="css/motion-20260827.css?v=20260827-2">
+  <link rel="stylesheet" href="css/features-20260827.css?v=20260827-1">
   <link rel="stylesheet" href="css/chatkit.css">
   <script type="application/ld+json">{
     "@context":"https://schema.org",
@@ -34,7 +35,7 @@
     "operatingSystem":"Web",
     "softwareRequirements":"Home Assistant con una integración EBRO operativa",
     "description":"Interfaz web para EBRO S900 con control remoto, voz, automatización, energía, mantenimiento y aplicaciones de movilidad.",
-    "featureList":["Control remoto del vehículo","Control por voz con Siri y Google Assistant","SMART Actions por ubicación, día y hora","Carga y telemetría de batería","Mantenimiento y TPMS","Avisos multicanal","Mi tarifa eléctrica","Búsqueda de puntos de recarga","Rutas inteligentes","Recarga con excedentes solares"]
+    "featureList":["Control remoto del vehículo","Control por voz con Siri y Google Assistant","SMART Actions por ubicación, día y hora","Seguimiento de consumos de gasolina y electricidad","Avisos por WhatsApp y Push","Búsqueda de puntos de recarga","Planificación inteligente de rutas","Recarga con excedentes solares"]
   }</script>
 </head>
 <body>
@@ -66,8 +67,8 @@
         <div class="hero-caption reveal"><strong data-i18n="heroCaptionA">HABRO RemoteApp</strong><span data-i18n="heroCaptionB">Control por voz, móvil y Apple Watch</span></div>
         <div class="hero-copy reveal">
           <div class="eyebrow" data-i18n="heroEyebrow">HABRO RemoteApp · EBRO S900</div>
-          <h1 data-i18n="heroTitle">Tu EBRO. En tu mano.</h1>
-          <p class="hero-lede" data-i18n="heroCopy">Controla el coche, automatiza lo que se repite y conecta vehículo, casa y energía desde una sola experiencia sobre Home Assistant.</p>
+          <h1 data-i18n="heroTitle">Tu EBRO, más inteligente y conectado contigo.</h1>
+          <p class="hero-lede" data-i18n="heroCopy">Controla el coche, automatiza lo que se repite y conecta vehículo, casa y energía desde una sola experiencia.</p>
           <div class="hero-actions">
             <a class="button-primary" href="https://ebrohorizonremote.pages.dev/" target="_blank" rel="noopener" data-i18n="beta">Probar beta</a>
             <a class="button-secondary" href="#control" data-i18n="nav1">Qué puedes hacer</a>
@@ -81,7 +82,7 @@
         <div class="story-media lifestyle-media reveal"><img src="assets/lifestyle-woman-phone-20260826.webp" alt="Usuaria controlando su EBRO S900 con HABRO RemoteApp"></div>
         <div class="story-copy reveal">
           <div class="eyebrow" data-i18n="storyEyebrow">Control remoto</div>
-          <h2 data-i18n="storyTitle">Hazlo antes de llegar al coche.</h2>
+          <h2 data-i18n="storyTitle">Todo listo antes de llegar al coche.</h2>
           <p class="section-copy" data-i18n="storyCopy">HABRO concentra las acciones que usas de verdad para que puedas actuar mientras caminas hacia tu EBRO.</p>
           <div class="feature-list">
             <div class="feature-row"><b>01</b><div><strong data-i18n="f1t">Abre vehículo y maletero</strong><span data-i18n="f1p">Acceso remoto desde HABRO, Siri, Google Assistant y Apple Watch en las funciones compatibles.</span></div></div>
@@ -106,16 +107,45 @@
 
     <section class="section dark" id="smart">
       <div class="wrap smart-shell">
-        <div class="reveal"><div class="eyebrow" data-i18n="smartEyebrow">SMART Actions</div><h2 data-i18n="smartTitle">Tu coche puede adelantarse a ti.</h2><p class="section-copy" data-i18n="smartCopy">Ubicación, día, hora y contexto meteorológico se combinan para ejecutar acciones cuando realmente tienen sentido.</p><div class="smart-cards"><article class="smart-card"><span>GPS</span><strong data-i18n="s1t">Climatización por GPS</strong><p data-i18n="s1p">Casa, trabajo o cualquier ubicación con radio configurable.</p></article><article class="smart-card"><span>CAL</span><strong data-i18n="s2t">Días y horarios</strong><p data-i18n="s2p">Crea acciones diferentes para cada rutina semanal.</p></article><article class="smart-card"><span>0°</span><strong data-i18n="s3t">Desempañado inteligente</strong><p data-i18n="s3p">Puede decidir en función del riesgo de escarcha previsto.</p></article><article class="smart-card"><span>VOICE</span><strong data-i18n="s4t">Voz integrada</strong><p data-i18n="s4p">Siri y Google Assistant validados; Alexa, próximamente.</p></article></div></div>
+        <div class="reveal"><div class="eyebrow" data-i18n="smartEyebrow">SMART Actions</div><h2 data-i18n="smartTitle">Tu coche puede adelantarse a ti.</h2><p class="section-copy" data-i18n="smartCopy">Ubicación, día, hora y contexto meteorológico se combinan para ejecutar acciones cuando realmente tienen sentido.</p><div class="smart-cards"><article class="smart-card"><span>GPS</span><strong data-i18n="s1t">Climatización por GPS</strong><p data-i18n="s1p">Casa, trabajo o cualquier ubicación con radio configurable.</p></article><article class="smart-card"><span>CAL</span><strong data-i18n="s2t">Días y horarios</strong><p data-i18n="s2p">Crea acciones diferentes para cada rutina semanal.</p></article><article class="smart-card"><span>0°</span><strong data-i18n="s3t">Desempañado inteligente</strong><p data-i18n="s3p">Puede decidir en función del riesgo de escarcha previsto.</p></article><article class="smart-card"><span>VOICE</span><strong data-i18n="s4t">Voz integrada</strong><p data-i18n="s4p">Siri y Google Assistant disponibles; Alexa, próximamente.</p></article></div></div>
         <aside class="weather-box reveal"><h3 data-i18n="frostTitle">Riesgo de escarcha</h3><p data-i18n="frostCopy">HABRO cruza la previsión de la hora programada antes de activar una acción.</p><div class="weather-metrics"><div class="metric"><strong>≤ 4 °C</strong><span data-i18n="temp">Temperatura</span></div><div class="metric"><strong>&lt; 1 °C</strong><span data-i18n="dew">Punto de rocío</span></div><div class="metric"><strong>≤ 25%</strong><span data-i18n="cloud">Nubosidad</span></div><div class="metric"><strong>≤ 10 km/h</strong><span data-i18n="wind">Viento</span></div></div></aside>
       </div>
     </section>
 
     <section class="section white" id="voz">
       <div class="wrap">
-        <div class="section-head reveal"><div class="eyebrow" data-i18n="voiceEyebrow">Control por voz</div><h2 data-i18n="voiceTitle">Habla. HABRO actúa.</h2><p class="section-copy" data-i18n="voiceCopy">La voz deja de ser un añadido y se convierte en una forma natural de usar el coche cuando tienes las manos ocupadas o ya vas caminando hacia él.</p><div class="assistant-row"><span class="assistant-pill good">Siri · <span data-i18n="valid">Validado</span></span><span class="assistant-pill good">Google Assistant · <span data-i18n="valid">Validado</span></span><span class="assistant-pill soon">Alexa · <span data-i18n="soon">Próximamente</span></span></div></div>
+        <div class="section-head reveal"><div class="eyebrow" data-i18n="voiceEyebrow">Control por voz</div><h2 data-i18n="voiceTitle">Tú hablas. HABRO te escucha.</h2><p class="section-copy" data-i18n="voiceCopy">La voz deja de ser un añadido y se convierte en una forma natural de usar el coche cuando tienes las manos ocupadas o ya vas caminando hacia él.</p><div class="assistant-row"><span class="assistant-pill good">Siri · <span data-i18n="available">Disponible</span></span><span class="assistant-pill good">Google Assistant · <span data-i18n="available">Disponible</span></span><span class="assistant-pill soon">Alexa · <span data-i18n="soon">Próximamente</span></span></div></div>
         <figure class="voice-photo reveal"><img src="assets/lifestyle-woman-watch-trunk-20260826.webp" width="1400" height="788" alt="Usuaria hablando a su reloj mientras se abre el maletero de un EBRO S900"></figure>
         <div class="voice-grid"><article class="voice-card reveal"><span class="command" data-i18n="v1c">“Abre el maletero”</span><h3 data-i18n="v1t">Listo antes de llegar</h3><p data-i18n="v1p">Pídeselo a Siri o Google Assistant. También puedes hacerlo desde Apple Watch.</p><small>Siri · Google Assistant · Apple Watch</small></article><article class="voice-card reveal"><span class="command" data-i18n="v2c">“Abre las ventanillas”</span><h3 data-i18n="v2t">Ventila mientras caminas</h3><p data-i18n="v2p">Prepara el habitáculo sin sacar el móvil del bolsillo.</p><small>Siri · Google Assistant</small></article><article class="voice-card reveal"><span class="command" data-i18n="v3c">“Encuentra mi coche”</span><h3 data-i18n="v3t">Haz que te llame en el parking</h3><p data-i18n="v3p">HABRO puede activar luces y claxon para ayudarte a localizarlo.</p><small>Siri · Google Assistant</small></article></div>
+      </div>
+    </section>
+
+    <section class="section alert-section" id="avisos">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="eyebrow" data-i18n="alertsEyebrow">Avisos inteligentes</div>
+          <h2 data-i18n="alertsTitle">Si algo requiere tu atención, HABRO te lo cuenta.</h2>
+          <p class="section-copy" data-i18n="alertsCopy">Recibe avisos por WhatsApp o mediante notificaciones Push de Home Assistant y decide qué alertas quieres tener activas.</p>
+          <div class="channel-row"><span class="channel whatsapp">WhatsApp · CallMeBot</span><span class="channel push">Push · Home Assistant</span></div>
+        </div>
+        <div class="alert-hero reveal">
+          <img src="assets/lifestyle-man-whatsapp-windows-20260827.webp" width="1672" height="941" loading="lazy" alt="Usuario recibiendo en su móvil un aviso de HABRO porque las ventanillas del EBRO están abiertas">
+          <div class="whatsapp-preview" aria-label="Ejemplo de aviso por WhatsApp">
+            <div class="message-app"><span class="message-icon">H</span><strong>HABRO</strong><small>ahora</small></div>
+            <strong data-i18n="alertPreviewTitle">Ventanillas abiertas</strong>
+            <p data-i18n="alertPreviewCopy">Las ventanillas llevan abiertas 5 minutos.</p>
+          </div>
+        </div>
+        <div class="alert-types" aria-label="Tipos de avisos disponibles">
+          <article class="alert-type reveal"><span>01</span><div><strong data-i18n="al1t">Aperturas olvidadas</strong><p data-i18n="al1p">Puertas, ventanas, techo, maletero o capó abiertos.</p></div></article>
+          <article class="alert-type reveal"><span>02</span><div><strong data-i18n="al2t">Neumático desinflado</strong><p data-i18n="al2p">Presión baja detectada en los neumáticos.</p></div></article>
+          <article class="alert-type reveal"><span>03</span><div><strong data-i18n="al3t">Gasolina y batería</strong><p data-i18n="al3p">Nivel bajo de gasolina o de la batería de alta tensión.</p></div></article>
+          <article class="alert-type reveal"><span>04</span><div><strong data-i18n="al4t">Exceso de velocidad</strong><p data-i18n="al4p">Al superar la velocidad máxima que hayas configurado.</p></div></article>
+          <article class="alert-type reveal"><span>05</span><div><strong data-i18n="al5t">Carga del vehículo</strong><p data-i18n="al5p">Inicio y finalización de cada sesión de carga.</p></div></article>
+          <article class="alert-type reveal"><span>06</span><div><strong data-i18n="al6t">Climatización programada</strong><p data-i18n="al6p">Confirmación cuando se ejecuta una climatización programada.</p></div></article>
+          <article class="alert-type reveal"><span>07</span><div><strong data-i18n="al7t">Mantenimiento</strong><p data-i18n="al7p">Avisos de mantenimiento del motor y los neumáticos.</p></div></article>
+        </div>
+        <p class="alert-note reveal" data-i18n="alertsNote">WhatsApp utiliza el servicio externo CallMeBot y puede sufrir demoras. Para avisos críticos se recomienda Push de Home Assistant.</p>
       </div>
     </section>
 
@@ -126,8 +156,42 @@
       </div>
     </section>
 
+    <section class="section white" id="consumos">
+      <div class="wrap">
+        <div class="section-head reveal"><div class="eyebrow" data-i18n="consEyebrow">Seguimiento de consumos</div><h2 data-i18n="consTitle">Entiende cuánto consume tu EBRO y cuánto te cuesta.</h2><p class="section-copy" data-i18n="consCopy">Compara gasolina y electricidad con métricas totales y de los últimos 100 km, sin mezclar dos formas de energía que se comportan de manera distinta.</p></div>
+        <div class="consumption-grid">
+          <article class="consumption-card fuel-card reveal">
+            <div class="consumption-top"><span class="consumption-icon">L</span><div><small data-i18n="fuelEyebrow">Gasolina</small><h3 data-i18n="fuelTitle">Consumo y gasto real</h3></div></div>
+            <div class="data-grid"><div><strong>— L/100 km</strong><span data-i18n="last100">Media últimos 100 km</span></div><div><strong>— L/100 km</strong><span data-i18n="totalAverage">Media total</span></div><div><strong>— €</strong><span data-i18n="totalEuros">Importe total en euros</span></div></div>
+          </article>
+          <article class="consumption-card electric-card reveal">
+            <div class="consumption-top"><span class="consumption-icon">⚡</span><div><small data-i18n="electricEyebrow">Electricidad</small><h3 data-i18n="electricTitle">Casa y calle, por separado</h3></div></div>
+            <p data-i18n="electricCopy">Identifica cuánto consume el coche cuando carga en casa o en la calle.</p>
+            <div class="data-grid"><div><strong>— kWh/100 km</strong><span data-i18n="last100">Media últimos 100 km</span></div><div><strong>— kWh/100 km</strong><span data-i18n="totalAverage">Media total</span></div><div class="charge-split"><span data-i18n="atHome">En casa</span><b>— kWh</b><span data-i18n="onStreet">En la calle</span><b>— kWh</b></div></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <section class="section white" id="apps">
-      <div class="wrap"><div class="section-head reveal"><div class="eyebrow" data-i18n="appsEyebrow">Aplicaciones</div><h2 data-i18n="appsTitle">Más que una RemoteApp.</h2><p class="section-copy" data-i18n="appsCopy">HABRO incorpora herramientas específicas para energía, recarga y movilidad dentro del mismo entorno.</p></div><div class="apps-grid"><article class="app-card reveal"><span class="eyebrow">01</span><h3 data-i18n="a1t">Mi tarifa eléctrica</h3><p data-i18n="a1p">Relaciona el precio de la energía con la carga del coche y el consumo de tu vivienda.</p><span class="tag" data-i18n="inBeta">Disponible en beta</span></article><article class="app-card darkcard reveal"><span class="eyebrow">02</span><h3 data-i18n="a2t">Puntos de recarga</h3><p data-i18n="a2p">Localiza cargadores, consulta potencia y conector y prepara la navegación.</p><span class="tag" data-i18n="development">En desarrollo</span></article><article class="app-card darkcard reveal"><span class="eyebrow">03</span><h3 data-i18n="a3t">Rutas inteligentes</h3><p data-i18n="a3p">Planifica trayectos teniendo en cuenta autonomía, recarga y paradas.</p><span class="tag" data-i18n="development">En desarrollo</span></article><article class="app-card reveal"><span class="eyebrow">04</span><h3 data-i18n="a4t">Excedentes solares</h3><p data-i18n="a4p">Orienta la carga del coche hacia la producción fotovoltaica disponible.</p><span class="tag" data-i18n="development">En desarrollo</span></article><article class="app-card reveal"><span class="eyebrow">+</span><h3 data-i18n="a5t">Más apps en desarrollo</h3><p data-i18n="a5p">Nuevas herramientas de movilidad, energía y automatización seguirán llegando.</p><span class="tag" data-i18n="development">En desarrollo</span></article></div></div>
+      <div class="wrap"><div class="section-head reveal"><div class="eyebrow" data-i18n="appsEyebrow">Aplicaciones</div><h2 data-i18n="appsTitle">Mucho más que una simple app de control remoto.</h2><p class="section-copy" data-i18n="appsCopy">HABRO incorpora herramientas específicas para energía, recarga, consumos y movilidad dentro del mismo entorno.</p></div><div class="apps-grid"><article class="app-card reveal"><span class="eyebrow">01</span><h3 data-i18n="a1t">Mi tarifa eléctrica</h3><p data-i18n="a1p">Relaciona el precio de la energía con la carga del coche y el consumo de tu vivienda.</p><span class="tag" data-i18n="inBeta">Disponible en beta</span></article><article class="app-card darkcard reveal"><span class="eyebrow">02</span><h3 data-i18n="a2t">Puntos de recarga</h3><p data-i18n="a2p">Localiza cargadores, consulta potencia y conector y prepara la navegación.</p><span class="tag available-tag" data-i18n="available">Disponible</span></article><article class="app-card darkcard reveal"><span class="eyebrow">03</span><h3 data-i18n="a3t">Rutas inteligentes</h3><p data-i18n="a3p">Planifica trayectos teniendo en cuenta autonomía, recarga y paradas.</p><span class="tag" data-i18n="development">En desarrollo</span></article><article class="app-card reveal"><span class="eyebrow">04</span><h3 data-i18n="a4t">Excedentes solares</h3><p data-i18n="a4p">Orienta la carga del coche hacia la producción fotovoltaica disponible.</p><span class="tag" data-i18n="inBeta">Disponible en beta</span></article><article class="app-card reveal"><span class="eyebrow">05</span><h3 data-i18n="a5t">Seguimiento de consumos</h3><p data-i18n="a5p">Compara gasolina, electricidad y costes en euros con medias totales y de los últimos 100 km.</p><span class="tag available-tag" data-i18n="available">Disponible</span></article></div></div>
+    </section>
+
+    <section class="section charger-section" id="recarga">
+      <div class="wrap charger-layout">
+        <div class="charger-copy reveal"><div class="eyebrow" data-i18n="chargerEyebrow">Puntos de recarga · Disponible</div><h2 data-i18n="chargerTitle">Encuentra el cargador más cercano.</h2><p class="section-copy" data-i18n="chargerCopy">HABRO localiza puntos próximos, muestra distancia, potencia y conector y te permite preparar la navegación hasta el cargador elegido.</p><ul class="check-list"><li data-i18n="chargerF1">Ordenados por proximidad</li><li data-i18n="chargerF2">Potencia y tipo de conector</li><li data-i18n="chargerF3">Acceso directo a la navegación</li></ul></div>
+        <div class="charger-map reveal" role="img" aria-label="Recreación de la búsqueda del cargador más cercano">
+          <div class="map-road road-a"></div><div class="map-road road-b"></div><div class="map-route"></div>
+          <span class="map-marker marker-one">⚡</span><span class="map-marker marker-two">⚡</span><span class="car-location">EBRO</span>
+          <div class="charger-result"><small data-i18n="nearest">Cargador más cercano</small><h3>1,8 km</h3><div class="charger-meta"><span>CCS</span><span>60 kW</span><span class="open" data-i18n="available">Disponible</span></div><button type="button" data-i18n="navigate">Iniciar navegación</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="route-feature" id="rutas">
+      <img src="assets/ebro-s900-smart-route-20260827.webp" width="1672" height="941" loading="lazy" alt="EBRO S900 circulando por carretera durante una ruta planificada por HABRO">
+      <div class="route-shade"></div>
+      <div class="wrap route-copy reveal"><div class="eyebrow" data-i18n="routeEyebrow">Planificación inteligente</div><h2 data-i18n="routeTitle">Cálculos de ruta más inteligentes.</h2><p data-i18n="routeCopy">Planifica el trayecto para priorizar los kilómetros eléctricos frente a la gasolina y localiza puntos de recarga durante el viaje cuando los necesitas.</p><span class="route-status" data-i18n="development">En desarrollo</span></div>
     </section>
 
     <section class="section" id="mantenimiento">
@@ -135,7 +199,7 @@
     </section>
 
     <section class="section white" id="estado">
-      <div class="wrap"><div class="section-head reveal"><div class="eyebrow" data-i18n="stateEyebrow">Estado</div><h2 data-i18n="stateTitle">Funciones disponibles y próximas capacidades.</h2></div><div class="status-strip"><article class="status-card reveal"><h3 data-i18n="st1">Disponible</h3><ul><li data-i18n="st1a">Control remoto y búsqueda</li><li data-i18n="st1b">Carga, batería y climatización</li><li data-i18n="st1c">Mantenimiento y TPMS</li><li data-i18n="st1d">Siri y Google Assistant</li><li data-i18n="st1e">Avisos multicanal</li></ul></article><article class="status-card reveal"><h3 data-i18n="st2">Disponible en beta</h3><ul><li data-i18n="st2a">Escudo térmico</li><li data-i18n="st2b">Desempañado delantero</li><li data-i18n="st2c">SMART Actions</li><li data-i18n="st2d">Mi tarifa eléctrica</li></ul></article><article class="status-card reveal"><h3 data-i18n="st3">En validación</h3><ul><li data-i18n="st3a">Alexa</li><li data-i18n="st3b">Rutas inteligentes</li><li data-i18n="st3c">Recarga con excedentes solares</li><li data-i18n="st3d">Nuevas apps y automatizaciones</li></ul></article></div></div>
+      <div class="wrap"><div class="section-head reveal"><div class="eyebrow" data-i18n="stateEyebrow">Estado</div><h2 data-i18n="stateTitle">Funciones disponibles y próximas capacidades.</h2></div><div class="status-strip"><article class="status-card reveal"><h3 data-i18n="st1">Disponible</h3><ul><li data-i18n="st1a">Control remoto y búsqueda</li><li data-i18n="st1b">Carga, batería y climatización</li><li data-i18n="st1c">Mantenimiento y TPMS</li><li data-i18n="st1d">Siri y Google Assistant</li><li data-i18n="st1e">Avisos por WhatsApp y Push</li><li data-i18n="st1f">Puntos de recarga y consumos</li></ul></article><article class="status-card reveal"><h3 data-i18n="st2">Disponible en beta</h3><ul><li data-i18n="st2a">Escudo térmico</li><li data-i18n="st2b">Desempañado delantero</li><li data-i18n="st2c">SMART Actions</li><li data-i18n="st2d">Mi tarifa eléctrica</li><li data-i18n="st2e">Recarga con excedentes solares</li></ul></article><article class="status-card reveal"><h3 data-i18n="st3">En validación</h3><ul><li data-i18n="st3a">Alexa</li><li data-i18n="st3b">Rutas inteligentes</li><li data-i18n="st3d">Nuevas apps y automatizaciones</li></ul></article></div></div>
     </section>
 
     <section class="cta"><div class="wrap"><div class="cta-card reveal"><h2 data-i18n="ctaTitle">Pruébalo con tu propio EBRO.</h2><p data-i18n="ctaCopy">Conecta HABRO a tu Home Assistant y descubre una forma más directa de relacionarte con el coche, tu casa y tu energía.</p><div class="hero-actions"><a class="button-primary" href="https://ebrohorizonremote.pages.dev/" target="_blank" rel="noopener" data-i18n="beta">Probar beta</a><a class="button-secondary" href="https://t.me/+m0X9_yvOGphhYjQ0" target="_blank" rel="noopener" data-i18n="community">Ebro Tech Lab</a></div></div></div></section>

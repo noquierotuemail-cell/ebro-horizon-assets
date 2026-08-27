@@ -1,0 +1,229 @@
+.alert-section {
+  background: #0b0d10;
+  color: #fff;
+}
+
+.alert-section .section-copy,
+.alert-section .alert-note {
+  color: #aeb3ba;
+}
+
+.channel-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.channel {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+
+.channel.whatsapp { background: rgba(37, 211, 102, .14); color: #83efa8; }
+.channel.push { background: rgba(62, 130, 247, .16); color: #9ac1ff; }
+
+.alert-hero {
+  position: relative;
+  margin-top: 48px;
+  border-radius: 38px;
+  overflow: hidden;
+  background: #20242a;
+  box-shadow: 0 32px 90px rgba(0, 0, 0, .28);
+}
+
+.alert-hero > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.whatsapp-preview {
+  position: absolute;
+  top: 50%;
+  right: 5%;
+  width: min(370px, 38%);
+  padding: 18px 20px 20px;
+  border: 1px solid rgba(255, 255, 255, .52);
+  border-radius: 24px;
+  color: #101114;
+  background: rgba(255, 255, 255, .91);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, .27);
+  backdrop-filter: blur(20px) saturate(1.2);
+  transform: translateY(-50%);
+}
+
+.message-app {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: #555b63;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.message-app small { color: #7d838b; text-transform: none; }
+.message-icon { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 9px; color: #fff; background: #223e55; font-weight: 800; }
+.whatsapp-preview > strong { display: block; font-size: 20px; letter-spacing: -.02em; }
+.whatsapp-preview > p { margin: 5px 0 0; color: #4d5157; font-size: 15px; line-height: 1.45; }
+
+.alert-types {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 52px;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 28px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, .1);
+}
+
+.alert-type {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 16px;
+  padding: 26px;
+  background: #111419;
+}
+
+.alert-type > span { color: #6aa4d1; font-size: 12px; font-weight: 800; }
+.alert-type strong { display: block; margin-bottom: 5px; font-size: 17px; }
+.alert-type p { margin: 0; color: #9298a1; font-size: 14px; line-height: 1.5; }
+.alert-note { margin: 20px 2px 0; font-size: 12px; line-height: 1.55; }
+
+.consumption-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.consumption-card {
+  min-height: 470px;
+  padding: 34px;
+  border: 1px solid rgba(0, 0, 0, .06);
+  border-radius: 36px;
+  background: #f2f2f4;
+  overflow: hidden;
+}
+
+.fuel-card { background: linear-gradient(145deg, #f6f2ea, #ebe3d6); }
+.electric-card { color: #fff; background: linear-gradient(145deg, #1b4260, #0d1d2a); }
+.consumption-top { display: flex; align-items: center; gap: 16px; }
+.consumption-icon { display: grid; width: 50px; height: 50px; place-items: center; border-radius: 16px; background: rgba(255, 255, 255, .7); color: #1e3343; font-weight: 800; }
+.electric-card .consumption-icon { background: rgba(255, 255, 255, .12); color: #fff; }
+.consumption-top small { display: block; margin-bottom: 3px; color: #76716a; font-weight: 750; text-transform: uppercase; letter-spacing: .08em; }
+.electric-card .consumption-top small { color: #9fbcd1; }
+.consumption-top h3 { margin: 0; font-size: 26px; letter-spacing: -.035em; }
+.electric-card > p { max-width: 480px; margin: 26px 0 0; color: #b8cad6; line-height: 1.55; }
+
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 76px;
+}
+
+.data-grid > div {
+  display: flex;
+  min-height: 108px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px;
+  border: 1px solid rgba(0, 0, 0, .06);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .58);
+}
+
+.electric-card .data-grid { margin-top: 46px; }
+.electric-card .data-grid > div { border-color: rgba(255, 255, 255, .1); background: rgba(255, 255, 255, .07); }
+.data-grid strong { font-size: 20px; letter-spacing: -.025em; }
+.data-grid span { color: #77726c; font-size: 12px; line-height: 1.35; }
+.electric-card .data-grid span { color: #a9bdcb; }
+.data-grid .charge-split { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px 12px; }
+.charge-split b { font-size: 14px; }
+
+.available-tag { color: #227846 !important; background: #e0f5e7 !important; }
+
+.charger-section { background: #eef4f7; }
+.charger-layout { display: grid; grid-template-columns: .82fr 1.18fr; align-items: center; gap: clamp(40px, 7vw, 100px); }
+.check-list { display: grid; gap: 12px; margin: 30px 0 0; padding: 0; list-style: none; }
+.check-list li { position: relative; padding-left: 30px; color: #4b5158; font-size: 15px; }
+.check-list li::before { content: "✓"; position: absolute; left: 0; display: grid; width: 20px; height: 20px; place-items: center; border-radius: 50%; color: #fff; background: #356d94; font-size: 11px; font-weight: 900; }
+
+.charger-map {
+  position: relative;
+  min-height: 570px;
+  border: 10px solid #fff;
+  border-radius: 40px;
+  overflow: hidden;
+  background: radial-gradient(circle at 25% 28%, #d4e7de 0 8%, transparent 9%), radial-gradient(circle at 75% 68%, #d7e9df 0 11%, transparent 12%), #dbe4e8;
+  box-shadow: 0 28px 80px rgba(29, 55, 70, .16);
+}
+
+.map-road { position: absolute; width: 130%; height: 34px; border: 9px solid rgba(255, 255, 255, .9); border-radius: 999px; background: #aebcc3; }
+.road-a { top: 25%; left: -20%; transform: rotate(23deg); }
+.road-b { top: 55%; left: -10%; transform: rotate(-16deg); }
+.map-route { position: absolute; top: 31%; left: 28%; width: 51%; height: 36%; border: 6px solid #2871a8; border-left-color: transparent; border-radius: 40% 60% 30% 70%; transform: rotate(-8deg); }
+.map-marker { position: absolute; z-index: 2; display: grid; width: 48px; height: 48px; place-items: center; border: 4px solid #fff; border-radius: 50% 50% 50% 8px; color: #fff; background: #39779f; box-shadow: 0 8px 20px rgba(0, 0, 0, .18); transform: rotate(-45deg); }
+.map-marker::first-letter { transform: rotate(45deg); }
+.marker-one { top: 18%; right: 18%; }
+.marker-two { top: 47%; left: 17%; opacity: .7; }
+.car-location { position: absolute; top: 46%; left: 48%; z-index: 3; display: grid; width: 58px; height: 58px; place-items: center; border: 5px solid #fff; border-radius: 50%; color: #fff; background: #111c24; box-shadow: 0 10px 24px rgba(0, 0, 0, .22); font-size: 10px; font-weight: 900; letter-spacing: .07em; }
+.charger-result { position: absolute; right: 22px; bottom: 22px; left: 22px; z-index: 4; padding: 24px; border: 1px solid rgba(255, 255, 255, .7); border-radius: 26px; background: rgba(255, 255, 255, .9); box-shadow: 0 22px 60px rgba(26, 51, 66, .18); backdrop-filter: blur(18px); }
+.charger-result small { color: #6d747a; font-weight: 750; }
+.charger-result h3 { margin: 4px 0 12px; font-size: 38px; letter-spacing: -.05em; }
+.charger-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+.charger-meta span { padding: 7px 10px; border-radius: 999px; background: #edf0f2; font-size: 12px; font-weight: 800; }
+.charger-meta .open { color: #267548; background: #def3e5; }
+.charger-result button { width: 100%; margin-top: 18px; padding: 13px 18px; border: 0; border-radius: 999px; color: #fff; background: #234f70; font: inherit; font-size: 14px; font-weight: 800; }
+
+.route-feature { position: relative; min-height: 680px; display: grid; align-items: center; overflow: hidden; color: #fff; background: #15191d; }
+.route-feature > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.route-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5, 8, 11, .86) 0%, rgba(5, 8, 11, .58) 37%, rgba(5, 8, 11, .04) 70%); }
+.route-copy { position: relative; z-index: 2; width: 100%; }
+.route-copy h2 { max-width: 650px; margin: 12px 0 20px; font-size: clamp(46px, 6vw, 80px); line-height: .98; letter-spacing: -.06em; }
+.route-copy p { max-width: 610px; margin: 0; color: #d7dbe0; font-size: clamp(17px, 2vw, 21px); line-height: 1.5; }
+.route-status { display: inline-flex; margin-top: 26px; padding: 9px 14px; border: 1px solid rgba(255, 255, 255, .2); border-radius: 999px; background: rgba(0, 0, 0, .26); font-size: 12px; font-weight: 800; }
+
+@media (max-width: 900px) {
+  .charger-layout { grid-template-columns: 1fr; }
+  .charger-copy { max-width: 720px; }
+  .charger-map { min-height: 530px; }
+}
+
+@media (max-width: 780px) {
+  .alert-hero { width: 100vw; margin-left: calc(50% - 50vw); border-radius: 0; }
+  .alert-hero > img { aspect-ratio: 4 / 5; object-position: 58% center; }
+  .whatsapp-preview { top: auto; right: 16px; bottom: 16px; left: 16px; width: auto; transform: none; }
+  .alert-types, .consumption-grid { grid-template-columns: 1fr; }
+  .consumption-card { min-height: auto; padding: 26px; border-radius: 28px; }
+  .data-grid, .electric-card .data-grid { margin-top: 38px; }
+  .charger-map { min-height: 500px; border-width: 6px; border-radius: 30px; }
+  .route-feature { min-height: 760px; align-items: end; }
+  .route-feature > img { object-position: 64% center; }
+  .route-shade { background: linear-gradient(0deg, rgba(5, 8, 11, .92) 0%, rgba(5, 8, 11, .55) 46%, rgba(5, 8, 11, .05) 78%); }
+  .route-copy { padding-bottom: 58px; }
+}
+
+@media (max-width: 520px) {
+  .alert-type { grid-template-columns: 30px 1fr; padding: 22px 18px; }
+  .whatsapp-preview { padding: 15px 16px 17px; border-radius: 20px; }
+  .whatsapp-preview > strong { font-size: 17px; }
+  .data-grid { grid-template-columns: 1fr; }
+  .data-grid > div { min-height: 94px; }
+  .charger-map { width: 100vw; min-height: 520px; margin-left: calc(50% - 50vw); border-right: 0; border-left: 0; border-radius: 0; }
+  .charger-result { right: 14px; bottom: 14px; left: 14px; padding: 20px; }
+  .route-feature { min-height: 700px; }
+  .route-copy h2 { font-size: 45px; }
+}
