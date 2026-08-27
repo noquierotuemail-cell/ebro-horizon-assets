@@ -152,6 +152,12 @@
 .electric-card .data-grid span { color: #a9bdcb; }
 .data-grid .charge-split { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px 12px; }
 .charge-split b { font-size: 14px; }
+.data-grid > .charge-detail { min-height: 158px; gap: 8px; justify-content:flex-start; }
+.charge-detail > span { color: #b9cfdd !important; font-size: 13px; font-weight: 750; text-transform: uppercase; letter-spacing: .04em; }
+.charge-detail > strong { margin-top: 2px; font-size: 28px; }
+.charge-detail > small { color: #91a9b9; font-size: 12px; }
+.charge-detail > b { margin-top: auto; color: #fff; font-size: 18px; }
+.charge-detail > b em { color: #9fb8c8; font-size: 11px; font-style: normal; font-weight: 650; }
 
 .available-tag { color: #227846 !important; background: #e0f5e7 !important; }
 
