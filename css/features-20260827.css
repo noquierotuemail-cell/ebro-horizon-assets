@@ -210,6 +210,25 @@
 /* Full-bleed lifestyle photography */
 html, body { overflow-x: hidden; }
 
+.hero-media.hero-header-media,
+#voz .voice-photo {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.hero-media.hero-header-media img,
+#voz .voice-photo img {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: auto;
+  border-radius: 0;
+  object-fit: contain;
+  object-position: center;
+}
+
 #control .story-grid { grid-template-columns: 1fr; gap: 56px; }
 #control .story-media {
   width: 100vw;
