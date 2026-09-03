@@ -144,6 +144,7 @@
 
   const showContextualReminder = event => {
     if (open) return;
+    window.__habroBroReminderPending = false;
     const detail = event && event.detail ? event.detail : {};
     welcomeTitle.textContent = detail.title || 'BRO sigue aquí para ayudarte';
     welcomeText.textContent = detail.text || 'Puedes volver y preguntarme en cualquier momento del proceso.';
@@ -158,6 +159,7 @@
   };
 
   window.addEventListener('habro:bro-reminder', showContextualReminder);
+  if (window.__habroBroReminderPending) showContextualReminder();
 
   const playBroChirpOnce = () => {
     if (hasLocalFlag(CHIRP_KEY)) return;

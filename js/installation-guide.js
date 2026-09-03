@@ -35,6 +35,7 @@
   if(accessCard&&'IntersectionObserver' in window){
     const reminder=new IntersectionObserver(entries=>{
       if(!entries.some(entry=>entry.isIntersecting))return;
+      window.__habroBroReminderPending=true;
       window.dispatchEvent(new CustomEvent('habro:bro-reminder',{detail:{
         title:'BRO sigue aquí para ayudarte',
         text:'Puedes volver y preguntarme en cualquier momento del proceso.'
