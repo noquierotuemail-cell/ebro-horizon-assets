@@ -204,7 +204,7 @@
   gap: 4px;
 }
 
-.hero-caption-logo { width: 220px; height: 54px; margin: 0; object-fit: cover; object-position: center top; }
+.hero-caption-logo { width: 220px; height: auto; margin: 0; object-fit: contain; object-position: center; }
 .hero-caption span { margin: 0; }
 
 /* Full-bleed lifestyle photography */
@@ -259,7 +259,7 @@ html, body { overflow-x: hidden; }
 
 @media (max-width: 680px) {
   .hero-caption { display: flex; gap: 3px; padding-top: 14px; }
-  .hero-caption-logo { width: 190px; height: 47px; margin: 0; object-fit: cover; object-position: center top; }
+  .hero-caption-logo { width: 190px; height: auto; margin: 0; object-fit: contain; object-position: center; }
   .hero-caption span { margin: 0; }
   .hero-actions { grid-template-columns: 1fr; }
   .cta-card .hero-actions { grid-template-columns: 1fr; }
