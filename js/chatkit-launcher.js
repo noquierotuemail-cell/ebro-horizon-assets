@@ -159,7 +159,6 @@
   };
 
   window.addEventListener('habro:bro-reminder', showContextualReminder);
-  if (window.__habroBroReminderPending) showContextualReminder();
 
   const playBroChirpOnce = () => {
     if (hasLocalFlag(CHIRP_KEY)) return;
@@ -348,5 +347,6 @@
   languageObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
 
   syncStaticCopy();
+  if (window.__habroBroReminderPending) showContextualReminder();
   getConfig();
 })();
