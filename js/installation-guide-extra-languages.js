@@ -10,6 +10,7 @@
 Ето какво ще се случи.
 Кратък преглед, за да знаете какво ще виждате на всеки екран, кога трябва да се намесите и кога можете просто да оставите HABRO да работи.
 Вижте стъпките
+Печат / запазване като PDF
 Ако диалоговият прозорец за печат не се появи, този преглед блокира функцията на браузъра.
 Отворете ръководството в нов раздел
 и там използвайте
@@ -165,6 +166,7 @@ Namestili boste HABRO.
 Tako bo potekal postopek.
 Kratek pregled, da boste vedeli, kaj boste videli na posameznem zaslonu, kdaj morate ukrepati in kdaj lahko preprosto pustite, da HABRO opravi svoje delo.
 Oglejte si korake
+Natisni / shrani kot PDF
 Če se pogovorno okno za tiskanje ne prikaže, ta pregledovalnik blokira funkcijo brskalnika.
 Odprite vodnik v novem zavihku
 in tam izberite
@@ -320,6 +322,7 @@ Instalirat ćete HABRO.
 Ovako će postupak izgledati.
 Kratak pregled kako biste znali što ćete vidjeti na svakom zaslonu, kada trebate reagirati i kada možete jednostavno pustiti HABRO da radi.
 Pogledajte korake
+Ispiši / spremi kao PDF
 Ako se dijaloški okvir za ispis ne pojavi, ovaj preglednik blokira tu funkciju preglednika.
 Otvorite vodič u novoj kartici
 i ondje odaberite

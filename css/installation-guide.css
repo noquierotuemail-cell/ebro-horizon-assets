@@ -11,6 +11,7 @@
   --shadow:0 18px 55px rgba(0,0,0,.08);
 }
 *{box-sizing:border-box}
+html,body{overflow-x:hidden}
 html{scroll-behavior:smooth;background:#fff}
 body{
   margin:0;

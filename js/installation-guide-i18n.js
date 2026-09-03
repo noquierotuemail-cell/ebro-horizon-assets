@@ -11,6 +11,7 @@
     ['Un recorrido breve para que sepas qué verás en cada pantalla, cuándo tendrás que intervenir y cuándo puedes simplemente dejar que HABRO trabaje.','Um percurso breve para saber o que verá em cada ecrã, quando terá de intervir e quando pode simplesmente deixar que a HABRO trabalhe.'],
     ['Un recorrido breve para que sepas qué verás en cada pantalla, cuándo tendrás que intervenir y cuándo puedes simplemente dejar que HABRO trabaje.','Um percurso breve para saber o que verá em cada ecrã, quando terá de intervir e quando pode simplesmente deixar a HABRO trabalhar.'],
     ['Ver los pasos','Ver os passos'],
+    ['Imprimir / guardar PDF','Imprimir / guardar PDF'],
     ['Se el cuadro de impresión no aparece, este visor está bloqueando la función del navegador.','Se a caixa de diálogo de impressão não aparecer, este visualizador está a bloquear a função do navegador.'],
     ['Si no aparece el diálogo de impresión, este visor está bloqueando la función del navegador.','Se a caixa de diálogo de impressão não aparecer, este visualizador está a bloquear a função do navegador.'],
     ['Abre la guía en una pestaña nueva','Abre o guia num novo separador'],
