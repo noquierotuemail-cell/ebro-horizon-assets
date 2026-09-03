@@ -20,9 +20,13 @@ function decodeBase64(value) {
   return bytes;
 }
 
-async function githubAsset(pathname) {
+function repositoryRef(url) {
+  return url.hostname === 'beta.habroremote.com' ? 'habro-beta' : 'main';
+}
+
+async function githubAsset(pathname, ref = 'main') {
   const path = pathname.replace(/^\//, '');
-  const url = `https://api.github.com/repos/${REPO}/contents/${path}?ref=main`;
+  const url = `https://api.github.com/repos/${REPO}/contents/${path}?ref=${encodeURIComponent(ref)}`;
   const r = await fetch(url, {
     headers: {
       'Accept': 'application/vnd.github+json',
@@ -38,7 +42,8 @@ async function githubAsset(pathname) {
 }
 
 async function serveImage(url) {
-  const asset = await githubAsset(url.pathname);
+  const ref = repositoryRef(url);
+  const asset = await githubAsset(url.pathname, ref);
   if (!asset) return new Response('Image unavailable', { status: 404 });
   const bytes = decodeBase64(asset.base64);
   return new Response(bytes, {
@@ -47,6 +52,7 @@ async function serveImage(url) {
       'Content-Type': asset.mime,
       'Cache-Control': 'public, max-age=300, s-maxage=300',
       'X-HABRO-Asset-Source': 'github-only-v2',
+      'X-HABRO-Asset-Branch': ref,
       'X-HABRO-Asset-SHA': asset.sha || '',
       'X-Content-Type-Options': 'nosniff'
     }
@@ -73,7 +79,9 @@ async function serveCleanMarketingJs(request, env) {
 
 async function inlineImages(response, request) {
   const html = await response.text();
-  const origin = new URL(request.url).origin;
+  const requestUrl = new URL(request.url);
+  const origin = requestUrl.origin;
+  const ref = repositoryRef(requestUrl);
   const paths = new Set();
 
   for (const match of html.matchAll(/<img\b[^>]*?\bsrc=(['"])([^'"]+)\1[^>]*>/gi)) {
@@ -88,7 +96,7 @@ async function inlineImages(response, request) {
   const map = new Map();
   await Promise.all([...paths].map(async pathname => {
     try {
-      const asset = await githubAsset(pathname);
+      const asset = await githubAsset(pathname, ref);
       if (asset) map.set(pathname, `data:${asset.mime};base64,${asset.base64}`);
     } catch (_) {}
   }));

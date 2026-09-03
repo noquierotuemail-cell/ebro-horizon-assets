@@ -233,3 +233,4 @@
   .route-feature { min-height: 700px; }
   .route-copy h2 { font-size: 45px; }
 }
+.navinstall{background:#fff;color:#111;border:1px solid rgba(0,0,0,.14);box-shadow:none}.navinstall:hover{background:#ededf0;color:#111}.button-install{background:#234f70;color:#fff}.cta-card .button-install{background:#234f70;color:#fff}@media(max-width:680px){.navlinks{gap:6px}.navlinks .navcta{padding:9px 11px;font-size:11px}.navlinks .navinstall{display:inline-flex}.brand-copy strong{max-width:116px;white-space:normal;line-height:1.05}.hero-actions{grid-template-columns:1fr 1fr}.hero-actions .button-secondary{grid-column:1/-1}.cta-card .hero-actions{grid-template-columns:1fr}.cta-card .hero-actions>*{grid-column:auto}}@media(max-width:520px){.topbar .brand-copy{display:none}.topbar .brand{min-width:36px}.topbar .navlinks{margin-left:auto}}
