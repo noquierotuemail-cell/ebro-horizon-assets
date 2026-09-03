@@ -208,6 +208,8 @@
 .hero-caption span { margin: 0; }
 
 /* Full-bleed lifestyle photography */
+html, body { overflow-x: hidden; }
+
 #control .story-grid { grid-template-columns: 1fr; gap: 56px; }
 #control .story-media {
   width: 100vw;
