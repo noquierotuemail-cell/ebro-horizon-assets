@@ -31,6 +31,13 @@ a{color:inherit}
 .brand{display:flex;align-items:center}
 .brand img{width:184px;height:auto;display:block;filter:invert(1)}
 .nav-meta{font-size:13px;color:var(--muted);letter-spacing:.01em}
+.nav-tools{display:flex;align-items:center;gap:18px;margin-left:auto}
+.language-toggle{
+  min-width:46px;height:42px;padding:0 13px;border:1px solid #d8d8da;border-radius:999px;
+  background:#fff;color:var(--ink);font:750 13px/1 inherit;letter-spacing:.04em;cursor:pointer;
+}
+.language-toggle:hover{background:var(--soft)}
+.language-toggle:focus-visible{outline:3px solid rgba(37,99,235,.25);outline-offset:2px}
 .hero{padding:64px 0 28px}
 .hero-grid{display:grid;grid-template-columns:1fr;gap:38px;align-items:start}
 .eyebrow{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 18px}
@@ -226,7 +233,7 @@ h1{font-size:clamp(48px,7vw,86px);line-height:.94;letter-spacing:-.055em;margin:
   .footer-grid{align-items:flex-start;flex-direction:column}
 }
 @media print{
-  .site-header,.hero-actions,.print-fallback,.guide-access,.habro-chat{display:none!important}
+  .site-header,.hero-actions,.print-fallback,.guide-access,.habro-chat,.language-toggle{display:none!important}
   body{font-size:11pt}
   .wrap{width:100%;max-width:none;padding:0 12mm}
   .hero{padding-top:12mm}

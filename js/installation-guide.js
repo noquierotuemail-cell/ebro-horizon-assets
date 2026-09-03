@@ -36,9 +36,10 @@
     const reminder=new IntersectionObserver(entries=>{
       if(!entries.some(entry=>entry.isIntersecting))return;
       window.__habroBroReminderPending=true;
+      const portuguese=document.documentElement.lang.startsWith('pt');
       window.dispatchEvent(new CustomEvent('habro:bro-reminder',{detail:{
-        title:'BRO sigue aquí para ayudarte',
-        text:'Puedes volver y preguntarme en cualquier momento del proceso.'
+        title:portuguese?'O BRO continua aqui para te ajudar':'BRO sigue aquí para ayudarte',
+        text:portuguese?'Podes voltar e fazer-me perguntas em qualquer momento do processo.':'Puedes volver y preguntarme en cualquier momento del proceso.'
       }}));
       reminder.disconnect();
     },{threshold:.4});
