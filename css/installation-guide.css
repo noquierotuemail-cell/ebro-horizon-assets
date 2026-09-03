@@ -38,6 +38,10 @@ a{color:inherit}
 }
 .language-toggle:hover{background:var(--soft)}
 .language-toggle:focus-visible{outline:3px solid rgba(37,99,235,.25);outline-offset:2px}
+.guide-language-switch{display:inline-flex;align-items:center;gap:2px;padding:3px;border:1px solid #d8d8da;border-radius:999px;background:#fff}
+.guide-language-switch .language-option{display:grid;width:30px;height:30px;padding:0;place-items:center;border:0;border-radius:50%;background:transparent;font-size:18px;line-height:1;opacity:.48;filter:saturate(.72);cursor:pointer}
+.guide-language-switch .language-option.is-active{opacity:1;filter:none;background:#fff;box-shadow:0 2px 9px rgba(0,0,0,.13)}
+.guide-language-switch .language-option:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
 .hero{padding:64px 0 28px}
 .hero-grid{display:grid;grid-template-columns:1fr;gap:38px;align-items:start}
 .eyebrow{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 18px}
@@ -231,9 +235,11 @@ h1{font-size:clamp(48px,7vw,86px);line-height:.94;letter-spacing:-.055em;margin:
   .access-card>p:not(.eyebrow){font-size:16px}
   .access-button{width:100%}
   .footer-grid{align-items:flex-start;flex-direction:column}
+  .guide-language-switch{gap:1px;padding:2px}
+  .guide-language-switch .language-option{width:27px;height:30px;font-size:16px}
 }
 @media print{
-  .site-header,.hero-actions,.print-fallback,.guide-access,.habro-chat,.language-toggle{display:none!important}
+  .site-header,.hero-actions,.print-fallback,.guide-access,.habro-chat,.language-toggle,.guide-language-switch{display:none!important}
   body{font-size:11pt}
   .wrap{width:100%;max-width:none;padding:0 12mm}
   .hero{padding-top:12mm}

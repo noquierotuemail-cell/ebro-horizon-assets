@@ -16,6 +16,11 @@ img{display:block;max-width:100%}
 .soon-brand small{margin-top:5px;color:#c6d0d9;font-size:.72rem;letter-spacing:.08em}
 .soon-header nav{display:flex;align-items:center;gap:22px}
 .soon-header nav>a{color:#edf4f8;font-size:.9rem;font-weight:650}
+.soon-language-switch{display:inline-flex;align-items:center;gap:2px;padding:3px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(5,10,15,.48);backdrop-filter:blur(14px)}
+.soon-language-switch .language-option{display:grid;width:31px;height:31px;padding:0;place-items:center;border:0;border-radius:50%;background:transparent;font-size:18px;line-height:1;opacity:.55;filter:saturate(.7);cursor:pointer;transition:opacity .2s,background .2s,transform .2s}
+.soon-language-switch .language-option:hover{opacity:1;transform:translateY(-1px)}
+.soon-language-switch .language-option.is-active{opacity:1;filter:none;background:rgba(255,255,255,.16);box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.soon-language-switch .language-option:focus-visible{outline:2px solid #70c8ec;outline-offset:2px}
 .language-toggle{width:42px;height:42px;border:1px solid rgba(255,255,255,.25);border-radius:50%;background:rgba(255,255,255,.08);cursor:pointer;backdrop-filter:blur(14px);transition:.25s var(--ease)}
 .language-toggle:hover{background:#fff;color:#061019;transform:translateY(-2px)}
 .launch-hero{position:relative;min-height:100svh;isolation:isolate;overflow:hidden}
@@ -68,7 +73,7 @@ img{display:block;max-width:100%}
 @keyframes orbitPulse{50%{transform:scale(1.04);opacity:.45}}
 @keyframes scrollDot{0%,100%{transform:translate(-50%,0);opacity:.3}45%{transform:translate(-50%,25px);opacity:1}}
 @media(max-width:900px){
-  .soon-header{padding:17px 18px}.soon-header nav>a{display:none}
+  .soon-header{padding:17px 12px}.soon-header nav{gap:8px}.soon-header nav>a{display:none}.soon-brand{gap:7px}.soon-brand span{display:none}.soon-language-switch{gap:1px;padding:2px}.soon-language-switch .language-option{width:26px;height:30px;font-size:16px}
   .launch-hero{min-height:920px}.launch-backdrop{object-position:62% center}.launch-overlay{background:linear-gradient(0deg,#050a0f 1%,rgba(2,7,11,.8) 47%,rgba(2,7,11,.18) 100%)}
   .launch-content{width:calc(100% - 36px);margin:0 18px;padding:104px 0 72px}.launch-content h1{font-size:clamp(3.15rem,15vw,5.7rem);line-height:.91}.launch-copy{font-size:1rem}.launch-actions{display:grid}.button-primary,.button-glass{width:100%}
   .scroll-cue{display:none}.orbit-one{width:110vw;height:110vw;right:-60vw}.orbit-two{display:none}

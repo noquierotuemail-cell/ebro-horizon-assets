@@ -328,6 +328,8 @@ html, body { overflow-x: hidden; }
 }
 
 @media (max-width: 680px) {
+  .language-switch { gap: 1px; padding: 2px; }
+  .language-option { width: 25px; height: 30px; font-size: 16px; }
   .hero-caption { display: flex; gap: 3px; padding-top: 14px; }
   .hero-caption-logo { width: 190px; height: auto; margin: 0; object-fit: contain; object-position: center; }
   .hero-caption span { margin: 0; }

@@ -194,6 +194,7 @@
     const trimmed=value.trim();
     translatedNodes.push({node,pair:lookup.get(trimmed),leading:value.slice(0,value.indexOf(trimmed)),trailing:value.slice(value.indexOf(trimmed)+trimmed.length)});
   }
+  window.HABRO_GUIDE_I18N={translatedNodes};
 
   const languageButton=document.querySelector('[data-language-toggle]');
   const metaDescription=document.querySelector('meta[name="description"]');
