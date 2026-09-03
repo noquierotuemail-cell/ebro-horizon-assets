@@ -248,7 +248,36 @@ html, body { overflow-x: hidden; }
 .habro-message-card > strong { display: block; font-size: clamp(18px, 2vw, 25px); letter-spacing: -.025em; }
 .habro-message-card > p { margin: 6px 0 0; color: #4d5157; font-size: clamp(14px, 1.4vw, 18px); line-height: 1.4; }
 .thermal-message { left: 5%; bottom: 7%; }
-.voice-command-bubble { left: 5%; bottom: 7%; }
+
+.voice-command-bubble {
+  position: absolute;
+  top: clamp(18px, 5vw, 70px);
+  left: clamp(18px, 6vw, 90px);
+  z-index: 2;
+  max-width: min(44vw, 480px);
+  padding: 16px 22px;
+  border: 1px solid rgba(255, 255, 255, .72);
+  border-radius: 999px;
+  color: #111;
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, .16);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  font-size: clamp(17px, 2vw, 28px);
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -.025em;
+}
+.voice-command-bubble::after {
+  content: "";
+  position: absolute;
+  right: 30px;
+  bottom: -10px;
+  width: 22px;
+  height: 22px;
+  background: rgba(255, 255, 255, .9);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
 
 #control .story-grid { grid-template-columns: 1fr; gap: 56px; }
 #control .story-media {
@@ -314,6 +343,16 @@ html, body { overflow-x: hidden; }
   }
   .habro-message-card > strong { font-size: 17px; }
   .habro-message-card > p { font-size: 14px; }
+  .voice-command-bubble {
+    top: 16px;
+    right: auto;
+    bottom: auto;
+    left: 16px;
+    max-width: calc(100vw - 32px);
+    padding: 12px 16px;
+    font-size: 16px;
+  }
+  .voice-command-bubble::after { right: 24px; bottom: -8px; width: 18px; height: 18px; }
 }
 
 @media (max-width: 420px) {
