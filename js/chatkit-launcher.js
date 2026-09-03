@@ -142,6 +142,23 @@
     }, 900);
   };
 
+  const showContextualReminder = event => {
+    if (open) return;
+    const detail = event && event.detail ? event.detail : {};
+    welcomeTitle.textContent = detail.title || 'BRO sigue aquí para ayudarte';
+    welcomeText.textContent = detail.text || 'Puedes volver y preguntarme en cualquier momento del proceso.';
+    welcome.hidden = false;
+    root.classList.add('is-welcoming');
+    requestAnimationFrame(() => welcome.classList.add('is-visible'));
+    if (welcomeTimer) window.clearTimeout(welcomeTimer);
+    welcomeTimer = window.setTimeout(() => {
+      hideWelcome();
+      syncStaticCopy();
+    }, 10000);
+  };
+
+  window.addEventListener('habro:bro-reminder', showContextualReminder);
+
   const playBroChirpOnce = () => {
     if (hasLocalFlag(CHIRP_KEY)) return;
     setLocalFlag(CHIRP_KEY);

@@ -158,12 +158,12 @@ function injectSite(response, request) {
       element(element) {
         element.append(geoBootstrap, { html: true });
         element.append(faviconMarkup, { html: true });
-        element.append('<link rel="stylesheet" href="/css/chatkit.css">', { html: true });
+        element.append('<link rel="stylesheet" href="/css/chatkit.css?v=20260903-guide">', { html: true });
       }
     })
     .on("body", {
       element(element) {
-        element.append('<script src="/js/chatkit-launcher.js" defer></script>', { html: true });
+        element.append('<script src="/js/chatkit-launcher.js?v=20260903-guide" defer></script>', { html: true });
       }
     })
     .transform(response);

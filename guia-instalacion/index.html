@@ -3,267 +3,333 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex,nofollow">
-  <title>Guía visual de instalación | HABRO</title>
-  <meta name="description" content="Guía visual paso a paso para instalar HABRO en Home Assistant.">
-  <link rel="icon" href="../assets/app-icon.webp" type="image/webp">
-  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
-  <link rel="stylesheet" href="../css/apple-20260826.css?v=20260826-3">
-  <link rel="stylesheet" href="../css/installation-guide.css?v=20260903-1">
+  <meta name="description" content="Manual visual paso a paso para instalar HABRO en Home Assistant.">
+  <title>Instalar HABRO · Guía visual</title>
+  <link rel="stylesheet" href="../css/installation-guide.css?v=2">
+  <script src="../js/installation-guide.js?v=2" defer></script>
 </head>
-<body class="guide-page">
-  <a class="skip" href="#guideMain">Saltar al contenido</a>
-  <header class="topbar guide-topbar">
-    <div class="wrap nav">
-      <a class="brand guide-brand" href="/" aria-label="Volver a HABRO">
-        <img src="../assets/app-icon.webp" width="40" height="40" alt="">
-        <span class="brand-copy"><strong>HABRO RemoteApp</strong><small>Guía de instalación</small></span>
-      </a>
-      <nav class="guide-nav" aria-label="Navegación de la guía">
-        <a href="#pasos">Ver los pasos</a>
-        <a class="navcta" href="/">Volver a HABRO</a>
-      </nav>
+<body>
+<header class="site-header">
+  <div class="wrap nav">
+    <a class="brand" href="#inicio" aria-label="HABRO">
+      <img src="../assets/habro-remoteapp-horizontal-v8641.svg" alt="HABRO RemoteApp">
+    </a>
+    <div class="nav-meta">Guía de instalación · antes de empezar</div>
+  </div>
+</header>
+
+<main id="inicio">
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Guía visual de instalación</p>
+      <h1>Vas a instalar HABRO.<br>Esto es lo que va a pasar.</h1>
+      <p class="hero-copy">Un recorrido breve para que sepas qué verás en cada pantalla, cuándo tendrás que intervenir y cuándo puedes simplemente dejar que HABRO trabaje.</p>
+      <div class="hero-actions">
+        <a class="button primary" href="#pasos">Ver los pasos</a>
+        <button id="printGuide" class="print-btn" type="button">Imprimir / guardar PDF</button>
+      </div>
+      <div id="printFallback" class="print-fallback" role="status" aria-live="polite">
+        Si no aparece el diálogo de impresión, este visor está bloqueando la función del navegador.
+        <a id="openPrintable" href="#" target="_blank" rel="noopener">Abre la guía en una pestaña nueva</a>
+        y allí usa <strong>Compartir → Imprimir</strong> o <strong>Guardar en Archivos como PDF</strong>.
+      </div>
     </div>
-  </header>
+    <figure class="hero-photo" aria-label="EBRO S900">
+      <img src="../assets/habro-guia-instalacion-s900.jpeg" alt="EBRO S900">
+    </figure>
+  </div>
+</section>
 
-  <main id="guideMain">
-    <section class="guide-hero">
-      <div class="wrap guide-intro">
-        <div class="eyebrow">Guía visual de instalación</div>
-        <h1>Vas a instalar HABRO.<br>Esto es lo que va a pasar.</h1>
-        <p>Un recorrido breve para que sepas qué verás en cada pantalla, cuándo tendrás que intervenir y cuándo puedes simplemente dejar que HABRO trabaje.</p>
-        <div class="guide-actions">
-          <a class="button-primary" href="#pasos">Ver los pasos</a>
-          <button class="button-secondary" id="printGuide" type="button">Imprimir / guardar PDF</button>
-        </div>
-        <div class="print-fallback" id="printFallback" role="status" hidden>
-          <strong>Abre esta guía en una pestaña nueva</strong>
-          <span>Después usa Compartir → Imprimir.</span>
-          <a href="/guia-instalacion/" target="_blank" rel="noopener">Abrir en una pestaña nueva</a>
+<section class="promise">
+  <div class="wrap promise-grid">
+    <div class="promise-card"><strong>Sin YAML</strong><span>No tendrás que editar archivos ni buscar entidades.</span></div>
+    <div class="promise-card"><strong>Sin Terminal</strong><span>No tendrás que escribir comandos ni entrar por SSH.</span></div>
+    <div class="promise-card"><strong>Con recuperación</strong><span>HABRO prepara una copia recuperable antes de realizar cambios.</span></div>
+  </div>
+</section>
+
+<section id="pasos">
+  <div class="wrap section-head">
+    <h2>El recorrido,<br>pantalla a pantalla.</h2>
+    <p>Las representaciones de interfaz de esta guía están construidas en HTML para explicar el proceso. No sustituyen las pantallas reales de Home Assistant, pero respetan el flujo que HABRO debe seguir.</p>
+  </div>
+
+  <div class="wrap steps">
+
+    <article class="step">
+      <div class="step-copy">
+        <div class="step-kicker"><span class="num">1</span><span>Entrada</span></div>
+        <h3>Abres HABRO y eliges “Instalar”.</h3>
+        <p>La puerta de entrada para el usuario es <strong>app.habroremote.com</strong>. En la portada verás el logo de HABRO, el saludo y dos opciones: <strong>Instalar</strong> o <strong>Acceder</strong>.</p>
+        <p>Para una primera instalación, pulsa <strong>Instalar</strong>. HABRO te explicará que necesita conectarse con tu Home Assistant para continuar.</p>
+        <div class="action"><b>TÚ</b><div><strong>Solo haces una cosa:</strong> pulsar <em>Instalar</em>.</div></div>
+      </div>
+      <div class="visual">
+        <div class="mock">
+          <div class="mock-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="mock-body">
+            <img class="mock-logo" src="../assets/habro-logo-vertical-v8641.svg" alt="HABRO">
+            <h4>Hey Bro!</h4>
+            <p class="sub">¿qué quieres hacer?</p>
+            <div class="mock-buttons">
+              <div class="ui-btn dark">Instalar</div>
+              <div class="ui-btn">Acceder</div>
+            </div>
+          </div>
         </div>
       </div>
-      <figure class="hero-photo">
-        <img src="../assets/habro-guia-instalacion-s900.jpeg" width="1536" height="1024" alt="EBRO S900 gris entre olivos">
-      </figure>
-    </section>
+    </article>
 
-    <section class="trust-strip" aria-label="Instalación guiada">
-      <div class="wrap trust-grid">
-        <article><strong>Sin YAML</strong><p>No tendrás que editar archivos ni buscar entidades.</p></article>
-        <article><strong>Sin Terminal</strong><p>No tendrás que escribir comandos ni entrar por SSH.</p></article>
-        <article><strong>Con recuperación</strong><p>HABRO prepara una copia recuperable antes de realizar cambios.</p></article>
+    <article class="step">
+      <div class="step-copy">
+        <div class="step-kicker"><span class="num">2</span><span>Autorización</span></div>
+        <h3>Home Assistant te pide permiso.</h3>
+        <p>HABRO te llevará a Home Assistant. Si no tienes una sesión abierta, iniciarás sesión. Home Assistant puede mostrar confirmaciones administrativas para confiar en el repositorio e instalar HABRO Installer.</p>
+        <p>Estas confirmaciones no son un error: son la forma en que Home Assistant te pide autorización antes de permitir una instalación.</p>
+        <div class="action"><b>TÚ</b><div><strong>Autentícate y acepta las confirmaciones</strong> que Home Assistant muestre.</div></div>
       </div>
-    </section>
+      <div class="visual">
+        <div class="mock">
+          <div class="mock-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="mock-body">
+            <h4>Conectar con Home Assistant</h4>
+            <p class="sub">Home Assistant va a confirmar que autorizas el acceso necesario para preparar HABRO.</p>
+            <div class="ha">
+              <div class="ha-row"><div class="ha-icon">HA</div><div><strong>Conexión segura</strong><span>La autorización se realiza en Home Assistant.</span></div></div>
+              <div class="ha-row"><div class="ha-icon">✓</div><div><strong>Confirmación administrativa</strong><span>Home Assistant puede pedirte aceptar el repositorio y la instalación.</span></div></div>
+            </div>
+            <div class="mock-buttons" style="margin-top:18px"><div class="ui-btn blue">Continuar en Home Assistant</div></div>
+          </div>
+        </div>
+      </div>
+    </article>
 
-    <section class="guide-journey" id="pasos">
-      <div class="wrap">
-        <header class="journey-heading">
-          <div class="eyebrow">El proceso completo</div>
-          <h2>El recorrido,<br>pantalla a pantalla.</h2>
-          <p>Esta guía te enseña qué ocurrirá durante la instalación, qué acciones tendrás que realizar y cuáles hará HABRO automáticamente.</p>
-        </header>
-
-        <article class="guide-step" id="paso-1">
-          <div class="step-copy">
-            <span class="step-number">Paso 1 · Entrada</span>
-            <h3>Abres HABRO y eliges ‘Instalar’.</h3>
-            <p>La puerta de entrada es <strong>app.habroremote.com</strong>. En la portada verás el logo de HABRO, el saludo y dos opciones: Instalar o Acceder.</p>
-            <p>Para una primera instalación, pulsa <strong>Instalar</strong>.</p>
-            <div class="actor-note"><b>Tú</b><span>Solo haces una cosa: pulsar Instalar.</span></div>
-          </div>
-          <div class="visual-card entry-mockup" aria-label="Representación de la portada de HABRO">
-            <div class="logo-panel"><img src="../assets/habro-logo-vertical-v8641.svg" alt="HABRO"></div>
-            <h4>Hey Bro!<br>¿qué quieres hacer?</h4>
-            <button class="mock-primary" type="button" tabindex="-1">Instalar</button>
-            <button class="mock-secondary" type="button" tabindex="-1">Acceder</button>
-          </div>
-        </article>
-
-        <article class="guide-step reverse" id="paso-2">
-          <div class="step-copy">
-            <span class="step-number">Paso 2 · Autorización</span>
-            <h3>Home Assistant te pide permiso.</h3>
-            <p>HABRO te llevará a Home Assistant. Si no tienes una sesión abierta, iniciarás sesión. Home Assistant puede mostrar confirmaciones administrativas para confiar en el repositorio e instalar HABRO Installer.</p>
-            <p>Estas confirmaciones no son un error: son la forma en que Home Assistant te pide autorización antes de permitir una instalación.</p>
-            <div class="actor-note"><b>Tú</b><span>Autentícate y acepta las confirmaciones que Home Assistant muestre.</span></div>
-          </div>
-          <div class="visual-card ha-card" aria-label="Representación de la autorización de Home Assistant">
-            <div class="ha-mark" aria-hidden="true">HA</div>
-            <span class="mock-kicker">Home Assistant</span>
-            <h4>Autorizar instalación</h4>
-            <p>HABRO solicita permiso para añadir un repositorio de aplicaciones e instalar HABRO Installer.</p>
-            <div class="permission-row"><span>Repositorio de confianza</span><b>✓</b></div>
-            <div class="permission-row"><span>Permisos de administrador</span><b>✓</b></div>
-            <button class="mock-primary" type="button" tabindex="-1">Confirmar</button>
-          </div>
-        </article>
-
-        <article class="guide-step" id="paso-3">
-          <div class="step-copy">
-            <span class="step-number">Paso 3 · HABRO Installer</span>
-            <h3>Instalas HABRO Installer.</h3>
-            <p>Home Assistant abrirá la ficha exacta de HABRO Installer. No deberías tener que buscarlo manualmente.</p>
-            <p>Mientras el Installer conserve el modo de arranque manual, deja <strong>‘Iniciar en el arranque’ desactivado</strong>.</p>
-            <aside class="bro-note">
-              <img src="../assets/bro-original.svg" alt="BRO" data-bro-original>
-              <p><strong>BRO te acompaña:</strong> ‘Iniciar en el arranque’ no instala HABRO por sí solo. Déjalo desactivado.</p>
-            </aside>
-          </div>
-          <div class="visual-card installer-card" aria-label="Secuencia de HABRO Installer">
-            <img class="mini-brand" src="../assets/habro-remoteapp-horizontal-v8641.svg" alt="HABRO RemoteApp">
+    <article class="step">
+      <div class="step-copy">
+        <div class="step-kicker"><span class="num">3</span><span>Bootstrap</span></div>
+        <h3>Instalas HABRO Installer.</h3>
+        <p>Home Assistant abrirá la ficha exacta de <strong>HABRO Installer</strong>. No deberías tener que buscarlo manualmente.</p>
+        <p>Mientras el Installer conserve el modo de arranque manual, deja <strong>“Iniciar en el arranque” desactivado</strong>. El recorrido previsto es: <strong>Instalar → Iniciar → Abrir interfaz web</strong>.</p>
+        <div class="action"><b>TÚ</b><div><strong>Instala, inicia y abre la interfaz web.</strong> No necesitas configurar nada técnico.</div></div>
+        <div class="bro-note">
+          <img src="../assets/bro-original.svg" alt="BRO">
+          <div><strong>BRO te acompaña:</strong> “Iniciar en el arranque” no instala HABRO por sí solo. Déjalo desactivado.</div>
+        </div>
+      </div>
+      <div class="visual">
+        <div class="mock">
+          <div class="mock-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="mock-body">
             <h4>HABRO Installer</h4>
-            <ol class="action-sequence">
-              <li><b>1</b><span>Instalar</span></li>
-              <li><b>2</b><span>Iniciar</span></li>
-              <li><b>3</b><span>Abrir interfaz web</span></li>
-            </ol>
-            <div class="toggle-line"><span>Iniciar en el arranque</span><i aria-label="Desactivado"></i></div>
+            <p class="sub">Aplicación de Home Assistant para preparar HABRO.</p>
+            <div class="status-list">
+              <div class="status-row"><span class="check">1</span><span class="name">Instalar</span><span class="state">PRIMERO</span></div>
+              <div class="status-row"><span class="check">2</span><span class="name">Iniciar</span><span class="state">DESPUÉS</span></div>
+              <div class="status-row"><span class="check">3</span><span class="name">Abrir interfaz web</span><span class="state">CONTINUAR</span></div>
+            </div>
+            <div class="ui-note">“Iniciar en el arranque” permanece desactivado.</div>
           </div>
-        </article>
+        </div>
+      </div>
+    </article>
 
-        <article class="guide-step reverse" id="paso-4">
-          <div class="step-copy">
-            <span class="step-number">Paso 4 · Diagnóstico</span>
-            <h3>HABRO revisa tu sistema.</h3>
-            <p>Una vez dentro del Installer, HABRO comprueba compatibilidad, detecta EBRO Auto y HABRO Companion, verifica los paquetes y prepara la operación.</p>
-            <div class="actor-note habro"><b>HABRO</b><span>Trabaja solo. Tú observas el estado y esperas el resultado del diagnóstico.</span></div>
-          </div>
-          <div class="visual-card status-card-guide" aria-label="Estado de diagnóstico de HABRO">
-            <span class="mock-kicker">Diagnóstico</span>
+    <article class="step">
+      <div class="step-copy">
+        <div class="step-kicker"><span class="num">4</span><span>Diagnóstico</span></div>
+        <h3>HABRO revisa tu sistema.</h3>
+        <p>Una vez dentro del Installer, HABRO comprueba compatibilidad, detecta EBRO Auto y HABRO Companion, verifica los paquetes y prepara la operación.</p>
+        <p>Este análisis es automático. Si tu sistema ya está listo, no realizará cambios innecesarios. Si necesita instalar, actualizar o reparar, preparará el siguiente paso.</p>
+        <div class="action"><b>HABRO</b><div><strong>Trabaja solo.</strong> Tú observas el estado y esperas el resultado del diagnóstico.</div></div>
+      </div>
+      <div class="visual">
+        <div class="mock">
+          <div class="mock-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="mock-body">
             <h4>Estado de HABRO</h4>
-            <ul class="status-list">
-              <li><b>✓</b><span>Home Assistant conectado</span><em>OK</em></li>
-              <li><b>✓</b><span>Sistema compatible</span><em>OK</em></li>
-              <li><b>✓</b><span>Paquetes verificados</span><em>OK</em></li>
-              <li><b>✓</b><span>Destino comprobado</span><em>OK</em></li>
-            </ul>
-            <div class="progress-track"><span style="width:82%"></span></div>
-            <small>Preparando la operación…</small>
+            <p class="sub">Comprobando el sistema y preparando una operación segura.</p>
+            <div class="status-list">
+              <div class="status-row"><span class="check">✓</span><span class="name">Home Assistant conectado</span><span class="state">OK</span></div>
+              <div class="status-row"><span class="check">✓</span><span class="name">Sistema compatible</span><span class="state">OK</span></div>
+              <div class="status-row"><span class="check">✓</span><span class="name">Paquetes verificados</span><span class="state">OK</span></div>
+              <div class="status-row"><span class="check">✓</span><span class="name">Destino comprobado</span><span class="state">OK</span></div>
+            </div>
+            <div class="progress"><span></span></div>
           </div>
-        </article>
+        </div>
+      </div>
+    </article>
 
-        <article class="guide-step" id="paso-5">
-          <div class="step-copy">
-            <span class="step-number">Paso 5 · Seguridad</span>
-            <h3>Se prepara una copia recuperable.</h3>
-            <p>Antes de modificar los componentes activos, HABRO verifica los paquetes y conserva el estado necesario para recuperar la instalación si la comprobación final falla.</p>
-            <p>Después te pide una única confirmación clara.</p>
-            <div class="actor-note"><b>Tú</b><span>Revisa y confirma una vez.</span></div>
+    <article class="step">
+      <div class="step-copy">
+        <div class="step-kicker"><span class="num">5</span><span>Seguridad</span></div>
+        <h3>Se prepara una copia recuperable.</h3>
+        <p>Antes de modificar los componentes activos, HABRO verifica los paquetes y conserva el estado necesario para poder recuperar la instalación si la comprobación final falla.</p>
+        <p>Después de mostrarte qué va a hacer, HABRO te pide <strong>una única confirmación clara</strong> para ejecutar la instalación o reparación preparada.</p>
+        <div class="action"><b>TÚ</b><div><strong>Revisa y confirma una vez.</strong> La mutación no debe empezar antes de tu aprobación.</div></div>
+      </div>
+      <div class="visual">
+        <div class="mock">
+          <div class="mock-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="mock-body backup">
+            <div class="shield">✓</div>
+            <h4 style="font-size:24px;margin-bottom:10px">Todo preparado</h4>
+            <p class="sub">Paquetes, destino y recuperación verificados.</p>
+            <div class="success-box">
+              <strong>Copia recuperable preparada</strong>
+              <p>HABRO puede volver al estado anterior si la verificación final no es correcta.</p>
+            </div>
+            <div class="mock-buttons" style="margin-top:18px"><div class="ui-btn dark">Confirmar e instalar</div></div>
           </div>
-          <div class="visual-card ready-card" aria-label="Confirmación de seguridad">
-            <div class="success-mark">✓</div>
-            <span class="mock-kicker">Todo preparado</span>
-            <h4>Copia recuperable preparada</h4>
-            <p>Paquetes, destino y recuperación verificados.</p>
-            <button class="mock-primary" type="button" tabindex="-1">Confirmar e instalar</button>
-          </div>
-        </article>
+        </div>
+      </div>
+    </article>
 
-        <article class="guide-step reverse critical-step" id="paso-6">
-          <div class="step-copy">
-            <span class="step-number">Paso 6 · Instalación y reinicio</span>
-            <h3>HABRO instala y Home Assistant se reinicia.</h3>
-            <p>Después de tu confirmación, HABRO aplica los componentes y Home Assistant se reinicia. Durante unos minutos puedes perder la pantalla del Installer o ver que Home Assistant todavía no está disponible.</p>
-            <div class="do-not-repeat"><strong>No vuelvas a pulsar Instalar.</strong><span>El proceso conserva su estado.</span></div>
-            <p class="return-path"><strong>Si Home Assistant cierra esta pantalla:</strong><br>Ajustes <i>→</i> Aplicaciones <i>→</i> HABRO Installer <i>→</i> Abrir interfaz web</p>
-            <aside class="bro-note">
-              <img src="../assets/bro-original.svg" alt="BRO" data-bro-original>
-              <p><strong>Este es el momento que más confianza necesita:</strong> que Home Assistant se reinicie es parte normal del proceso.<br><br>Volver a abrir HABRO Installer recupera el progreso. No repite la instalación.</p>
-            </aside>
+    <article class="step">
+      <div class="step-copy">
+        <div class="step-kicker"><span class="num">6</span><span>Instalación</span></div>
+        <h3>HABRO instala y Home Assistant se reinicia.</h3>
+        <p>Después de tu confirmación, HABRO aplica los componentes y Home Assistant se reinicia. Durante unos minutos puedes perder la pantalla del Installer o ver que Home Assistant todavía no está disponible.</p>
+        <p><strong>No vuelvas a pulsar instalar.</strong> El proceso conserva su estado y debe reanudarse desde el mismo journal cuando vuelvas a abrir HABRO Installer.</p>
+        <div class="action"><b>TÚ</b><div><strong>Esperas.</strong> Si la pantalla se cierra, vuelve a <span class="route">Ajustes → Aplicaciones → HABRO Installer → Abrir interfaz web</span>.</div></div>
+        <div class="bro-note">
+          <img src="../assets/bro-original.svg" alt="BRO">
+          <div><strong>Este es el momento que más confianza necesita:</strong> que Home Assistant se reinicie es parte normal del proceso. Volver a abrir el Installer recupera el progreso; no repite la instalación.</div>
+        </div>
+      </div>
+      <div class="visual">
+        <div class="mock">
+          <div class="mock-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="mock-body restart">
+            <h4>Instalando HABRO…</h4>
+            <div class="timeline">
+              <div class="tline done"><div class="tmark"><i></i></div><div class="txt"><strong>Descargando y verificando</strong><span>Completado</span></div></div>
+              <div class="tline done"><div class="tmark"><i></i></div><div class="txt"><strong>Instalando componentes</strong><span>Completado</span></div></div>
+              <div class="tline done"><div class="tmark"><i></i></div><div class="txt"><strong>Aplicando configuración</strong><span>Completado</span></div></div>
+              <div class="tline"><div class="tmark"><i></i></div><div class="txt"><strong>Reiniciando Home Assistant</strong><span>Puede tardar varios minutos</span></div></div>
+              <div class="tline"><div class="tmark"><i></i></div><div class="txt"><strong>Verificación final</strong><span>Pendiente</span></div></div>
+            </div>
+            <div class="restart-alert"><strong>Si Home Assistant cierra esta pantalla:</strong><br>Ajustes → Aplicaciones → HABRO Installer → Abrir interfaz web.</div>
           </div>
-          <div class="visual-card install-progress" aria-label="Progreso de instalación">
-            <span class="mock-kicker">Instalando HABRO</span>
-            <h4>El proceso continúa</h4>
-            <ul class="status-list">
-              <li><b>✓</b><span>Descargando y verificando</span></li>
-              <li><b>✓</b><span>Instalando componentes</span></li>
-              <li><b>✓</b><span>Aplicando configuración</span></li>
-              <li class="active"><b>○</b><span>Reiniciando Home Assistant</span></li>
-              <li class="pending"><b>○</b><span>Verificación final</span></li>
-            </ul>
-            <div class="progress-track"><span style="width:72%"></span></div>
-          </div>
-        </article>
+        </div>
+      </div>
+    </article>
 
-        <article class="guide-step" id="paso-7">
-          <div class="step-copy">
-            <span class="step-number">Paso 7 · Conectar EBRO</span>
-            <h3>Conectas tu cuenta de EBRO.</h3>
-            <p>Cuando los componentes estén instalados, HABRO abrirá el config flow oficial de EBRO fuera del iframe del Installer.</p>
-            <p class="privacy-note">Las credenciales EBRO se introducen exclusivamente en el formulario oficial de Home Assistant.</p>
-            <div class="actor-note"><b>Tú</b><span>Introduces tus credenciales EBRO y solo eliges vehículo si realmente hace falta.</span></div>
-          </div>
-          <form class="visual-card credentials-card" aria-label="Representación del formulario oficial de Home Assistant">
-            <div class="ha-mark" aria-hidden="true">HA</div>
-            <span class="mock-kicker">Home Assistant</span>
+    <article class="step">
+      <div class="step-copy">
+        <div class="step-kicker"><span class="num">7</span><span>EBRO</span></div>
+        <h3>Conectas tu cuenta de EBRO.</h3>
+        <p>Cuando los componentes estén instalados, HABRO abrirá el <strong>config flow oficial de EBRO</strong> fuera del iframe del Installer.</p>
+        <p>Las credenciales de EBRO se introducen únicamente ahí. Si HABRO identifica un único vehículo con suficiente confianza, lo seleccionará automáticamente; si hay ambigüedad, te preguntará.</p>
+        <div class="action"><b>TÚ</b><div><strong>Introduces tus credenciales EBRO</strong> y solo eliges vehículo si realmente hace falta.</div></div>
+      </div>
+      <div class="visual">
+        <div class="mock">
+          <div class="mock-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="mock-body">
             <h4>Conectar EBRO</h4>
-            <label>Correo / usuario EBRO<input type="email" disabled aria-label="Correo o usuario EBRO"></label>
-            <label>Contraseña<input type="password" value="12345678" disabled aria-label="Contraseña EBRO"></label>
-            <button class="mock-primary" type="button" tabindex="-1">Continuar</button>
-          </form>
-        </article>
-
-        <article class="guide-step reverse" id="paso-8">
-          <div class="step-copy">
-            <span class="step-number">Paso 8 · Final</span>
-            <h3>Ves ‘HABRO está listo’.</h3>
-            <p>El recorrido termina cuando EBRO Auto y HABRO Companion están conectados y cargados.</p>
-            <div class="actor-note habro"><b>HABRO</b><span>Te lo dice de forma inequívoca: HABRO está listo.</span></div>
+            <p class="sub">Introduce tus datos únicamente en el formulario oficial de Home Assistant.</p>
+            <div class="credentials">
+              <div class="field">Correo / usuario EBRO</div>
+              <div class="field">Contraseña</div>
+              <div class="ui-btn dark">Continuar</div>
+            </div>
+            <div class="privacy"><span class="lock"></span><span>Las credenciales EBRO no se introducen en la web de HABRO ni en una pantalla simulada del Installer.</span></div>
           </div>
-          <div class="visual-card final-card" aria-label="Confirmación final de HABRO">
-            <div class="success-mark large">✓</div>
-            <h4>HABRO está listo.</h4>
-            <p>EBRO Auto y HABRO Companion están conectados y cargados.</p>
-            <hr>
-            <p><strong>No necesitas configurar nada más.</strong><br>Ya puedes cerrar HABRO Installer.</p>
-          </div>
-        </article>
-
-        <article class="guide-step" id="paso-9">
-          <div class="step-copy">
-            <span class="step-number">Paso 9 · Pantalla de inicio</span>
-            <h3>Añades HABRO a tu pantalla de inicio.</h3>
-            <p>Cuando HABRO ya está lista, puedes añadir la PWA a la pantalla de inicio para abrirla como una app.</p>
-            <div class="actor-note"><b>iPhone / iPad</b><span>Compartir → Añadir a pantalla de inicio → Añadir</span></div>
-          </div>
-          <div class="visual-card pwa-card" aria-label="Añadir HABRO a la pantalla de inicio">
-            <img src="../assets/app-icon.webp" width="112" height="112" alt="Icono oficial de HABRO">
-            <h4>HABRO</h4>
-            <ol class="home-sequence">
-              <li><b>1</b><span>Compartir</span></li>
-              <li><b>2</b><span>Añadir a pantalla de inicio</span></li>
-              <li><b>3</b><span>Añadir</span></li>
-            </ol>
-          </div>
-        </article>
+        </div>
       </div>
-    </section>
+    </article>
 
-    <section class="normal-section">
-      <div class="wrap">
-        <header>
-          <div class="eyebrow">Antes de empezar</div>
-          <h2>Los momentos que pueden parecer raros…<br>son normales.</h2>
-        </header>
-        <ol class="normal-grid">
-          <li><span>01</span><div><strong>Home Assistant te pide varias confirmaciones.</strong><p>Forma parte del mecanismo de confianza para instalar el bootstrap.</p></div></li>
-          <li><span>02</span><div><strong>Home Assistant se reinicia.</strong><p>La pantalla puede desaparecer durante unos minutos. No repitas la instalación.</p></div></li>
-          <li><span>03</span><div><strong>Tienes que volver a HABRO Installer.</strong><p>Si se cerró el WebView:<br>Ajustes → Aplicaciones → HABRO Installer → Abrir interfaz web.</p></div></li>
-          <li><span>04</span><div><strong>Las credenciales EBRO aparecen al final.</strong><p>Se introducen exclusivamente en el config flow oficial de Home Assistant.</p></div></li>
-          <li><span>05</span><div><strong>El final es inequívoco.</strong><p>Solo cuando veas ‘HABRO está listo’ puedes considerar terminado el proceso.</p></div></li>
-        </ol>
+    <article class="step">
+      <div class="step-copy">
+        <div class="step-kicker"><span class="num">8</span><span>Final</span></div>
+        <h3>Ves “HABRO está listo”.</h3>
+        <p>El recorrido termina cuando <strong>EBRO Auto y HABRO Companion están conectados y cargados</strong>. Ese es el estado que indica que ya no queda configuración técnica pendiente.</p>
+        <p>Desde ahí puedes cerrar HABRO Installer y volver a la aplicación.</p>
+        <div class="action"><b>HABRO</b><div><strong>Te lo dice de forma inequívoca:</strong> “HABRO está listo”.</div></div>
       </div>
-    </section>
-  </main>
+      <div class="visual">
+        <div class="mock">
+          <div class="mock-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="mock-body ready">
+            <div class="ready-card">
+              <div class="bigcheck">✓</div>
+              <h4>HABRO está listo.</h4>
+              <p>EBRO Auto y HABRO Companion están conectados y cargados.<br><br>No necesitas configurar nada más. Ya puedes cerrar HABRO Installer.</p>
+            </div>
+            <div class="phone">
+              <div class="phone-screen">
+                <div class="phone-car"></div>
+                <div class="phone-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
 
-  <footer class="footer guide-footer">
-    <div class="wrap footer-grid">
-      <div><strong>HABRO RemoteApp</strong><p>Guía visual de instalación.</p></div>
-      <div class="legal">HABRO no es una aplicación oficial ni supervisada por EBRO SUV S.L. y no implica afiliación con la marca.</div>
+    <article class="step">
+      <div class="step-copy">
+        <div class="step-kicker"><span class="num">9</span><span>Acceso diario</span></div>
+        <h3>Añades HABRO a tu pantalla de inicio.</h3>
+        <p>Cuando HABRO ya está lista, puedes añadir la PWA a la pantalla de inicio para abrirla como una app. En navegadores compatibles aparecerá el diálogo de instalación; en iPhone/iPad verás la guía para usar <strong>Compartir → Añadir a pantalla de inicio → Añadir</strong>.</p>
+        <div class="action"><b>TÚ</b><div><strong>Opcional:</strong> añades HABRO a Inicio y, a partir de ahí, accedes desde su icono.</div></div>
+      </div>
+      <div class="visual">
+        <div class="mock">
+          <div class="mock-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="mock-body">
+            <div class="addhome">
+              <div class="home-icon"><img src="../assets/habro-logo-vertical-v8641.svg" alt="HABRO"></div>
+              <div class="addhome-copy"><strong>Añadir HABRO a pantalla de inicio</strong><span>En iPhone/iPad: Compartir → Añadir a pantalla de inicio → Añadir.</span></div>
+            </div>
+            <div class="mock-buttons" style="margin-top:24px"><div class="ui-btn dark">Abrir HABRO</div></div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<section class="guide-access" id="acceder-habro" aria-labelledby="access-title">
+  <div class="wrap">
+    <div class="access-card">
+      <p class="eyebrow">Todo preparado</p>
+      <h2 id="access-title">Ahora puedes entrar en HABRO.</h2>
+      <p>Accede a la versión de distribución de la app para comenzar el proceso. Esta guía seguirá aquí para que puedas volver a cualquier paso y preguntarle a BRO siempre que lo necesites.</p>
+      <a class="button primary access-button" href="https://app.habroremote.com/">Acceder a HABRO</a>
+      <span class="access-note">Se abrirá app.habroremote.com</span>
     </div>
-  </footer>
+  </div>
+</section>
 
-  <script src="../js/installation-guide.js?v=20260903-1" defer></script>
+<section class="confidence">
+  <div class="wrap confidence-grid">
+    <div>
+      <p class="eyebrow">Qué puedes esperar</p>
+      <h2>Los momentos que pueden parecer raros… son normales.</h2>
+    </div>
+    <div class="confidence-list">
+      <div class="conf-item"><b>1</b><div><strong>Home Assistant te pide varias confirmaciones.</strong><span>Forma parte del mecanismo de confianza para instalar el bootstrap.</span></div></div>
+      <div class="conf-item"><b>2</b><div><strong>Home Assistant se reinicia.</strong><span>La pantalla puede desaparecer durante unos minutos. No repitas la instalación.</span></div></div>
+      <div class="conf-item"><b>3</b><div><strong>Tienes que volver a HABRO Installer.</strong><span>Si se cerró el WebView: Ajustes → Aplicaciones → HABRO Installer → Abrir interfaz web.</span></div></div>
+      <div class="conf-item"><b>4</b><div><strong>Las credenciales EBRO aparecen al final.</strong><span>Se introducen exclusivamente en el config flow oficial de Home Assistant.</span></div></div>
+      <div class="conf-item"><b>5</b><div><strong>El final es inequívoco.</strong><span>Solo cuando veas “HABRO está listo” puedes considerar terminado el proceso.</span></div></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-grid">
+    <img src="../assets/habro-remoteapp-horizontal-v8641.svg" alt="HABRO RemoteApp">
+    <span>Guía visual de instalación · HABRO</span>
+  </div>
+</footer>
+
+
 </body>
 </html>
