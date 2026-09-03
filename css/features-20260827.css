@@ -252,7 +252,8 @@ html, body { overflow-x: hidden; }
 .voice-command-bubble {
   position: absolute;
   top: clamp(18px, 5vw, 70px);
-  left: clamp(18px, 6vw, 90px);
+  right: clamp(24px, 8vw, 120px);
+  left: auto;
   z-index: 2;
   max-width: min(44vw, 480px);
   padding: 16px 22px;
@@ -271,7 +272,7 @@ html, body { overflow-x: hidden; }
 .voice-command-bubble::after {
   content: "";
   position: absolute;
-  right: 30px;
+  right: 72px;
   bottom: -10px;
   width: 22px;
   height: 22px;
