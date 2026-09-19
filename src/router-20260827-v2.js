@@ -2,7 +2,7 @@ import app from './index.js';
 
 const REPO = 'noquierotuemail-cell/ebro-horizon-assets';
 const IMAGE_EXT = /\.(?:webp|png|jpe?g|gif|svg)$/i;
-const ANALYTICS_SCRIPT = '/js/habro-analytics-20260919.js?v=20260919-2';
+const ANALYTICS_SCRIPT = '/js/habro-analytics-20260919.js?v=20260919-3';
 
 function mimeFor(pathname) {
   if (/\.webp$/i.test(pathname)) return 'image/webp';
@@ -19,6 +19,16 @@ function decodeBase64(value) {
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
   return bytes;
+}
+
+function brandedSocialRedirect(url, source, target = '/') {
+  const destination = new URL(target, url.origin);
+  const headers = new Headers({
+    Location: destination.toString(),
+    'Cache-Control': 'no-store',
+    'Set-Cookie': `habro_campaign_source=${encodeURIComponent(source)}; Path=/; Max-Age=86400; Secure; SameSite=Lax`
+  });
+  return new Response(null, { status: 302, headers });
 }
 
 function repositoryRef(url) {
@@ -797,6 +807,11 @@ async function analyticsSummary(request, env) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+
+    if (url.pathname === '/linkedin') return brandedSocialRedirect(url, 'linkedin', '/');
+    if (url.pathname === '/tiktok') return brandedSocialRedirect(url, 'tiktok', '/');
+    if (url.pathname === '/linkedin/instalar') return brandedSocialRedirect(url, 'linkedin', '/guia-instalacion/');
+    if (url.pathname === '/tiktok/instalar') return brandedSocialRedirect(url, 'tiktok', '/guia-instalacion/');
 
     if (url.pathname === '/api/analytics/event') return analyticsEvent(request, env);
     if (url.pathname === '/api/analytics/summary') return analyticsSummary(request, env);
