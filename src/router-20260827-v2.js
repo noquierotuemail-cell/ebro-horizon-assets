@@ -139,6 +139,8 @@ function blankAgg() {
     totalVisits: 0,
     totalPageViews: 0,
     pwaInstalls: 0,
+    pwaNewInstalls: 0,
+    pwaRecovered: 0,
     pwaLaunches: 0,
     installAvailable: 0,
     firstEventAt: null,
@@ -194,6 +196,8 @@ export class HabroMetrics {
     const standalone = Boolean(body.standalone);
 
     const agg = (await this.state.storage.get('agg')) || blankAgg();
+    agg.pwaNewInstalls = Number(agg.pwaNewInstalls || 0);
+    agg.pwaRecovered = Number(agg.pwaRecovered || 0);
     agg.firstEventAt ||= now;
     agg.lastEventAt = now;
     const d = ensureDay(agg, day);
@@ -237,7 +241,10 @@ export class HabroMetrics {
       if (!user.pwaInstalled) {
         user.pwaInstalled = true;
         user.installedAt = now;
+        user.installSource = type === 'pwa_installed' ? 'new' : 'recovered';
         agg.pwaInstalls += 1;
+        if (type === 'pwa_installed') agg.pwaNewInstalls += 1;
+        else agg.pwaRecovered += 1;
         d.installs += 1;
         inc(agg.installsByOS, os);
         inc(agg.installsByDevice, device);
@@ -254,7 +261,9 @@ export class HabroMetrics {
       if (standalone && !user.pwaInstalled) {
         user.pwaInstalled = true;
         user.installedAt = now;
+        user.installSource = 'recovered';
         agg.pwaInstalls += 1;
+        agg.pwaRecovered += 1;
         d.installs += 1;
         inc(agg.installsByOS, os);
         inc(agg.installsByDevice, device);
@@ -298,11 +307,15 @@ export class HabroMetrics {
         visits: agg.totalVisits || 0,
         pageViews: agg.totalPageViews || 0,
         pwaInstalls: agg.pwaInstalls || 0,
+        pwaNewInstalls: agg.pwaNewInstalls || 0,
+        pwaRecovered: agg.pwaRecovered || 0,
         pwaLaunches: agg.pwaLaunches || 0,
         installAvailable: agg.installAvailable || 0,
         conversionPct: agg.totalUsers ? Math.round((agg.pwaInstalls / agg.totalUsers) * 1000) / 10 : 0,
         activePwa7,
-        activePwa30
+        activePwa30,
+        firstTrackingAt: agg.firstEventAt || null,
+        lastTrackingAt: agg.lastEventAt || null
       },
       last7: recent(7),
       last30: recent(30),
@@ -343,6 +356,127 @@ async function analyticsEvent(request, env) {
   });
 }
 
+
+async function cloudflareZoneId(env) {
+  const explicit = clean(env.HABRO_CF_ZONE_ID, 80);
+  if (explicit) return explicit;
+  const token = clean(env.HABRO_CF_API_TOKEN, 300);
+  if (!token) return null;
+  const r = await fetch('https://api.cloudflare.com/client/v4/zones?name=habroremote.com&status=active&per_page=5', {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
+  });
+  if (!r.ok) throw new Error(`zone_lookup_http_${r.status}`);
+  const payload = await r.json();
+  const zone = payload && Array.isArray(payload.result) ? payload.result[0] : null;
+  return zone && zone.id ? zone.id : null;
+}
+
+async function cloudflareHistory(env, firstTrackingAt) {
+  const token = clean(env.HABRO_CF_API_TOKEN, 300);
+  if (!token) {
+    return {
+      available: false,
+      setupRequired: true,
+      reason: 'HABRO_CF_API_TOKEN no configurado',
+      source: 'Cloudflare HTTP Analytics'
+    };
+  }
+
+  try {
+    const zoneTag = await cloudflareZoneId(env);
+    if (!zoneTag) throw new Error('zone_not_found');
+
+    const configuredStart = clean(env.HABRO_CF_HISTORY_START, 32);
+    const start = configuredStart || '2026-08-01T00:00:00Z';
+    const trackingTs = Number(firstTrackingAt || 0);
+    const trackingDate = trackingTs ? new Date(trackingTs).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+    const end = `${trackingDate}T00:00:00Z`;
+
+    if (Date.parse(end) <= Date.parse(start)) {
+      return {
+        available: true,
+        source: 'Cloudflare HTTP Analytics',
+        rangeStart: start.slice(0, 10),
+        rangeEnd: trackingDate,
+        totalVisits: 0,
+        totalRequests: 0,
+        days: []
+      };
+    }
+
+    const query = `query HabroHistory($zoneTag: string, $start: Time, $end: Time, $host: string) {
+      viewer {
+        zones(filter: {zoneTag: $zoneTag}) {
+          daily: httpRequestsAdaptiveGroups(
+            limit: 1000
+            orderBy: [date_ASC]
+            filter: {
+              datetime_geq: $start
+              datetime_lt: $end
+              requestSource: "eyeball"
+              clientRequestHTTPHost: $host
+            }
+          ) {
+            count
+            sum { visits }
+            dimensions { date }
+          }
+        }
+      }
+    }`;
+
+    const gql = await fetch('https://api.cloudflare.com/client/v4/graphql', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        query,
+        variables: { zoneTag, start, end, host: 'habroremote.com' }
+      })
+    });
+
+    if (!gql.ok) throw new Error(`graphql_http_${gql.status}`);
+    const payload = await gql.json();
+    if (payload && Array.isArray(payload.errors) && payload.errors.length) {
+      throw new Error(payload.errors.map(e => e.message).join(' | ').slice(0, 300));
+    }
+
+    const daily = payload?.data?.viewer?.zones?.[0]?.daily || [];
+    const days = daily.map(row => ({
+      date: row?.dimensions?.date || '',
+      visits: Number(row?.sum?.visits || 0),
+      requests: Number(row?.count || 0),
+      source: 'cloudflare'
+    })).filter(row => row.date);
+
+    return {
+      available: true,
+      source: 'Cloudflare HTTP Analytics',
+      rangeStart: start.slice(0, 10),
+      rangeEnd: trackingDate,
+      totalVisits: days.reduce((n, d) => n + d.visits, 0),
+      totalRequests: days.reduce((n, d) => n + d.requests, 0),
+      days
+    };
+  } catch (error) {
+    return {
+      available: false,
+      setupRequired: false,
+      reason: String(error && error.message || error).slice(0, 320),
+      source: 'Cloudflare HTTP Analytics'
+    };
+  }
+}
+
+function combinedVisitSeries(history, ownDays) {
+  const byDate = new Map();
+  for (const d of (history?.days || [])) byDate.set(d.date, { date: d.date, visits: Number(d.visits || 0), source: 'cloudflare' });
+  for (const d of (ownDays || [])) byDate.set(d.date, { date: d.date, visits: Number(d.visits || 0), source: 'habro' });
+  return [...byDate.values()].sort((a,b) => a.date.localeCompare(b.date)).slice(-60);
+}
+
 async function analyticsSummary(request, env) {
   const configured = clean(env.HABRO_ANALYTICS_ADMIN_TOKEN, 200);
   if (!configured) {
@@ -350,7 +484,25 @@ async function analyticsSummary(request, env) {
   }
   const auth = request.headers.get('Authorization') || '';
   if (auth !== `Bearer ${configured}`) return Response.json({ ok:false, error:'unauthorized' }, { status:401, headers:{'Cache-Control':'no-store'} });
-  return analyticsStub(env).fetch('https://habro.metrics/summary');
+
+  const ownResponse = await analyticsStub(env).fetch('https://habro.metrics/summary');
+  const own = await ownResponse.json();
+  const history = await cloudflareHistory(env, own?.totals?.firstTrackingAt);
+  const historicalVisits = history.available ? Number(history.totalVisits || 0) : 0;
+  const lifetimeVisits = historicalVisits + Number(own?.totals?.visits || 0);
+  const series = combinedVisitSeries(history, own?.days || []);
+
+  return Response.json({
+    ...own,
+    historical: history,
+    combined: {
+      lifetimeVisits,
+      historicalVisits,
+      exactTrackedVisits: Number(own?.totals?.visits || 0),
+      trackingStart: own?.totals?.firstTrackingAt || null,
+      visitsSeries: series
+    }
+  }, { headers: { 'Cache-Control': 'no-store' } });
 }
 
 export default {
