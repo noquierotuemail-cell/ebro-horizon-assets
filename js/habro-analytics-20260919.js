@@ -17,6 +17,13 @@
   const clientId=getOrCreate(localStorage,CLIENT_KEY);
   const sessionId=getOrCreate(sessionStorage,SESSION_KEY);
 
+  function cookieSource(){
+    try{
+      const m=document.cookie.match(/(?:^|;\s*)habro_campaign_source=([^;]+)/);
+      return m ? clean(decodeURIComponent(m[1])) : '';
+    }catch(_){return ''}
+  }
+
   function classifyReferrer(){
     try{
       const r=document.referrer?new URL(document.referrer):null;
@@ -37,7 +44,8 @@
     const explicitSource=clean(params.get('utm_source'));
     const explicitMedium=clean(params.get('utm_medium'));
     const explicitCampaign=clean(params.get('utm_campaign'));
-    const detected=explicitSource||classifyReferrer();
+    const brandedSource=cookieSource();
+    const detected=explicitSource||brandedSource||classifyReferrer();
 
     let sessionSource=detected;
     try{
