@@ -10,6 +10,20 @@
       "CHATKIT_BACKEND_TOKEN"
     ]
   },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "HABRO_METRICS",
+        "class_name": "HabroMetrics"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "habro-analytics-v1",
+      "new_sqlite_classes": ["HabroMetrics"]
+    }
+  ],
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
