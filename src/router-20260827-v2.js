@@ -371,39 +371,87 @@ async function cloudflareZoneId(env) {
   return zone && zone.id ? zone.id : null;
 }
 
-async function cloudflareHistory(env, firstTrackingAt) {
+async function cloudflareWebHistory(env, firstTrackingAt) {
   const token = clean(env.HABRO_CF_API_TOKEN, 300);
-  if (!token) {
-    return {
-      available: false,
-      setupRequired: true,
-      reason: 'HABRO_CF_API_TOKEN no configurado',
-      source: 'Cloudflare HTTP Analytics'
-    };
+  const accountTag = clean(env.HABRO_CF_ACCOUNT_ID, 80);
+  if (!token || !accountTag) return null;
+
+  const configuredStart = clean(env.HABRO_CF_HISTORY_START, 32);
+  const start = configuredStart || '2026-08-01T00:00:00Z';
+  const trackingTs = Number(firstTrackingAt || 0);
+  const trackingDate = trackingTs ? new Date(trackingTs).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+  const end = `${trackingDate}T00:00:00Z`;
+  if (Date.parse(end) <= Date.parse(start)) {
+    return { available:true, source:'Cloudflare Web Analytics', rangeStart:start.slice(0,10), rangeEnd:trackingDate, totalVisits:0, totalPageViews:0, days:[] };
   }
 
-  try {
-    const zoneTag = await cloudflareZoneId(env);
-    if (!zoneTag) throw new Error('zone_not_found');
-
-    const configuredStart = clean(env.HABRO_CF_HISTORY_START, 32);
-    const start = configuredStart || '2026-08-01T00:00:00Z';
-    const trackingTs = Number(firstTrackingAt || 0);
-    const trackingDate = trackingTs ? new Date(trackingTs).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
-    const end = `${trackingDate}T00:00:00Z`;
-
-    if (Date.parse(end) <= Date.parse(start)) {
-      return {
-        available: true,
-        source: 'Cloudflare HTTP Analytics',
-        rangeStart: start.slice(0, 10),
-        rangeEnd: trackingDate,
-        totalVisits: 0,
-        totalRequests: 0,
-        days: []
-      };
+  const query = `query HabroRUM($accountTag: string, $start: Time, $end: Time, $host: string) {
+    viewer {
+      accounts(filter: {accountTag: $accountTag}) {
+        daily: rumPageloadEventsAdaptiveGroups(
+          limit: 1000
+          orderBy: [date_ASC]
+          filter: {
+            datetime_geq: $start
+            datetime_lt: $end
+            requestHost: $host
+            bot: 0
+          }
+        ) {
+          count
+          sum { visits }
+          dimensions { date }
+        }
+      }
     }
+  }`;
 
+  const gql = await fetch('https://api.cloudflare.com/client/v4/graphql', {
+    method:'POST',
+    headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+    body:JSON.stringify({query,variables:{accountTag,start,end,host:'habroremote.com'}})
+  });
+  if (!gql.ok) throw new Error(`rum_graphql_http_${gql.status}`);
+  const payload = await gql.json();
+  if (payload?.errors?.length) throw new Error(payload.errors.map(e=>e.message).join(' | ').slice(0,300));
+  const daily = payload?.data?.viewer?.accounts?.[0]?.daily || [];
+  const days = daily.map(row=>({
+    date:row?.dimensions?.date || '',
+    visits:Number(row?.sum?.visits || 0),
+    pageViews:Number(row?.count || 0),
+    source:'cloudflare-web'
+  })).filter(row=>row.date);
+
+  return {
+    available:true,
+    source:'Cloudflare Web Analytics',
+    rangeStart:start.slice(0,10),
+    rangeEnd:trackingDate,
+    totalVisits:days.reduce((n,d)=>n+d.visits,0),
+    totalPageViews:days.reduce((n,d)=>n+d.pageViews,0),
+    days
+  };
+}
+
+async function cloudflareEdgeHistory(env, firstTrackingAt) {
+  const token = clean(env.HABRO_CF_API_TOKEN, 300);
+  if (!token) return null;
+  const zoneTag = await cloudflareZoneId(env);
+  if (!zoneTag) throw new Error('zone_not_found');
+
+  const trackingTs = Number(firstTrackingAt || 0);
+  const trackingDate = trackingTs ? new Date(trackingTs).toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
+  const end = `${trackingDate}T00:00:00Z`;
+  const requestedStart = clean(env.HABRO_CF_HISTORY_START,32) || '2026-08-01T00:00:00Z';
+  const attempts = [
+    requestedStart,
+    new Date(Date.parse(end)-30*86400000).toISOString(),
+    new Date(Date.parse(end)-7*86400000).toISOString()
+  ];
+
+  let lastError = null;
+  for (const start of attempts) {
+    if (Date.parse(end) <= Date.parse(start)) continue;
     const query = `query HabroHistory($zoneTag: string, $start: Time, $end: Time, $host: string) {
       viewer {
         zones(filter: {zoneTag: $zoneTag}) {
@@ -424,50 +472,60 @@ async function cloudflareHistory(env, firstTrackingAt) {
         }
       }
     }`;
-
-    const gql = await fetch('https://api.cloudflare.com/client/v4/graphql', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        query,
-        variables: { zoneTag, start, end, host: 'habroremote.com' }
-      })
+    const gql=await fetch('https://api.cloudflare.com/client/v4/graphql',{
+      method:'POST',
+      headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({query,variables:{zoneTag,start,end,host:'habroremote.com'}})
     });
-
-    if (!gql.ok) throw new Error(`graphql_http_${gql.status}`);
-    const payload = await gql.json();
-    if (payload && Array.isArray(payload.errors) && payload.errors.length) {
-      throw new Error(payload.errors.map(e => e.message).join(' | ').slice(0, 300));
-    }
-
-    const daily = payload?.data?.viewer?.zones?.[0]?.daily || [];
-    const days = daily.map(row => ({
-      date: row?.dimensions?.date || '',
-      visits: Number(row?.sum?.visits || 0),
-      requests: Number(row?.count || 0),
-      source: 'cloudflare'
-    })).filter(row => row.date);
-
+    if(!gql.ok){lastError=new Error(`graphql_http_${gql.status}`);continue}
+    const payload=await gql.json();
+    if(payload?.errors?.length){lastError=new Error(payload.errors.map(e=>e.message).join(' | ').slice(0,300));continue}
+    const daily=payload?.data?.viewer?.zones?.[0]?.daily||[];
+    const days=daily.map(row=>({date:row?.dimensions?.date||'',visits:Number(row?.sum?.visits||0),requests:Number(row?.count||0),source:'cloudflare-edge'})).filter(row=>row.date);
     return {
-      available: true,
-      source: 'Cloudflare HTTP Analytics',
-      rangeStart: start.slice(0, 10),
-      rangeEnd: trackingDate,
-      totalVisits: days.reduce((n, d) => n + d.visits, 0),
-      totalRequests: days.reduce((n, d) => n + d.requests, 0),
+      available:true,
+      source:'Cloudflare HTTP Analytics',
+      rangeStart:start.slice(0,10),
+      rangeEnd:trackingDate,
+      totalVisits:days.reduce((n,d)=>n+d.visits,0),
+      totalRequests:days.reduce((n,d)=>n+d.requests,0),
       days
     };
-  } catch (error) {
+  }
+  throw lastError || new Error('cloudflare_history_unavailable');
+}
+
+async function cloudflareHistory(env, firstTrackingAt) {
+  const token=clean(env.HABRO_CF_API_TOKEN,300);
+  if(!token){
+    return {available:false,setupRequired:true,reason:'HABRO_CF_API_TOKEN no configurado',source:'Cloudflare'};
+  }
+
+  try{
+    const rum=await cloudflareWebHistory(env,firstTrackingAt);
+    if(rum) return rum;
+  }catch(error){
+    // Fall back to edge analytics if account-level RUM access is unavailable.
+  }
+
+  try{
+    const edge=await cloudflareEdgeHistory(env,firstTrackingAt);
+    if(edge) return edge;
+  }catch(error){
     return {
-      available: false,
-      setupRequired: false,
-      reason: String(error && error.message || error).slice(0, 320),
-      source: 'Cloudflare HTTP Analytics'
+      available:false,
+      setupRequired:false,
+      reason:String(error&&error.message||error).slice(0,320),
+      source:'Cloudflare'
     };
   }
+
+  return {
+    available:false,
+    setupRequired:true,
+    reason:'Configura HABRO_CF_ACCOUNT_ID para Web Analytics o HABRO_CF_ZONE_ID para HTTP Analytics.',
+    source:'Cloudflare'
+  };
 }
 
 function combinedVisitSeries(history, ownDays) {
