@@ -18,26 +18,27 @@
     button{cursor:pointer}
     [hidden]{display:none!important}
 
-    .login-screen{position:fixed;inset:0;z-index:50;background:radial-gradient(circle at 50% 18%,#fff 0,#f5f6f7 42%,#eceff1 100%);display:grid;place-items:center;padding:24px}
-    .login-card{width:min(460px,100%);background:rgba(255,255,255,.92);border:1px solid rgba(0,0,0,.07);border-radius:30px;padding:34px;box-shadow:0 30px 90px rgba(16,22,28,.12);backdrop-filter:blur(18px)}
-    .login-brand{display:grid;place-items:center;text-align:center;margin-bottom:28px}
-    .login-brand img{width:min(270px,74%);height:auto;display:block;margin-bottom:22px}
-    .login-brand h1{font-size:clamp(40px,9vw,64px);line-height:.9;letter-spacing:.14em;margin:0 0 10px;font-weight:790}
-    .login-brand p{margin:0;color:var(--muted);font-size:14px}
-    .login-card label{display:block;font-size:12px;font-weight:760;color:#50565d;margin:0 0 8px 4px}
-    .login-card input{width:100%;height:52px;border:1px solid var(--line);border-radius:15px;padding:0 15px;background:#fff;outline:none}
-    .login-card input:focus{border-color:#94aec1;box-shadow:0 0 0 4px rgba(36,90,131,.08)}
-    .login-card .login-button{width:100%;height:52px;border:0;border-radius:15px;background:var(--panel-dark);color:#fff;font-weight:760;margin-top:12px}
-    .login-message{min-height:20px;margin-top:12px;text-align:center;color:var(--muted);font-size:12px}
+    .login-screen{position:fixed;inset:0;z-index:50;background:radial-gradient(circle at 50% 10%,#20252a 0,#111417 42%,#090b0d 100%);display:grid;place-items:center;padding:24px}
+    .login-card{width:min(480px,100%);background:rgba(18,21,24,.94);border:1px solid rgba(255,255,255,.09);border-radius:30px;padding:38px;box-shadow:0 34px 100px rgba(0,0,0,.34);backdrop-filter:blur(18px)}
+    .login-brand{display:grid;place-items:center;text-align:center;margin-bottom:30px}
+    .login-brand img{width:min(360px,88%);height:auto;display:block;margin-bottom:24px}
+    .login-brand h1{color:#fff;font-size:clamp(40px,9vw,64px);line-height:.9;letter-spacing:.16em;margin:0 0 10px;font-weight:790}
+    .login-brand p{margin:0;color:#9ca3aa;font-size:14px}
+    .login-card label{display:block;font-size:12px;font-weight:760;color:#bcc2c7;margin:0 0 8px 4px}
+    .login-card input{width:100%;height:52px;border:1px solid #353b40;border-radius:15px;padding:0 15px;background:#0d0f11;color:#fff;outline:none}
+    .login-card input:focus{border-color:#6686a0;box-shadow:0 0 0 4px rgba(69,111,143,.16)}
+    .login-card .login-button{width:100%;height:52px;border:0;border-radius:15px;background:#fff;color:#111;font-weight:780;margin-top:12px}
+    .login-message{min-height:20px;margin-top:12px;text-align:center;color:#9ca3aa;font-size:12px}
 
     .app{min-height:100vh}
-    .metrics-header{height:92px;background:rgba(250,250,251,.9);backdrop-filter:blur(22px);border-bottom:1px solid rgba(0,0,0,.07);position:sticky;top:0;z-index:20}
+    .metrics-header{height:104px;background:rgba(10,12,14,.96);backdrop-filter:blur(22px);border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:20}
     .header-inner{height:100%;width:min(1480px,calc(100% - 36px));margin:auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px}
-    .header-logo img{width:210px;max-width:100%;height:auto;display:block}
-    .metrics-title{font-size:clamp(27px,3vw,42px);font-weight:800;letter-spacing:.18em;text-align:center;line-height:1;white-space:nowrap}
+    .header-logo{display:flex;align-items:center}
+    .header-logo img{width:270px;max-width:100%;height:auto;display:block}
+    .metrics-title{color:#fff;font-size:clamp(30px,3.2vw,46px);font-weight:810;letter-spacing:.2em;text-align:center;line-height:1;white-space:nowrap}
     .header-actions{justify-self:end;display:flex;gap:8px}
-    .icon-btn,.logout{border:1px solid var(--line);background:#fff;color:#222;border-radius:999px;padding:10px 15px;font-weight:700;font-size:12px}
-    .icon-btn:hover,.logout:hover{background:#f1f2f3}
+    .icon-btn,.logout{border:1px solid #34383d;background:#181b1f;color:#fff;border-radius:999px;padding:10px 15px;font-weight:700;font-size:12px}
+    .icon-btn:hover,.logout:hover{background:#23272b}
 
     .dashboard{width:min(1480px,calc(100% - 36px));margin:0 auto;padding:26px 0 58px}
     .status-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px}
@@ -74,6 +75,17 @@
     .bar:hover{filter:brightness(.92)}
     .bar:hover::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);z-index:5;white-space:nowrap;background:#111;color:#fff;border-radius:8px;padding:6px 8px;font-size:10px}
     .chart-axis{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;margin-top:8px}
+    .page-focus-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+    .page-focus{aspect-ratio:1.35/1}
+    .page-focus .kpi-number{font-size:clamp(34px,4.4vw,68px)}
+    .page-chart{height:270px;display:flex;align-items:flex-end;gap:4px;padding:14px 0 4px;border-bottom:1px solid var(--line)}
+    .day-pair{flex:1;height:100%;min-width:4px;display:flex;align-items:flex-end;gap:1px}
+    .page-bar{width:50%;min-height:2px;border-radius:4px 4px 1px 1px;position:relative}
+    .page-bar.home{background:var(--blue)}
+    .page-bar.guide{background:#111417}
+    .page-bar:hover::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);z-index:6;white-space:nowrap;background:#111;color:#fff;border-radius:8px;padding:6px 8px;font-size:10px}
+    .chart-legend{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:12px;color:var(--muted);font-size:10px}
+    .legend-key{display:inline-flex;gap:6px;align-items:center}.legend-dot{width:9px;height:9px;border-radius:3px;background:var(--blue)}.legend-dot.guide{background:#111417}
 
     .break-list{display:grid;gap:12px}
     .break-row{display:grid;grid-template-columns:minmax(80px,1fr) 2fr auto;align-items:center;gap:9px;font-size:11px}
@@ -86,10 +98,10 @@
     .history-note strong{color:var(--ink)}
     .footer-note{margin-top:18px;color:var(--muted);font-size:10px;line-height:1.5;text-align:right}
 
-    @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(4,1fr)}.section-grid{grid-template-columns:1.5fr 1fr}.panel.large{grid-row:auto;grid-column:1/-1}}
+    @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(4,1fr)}.page-focus-grid{grid-template-columns:repeat(2,1fr)}.section-grid{grid-template-columns:1.5fr 1fr}.panel.large{grid-row:auto;grid-column:1/-1}}
     @media(max-width:760px){
-      .metrics-header{height:78px}.header-inner{width:min(100% - 24px,1480px);grid-template-columns:1fr auto}.header-logo img{width:150px}.metrics-title{grid-row:2;grid-column:1/-1;display:none}.header-actions{grid-column:2}
-      .dashboard{width:min(100% - 20px,1480px);padding-top:14px}.kpi-grid{grid-template-columns:repeat(2,1fr);gap:9px}.kpi{padding:14px;border-radius:18px}.kpi-number{font-size:clamp(34px,12vw,54px)}.section-grid{grid-template-columns:1fr}.panel{border-radius:18px}.panel.large{grid-column:auto}.chart-wrap{height:220px}.logout{display:none}
+      .metrics-header{height:88px}.header-inner{width:min(100% - 20px,1480px);grid-template-columns:1fr auto 1fr;gap:8px}.header-logo img{width:145px}.metrics-title{font-size:18px;letter-spacing:.13em;display:block}.header-actions{grid-column:3}.icon-btn{padding:8px 10px;font-size:10px}
+      .dashboard{width:min(100% - 20px,1480px);padding-top:14px}.page-focus-grid,.kpi-grid{grid-template-columns:repeat(2,1fr);gap:9px}.kpi{padding:14px;border-radius:18px}.kpi-number{font-size:clamp(34px,12vw,54px)}.section-grid{grid-template-columns:1fr}.panel{border-radius:18px}.panel.large{grid-column:auto}.chart-wrap{height:220px}.logout{display:none}
     }
   </style>
 </head>
@@ -123,6 +135,13 @@
         <div id="historyStatus" class="status-pill warn"><span class="status-dot"></span><span>Comprobando histórico…</span></div>
       </div>
 
+      <section class="page-focus-grid" aria-label="Acceso diario a páginas clave">
+        <article class="kpi page-focus blue"><div class="kpi-label">Web principal · hoy</div><div class="kpi-number" id="homeTodayUsers">—</div><div class="kpi-note" id="homeTodayNote">usuarios únicos · accesos</div><div class="kpi-accent"></div></article>
+        <article class="kpi page-focus dark"><div class="kpi-label">Guía instalación · hoy</div><div class="kpi-number" id="guideTodayUsers">—</div><div class="kpi-note" id="guideTodayNote">usuarios únicos · accesos</div><div class="kpi-accent"></div></article>
+        <article class="kpi page-focus"><div class="kpi-label">Web principal · 30 días</div><div class="kpi-number" id="home30">—</div><div class="kpi-note">accesos diarios acumulados</div><div class="kpi-accent"></div></article>
+        <article class="kpi page-focus soft"><div class="kpi-label">Guía instalación · 30 días</div><div class="kpi-number" id="guide30">—</div><div class="kpi-note">accesos diarios acumulados</div><div class="kpi-accent"></div></article>
+      </section>
+
       <section class="kpi-grid" aria-label="Indicadores principales">
         <article class="kpi blue"><div class="kpi-label">Visitas totales</div><div class="kpi-number" id="lifetimeVisits">—</div><div class="kpi-note">Histórico Cloudflare + medición HABRO</div><div class="kpi-accent"></div></article>
         <article class="kpi dark"><div class="kpi-label">Usuarios medidos</div><div class="kpi-number" id="users">—</div><div class="kpi-note">Únicos desde el inicio de HABRO Metrics</div><div class="kpi-accent"></div></article>
@@ -140,6 +159,13 @@
         <article class="kpi"><div class="kpi-label">Aperturas PWA</div><div class="kpi-number" id="pwaLaunches">—</div><div class="kpi-note">Sesiones iniciadas desde el icono</div><div class="kpi-accent"></div></article>
       </section>
 
+      <section class="panel" style="margin-top:12px">
+        <div class="panel-head"><div><h2>Web principal vs. Guía de instalación</h2><div class="panel-sub">Accesos por día a <strong>/</strong> y <strong>/guia-instalacion/</strong></div></div><span class="source-badge">60 días</span></div>
+        <div id="pageChart" class="page-chart"></div>
+        <div class="chart-axis"><span id="pageChartStart"></span><span id="pageChartEnd"></span></div>
+        <div class="chart-legend"><span class="legend-key"><span class="legend-dot"></span>Web principal</span><span class="legend-key"><span class="legend-dot guide"></span>Guía de instalación</span><span>Desde HABRO Metrics, las tarjetas “hoy” muestran usuarios únicos reales.</span></div>
+      </section>
+
       <section class="section-grid">
         <article class="panel large">
           <div class="panel-head"><div><h2>Evolución de visitas</h2><div class="panel-sub">Histórico enlazado con la medición exacta actual</div></div><span class="source-badge">60 días</span></div>
@@ -154,7 +180,7 @@
         <article class="panel"><div class="panel-head"><div><h2>Instalaciones por SO</h2><div class="panel-sub">PWA detectadas</div></div></div><div id="installOsList" class="break-list"></div></article>
       </section>
 
-      <div class="footer-note">Las visitas históricas proceden de Cloudflare HTTP Analytics. Los usuarios únicos y las instalaciones PWA solo pueden medirse con precisión desde la activación de HABRO Metrics.</div>
+      <div class="footer-note">La web principal corresponde a la portada “/” (incluido quien llegue escribiendo www y termine redirigido al dominio principal). La guía se mide aparte en “/guia-instalacion/”. El histórico anterior procede de Cloudflare; los usuarios únicos por página son exactos desde la activación de HABRO Metrics.</div>
     </main>
   </div>
 
@@ -178,8 +204,33 @@
       $('chartEnd').textContent=data.at(-1)?.date||'';
     }
 
+    function renderPageChart(series){
+      const data=(series||[]).slice(-60);
+      const values=data.flatMap(d=>[Number(d.home?.accesses||0),Number(d.guide?.accesses||0)]);
+      const max=Math.max(1,...values);
+      $('pageChart').innerHTML=data.map(d=>{
+        const hp=Math.max(2,Math.round(Number(d.home?.accesses||0)/max*100));
+        const gp=Math.max(2,Math.round(Number(d.guide?.accesses||0)/max*100));
+        return '<div class="day-pair"><div class="page-bar home" style="height:'+hp+'%" data-tip="'+esc(d.date)+' · web: '+fmt(d.home?.accesses)+'"></div><div class="page-bar guide" style="height:'+gp+'%" data-tip="'+esc(d.date)+' · guía: '+fmt(d.guide?.accesses)+'"></div></div>';
+      }).join('');
+      $('pageChartStart').textContent=data[0]?.date||'';
+      $('pageChartEnd').textContent=data.at(-1)?.date||'';
+    }
+
     function render(d){
       const t=d.totals||{},c=d.combined||{},h=d.historical||{};
+      const pageSeries=c.pagesSeries||[];
+      const todayKey=new Date().toISOString().slice(0,10);
+      const today=pageSeries.find(x=>x.date===todayKey)||{};
+      const homeToday=today.home||{}, guideToday=today.guide||{};
+      $('homeTodayUsers').textContent=homeToday.users==null?'—':fmt(homeToday.users);
+      $('guideTodayUsers').textContent=guideToday.users==null?'—':fmt(guideToday.users);
+      $('homeTodayNote').textContent=(homeToday.users==null?'Sin usuario único histórico':fmt(homeToday.users)+' usuarios únicos')+' · '+fmt(homeToday.accesses)+' accesos · '+fmt(homeToday.visits)+' visitas';
+      $('guideTodayNote').textContent=(guideToday.users==null?'Sin usuario único histórico':fmt(guideToday.users)+' usuarios únicos')+' · '+fmt(guideToday.accesses)+' accesos · '+fmt(guideToday.visits)+' visitas';
+      const recentPages=pageSeries.slice(-30);
+      $('home30').textContent=fmt(recentPages.reduce((n,x)=>n+Number(x.home?.accesses||0),0));
+      $('guide30').textContent=fmt(recentPages.reduce((n,x)=>n+Number(x.guide?.accesses||0),0));
+      renderPageChart(pageSeries);
       $('lifetimeVisits').textContent=fmt(c.lifetimeVisits??t.visits);
       $('users').textContent=fmt(t.users);
       $('installs').textContent=fmt(t.pwaInstalls);
