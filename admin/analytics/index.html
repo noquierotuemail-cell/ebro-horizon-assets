@@ -86,6 +86,11 @@
     .page-bar:hover::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);z-index:6;white-space:nowrap;background:#111;color:#fff;border-radius:8px;padding:6px 8px;font-size:10px}
     .chart-legend{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:12px;color:var(--muted);font-size:10px}
     .legend-key{display:inline-flex;gap:6px;align-items:center}.legend-dot{width:9px;height:9px;border-radius:3px;background:var(--blue)}.legend-dot.guide{background:#111417}
+    .social-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:12px 0}
+    .social-card{aspect-ratio:1.35/1}
+    .social-card.linkedin{background:#edf3f7}.social-card.tiktok{background:#15171a;color:#fff}
+    .social-card.tiktok .kpi-label,.social-card.tiktok .kpi-note{color:rgba(255,255,255,.68)}
+    .social-card.tiktok .kpi-accent{background:#fff}
 
     .break-list{display:grid;gap:12px}
     .break-row{display:grid;grid-template-columns:minmax(80px,1fr) 2fr auto;align-items:center;gap:9px;font-size:11px}
@@ -98,10 +103,10 @@
     .history-note strong{color:var(--ink)}
     .footer-note{margin-top:18px;color:var(--muted);font-size:10px;line-height:1.5;text-align:right}
 
-    @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(4,1fr)}.page-focus-grid{grid-template-columns:repeat(2,1fr)}.section-grid{grid-template-columns:1.5fr 1fr}.panel.large{grid-row:auto;grid-column:1/-1}}
+    @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(4,1fr)}.page-focus-grid,.social-grid{grid-template-columns:repeat(2,1fr)}.section-grid{grid-template-columns:1.5fr 1fr}.panel.large{grid-row:auto;grid-column:1/-1}}
     @media(max-width:760px){
       .metrics-header{height:88px}.header-inner{width:min(100% - 20px,1480px);grid-template-columns:1fr auto 1fr;gap:8px}.header-logo img{width:145px}.metrics-title{font-size:18px;letter-spacing:.13em;display:block}.header-actions{grid-column:3}.icon-btn{padding:8px 10px;font-size:10px}
-      .dashboard{width:min(100% - 20px,1480px);padding-top:14px}.page-focus-grid,.kpi-grid{grid-template-columns:repeat(2,1fr);gap:9px}.kpi{padding:14px;border-radius:18px}.kpi-number{font-size:clamp(34px,12vw,54px)}.section-grid{grid-template-columns:1fr}.panel{border-radius:18px}.panel.large{grid-column:auto}.chart-wrap{height:220px}.logout{display:none}
+      .dashboard{width:min(100% - 20px,1480px);padding-top:14px}.page-focus-grid,.social-grid,.kpi-grid{grid-template-columns:repeat(2,1fr);gap:9px}.kpi{padding:14px;border-radius:18px}.kpi-number{font-size:clamp(34px,12vw,54px)}.section-grid{grid-template-columns:1fr}.panel{border-radius:18px}.panel.large{grid-column:auto}.chart-wrap{height:220px}.logout{display:none}
     }
   </style>
 </head>
@@ -142,6 +147,13 @@
         <article class="kpi page-focus soft"><div class="kpi-label">Guía instalación · 30 días</div><div class="kpi-number" id="guide30">—</div><div class="kpi-note">accesos diarios acumulados</div><div class="kpi-accent"></div></article>
       </section>
 
+      <section class="social-grid" aria-label="Origen social">
+        <article class="kpi social-card linkedin"><div class="kpi-label">LinkedIn · hoy</div><div class="kpi-number" id="linkedinToday">—</div><div class="kpi-note" id="linkedinTodayNote">usuarios únicos · visitas · accesos</div><div class="kpi-accent"></div></article>
+        <article class="kpi social-card tiktok"><div class="kpi-label">TikTok · hoy</div><div class="kpi-number" id="tiktokToday">—</div><div class="kpi-note" id="tiktokTodayNote">usuarios únicos · visitas · accesos</div><div class="kpi-accent"></div></article>
+        <article class="kpi social-card linkedin"><div class="kpi-label">LinkedIn · total medido</div><div class="kpi-number" id="linkedinTotal">—</div><div class="kpi-note" id="linkedinTotalNote">usuarios únicos · PWA atribuidas</div><div class="kpi-accent"></div></article>
+        <article class="kpi social-card tiktok"><div class="kpi-label">TikTok · total medido</div><div class="kpi-number" id="tiktokTotal">—</div><div class="kpi-note" id="tiktokTotalNote">usuarios únicos · PWA atribuidas</div><div class="kpi-accent"></div></article>
+      </section>
+
       <section class="kpi-grid" aria-label="Indicadores principales">
         <article class="kpi blue"><div class="kpi-label">Visitas totales</div><div class="kpi-number" id="lifetimeVisits">—</div><div class="kpi-note">Histórico Cloudflare + medición HABRO</div><div class="kpi-accent"></div></article>
         <article class="kpi dark"><div class="kpi-label">Usuarios medidos</div><div class="kpi-number" id="users">—</div><div class="kpi-note">Únicos desde el inicio de HABRO Metrics</div><div class="kpi-accent"></div></article>
@@ -178,9 +190,10 @@
         <article class="panel"><div class="panel-head"><div><h2>Dispositivos</h2><div class="panel-sub">Usuarios medidos</div></div></div><div id="deviceList" class="break-list"></div></article>
         <article class="panel"><div class="panel-head"><div><h2>Países</h2><div class="panel-sub">Usuarios medidos</div></div></div><div id="countryList" class="break-list"></div></article>
         <article class="panel"><div class="panel-head"><div><h2>Instalaciones por SO</h2><div class="panel-sub">PWA detectadas</div></div></div><div id="installOsList" class="break-list"></div></article>
+        <article class="panel"><div class="panel-head"><div><h2>Origen del tráfico</h2><div class="panel-sub">Usuarios únicos por fuente</div></div></div><div id="sourceList" class="break-list"></div></article>
       </section>
 
-      <div class="footer-note">La web principal corresponde a la portada “/” (incluido quien llegue escribiendo www y termine redirigido al dominio principal). La guía se mide aparte en “/guia-instalacion/”. El histórico anterior procede de Cloudflare; los usuarios únicos por página son exactos desde la activación de HABRO Metrics.</div>
+      <div class="footer-note">La web principal corresponde a “/” y la guía a “/guia-instalacion/”. LinkedIn y TikTok se atribuyen mediante enlaces UTM; si no hay UTM, HABRO intenta identificar la fuente por el referrer. Las instalaciones PWA se atribuyen al último origen social conocido.</div>
     </main>
   </div>
 
@@ -231,6 +244,20 @@
       $('home30').textContent=fmt(recentPages.reduce((n,x)=>n+Number(x.home?.accesses||0),0));
       $('guide30').textContent=fmt(recentPages.reduce((n,x)=>n+Number(x.guide?.accesses||0),0));
       renderPageChart(pageSeries);
+
+      const socialTotals=d.sources||{};
+      const todaySources=(d.days||[]).find(x=>x.date===todayKey)?.sources||{};
+      const liToday=todaySources.linkedin||{}, ttToday=todaySources.tiktok||{};
+      const liTotal=socialTotals.linkedin||{}, ttTotal=socialTotals.tiktok||{};
+      $('linkedinToday').textContent=fmt(liToday.users||0);
+      $('tiktokToday').textContent=fmt(ttToday.users||0);
+      $('linkedinTodayNote').textContent=fmt(liToday.users||0)+' usuarios únicos · '+fmt(liToday.visits||0)+' visitas · '+fmt(liToday.pageViews||0)+' accesos';
+      $('tiktokTodayNote').textContent=fmt(ttToday.users||0)+' usuarios únicos · '+fmt(ttToday.visits||0)+' visitas · '+fmt(ttToday.pageViews||0)+' accesos';
+      $('linkedinTotal').textContent=fmt(liTotal.users||0);
+      $('tiktokTotal').textContent=fmt(ttTotal.users||0);
+      $('linkedinTotalNote').textContent=fmt(liTotal.visits||0)+' visitas · '+fmt(liTotal.pageViews||0)+' accesos · '+fmt(liTotal.pwaInstalls||0)+' PWA atribuidas';
+      $('tiktokTotalNote').textContent=fmt(ttTotal.visits||0)+' visitas · '+fmt(ttTotal.pageViews||0)+' accesos · '+fmt(ttTotal.pwaInstalls||0)+' PWA atribuidas';
+
       $('lifetimeVisits').textContent=fmt(c.lifetimeVisits??t.visits);
       $('users').textContent=fmt(t.users);
       $('installs').textContent=fmt(t.pwaInstalls);
@@ -261,6 +288,8 @@
       barList(d.breakdown?.device,'deviceList');
       barList(d.breakdown?.country,'countryList');
       barList(d.breakdown?.installsByOS,'installOsList');
+      const sourceUsers=Object.fromEntries(Object.entries(d.sources||{}).map(([k,v])=>[k,Number(v?.users||0)]));
+      barList(sourceUsers,'sourceList');
     }
 
     async function load(t,fromAuto=false){
