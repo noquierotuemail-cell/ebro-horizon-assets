@@ -2,7 +2,7 @@ import app from './index.js';
 
 const REPO = 'noquierotuemail-cell/ebro-horizon-assets';
 const IMAGE_EXT = /\.(?:webp|png|jpe?g|gif|svg)$/i;
-const ANALYTICS_SCRIPT = '/js/habro-analytics-20260919.js?v=20260919-1';
+const ANALYTICS_SCRIPT = '/js/habro-analytics-20260919.js?v=20260919-2';
 
 function mimeFor(pathname) {
   if (/\.webp$/i.test(pathname)) return 'image/webp';
@@ -151,6 +151,16 @@ function ensurePageMetric(container, key) {
   return container[key];
 }
 
+function blankSourceMetric() {
+  return { visits: 0, pageViews: 0, users: 0, pwaInstalls: 0 };
+}
+
+function ensureSourceMetric(container, key) {
+  const source = clean(key || 'direct', 40).toLowerCase() || 'direct';
+  if (!container[source]) container[source] = blankSourceMetric();
+  return container[source];
+}
+
 function blankAgg() {
   return {
     totalUsers: 0,
@@ -169,6 +179,7 @@ function blankAgg() {
     usersByCountry: {},
     installsByOS: {},
     installsByDevice: {},
+    sources: {},
     pages: {
       home: blankPageMetric(),
       guide: blankPageMetric()
@@ -178,7 +189,8 @@ function blankAgg() {
 }
 
 function ensureDay(agg, day) {
-  if (!agg.days[day]) agg.days[day] = { visits: 0, users: 0, pageViews: 0, installs: 0, pwaActive: 0, pages: { home: blankPageMetric(), guide: blankPageMetric() } };
+  if (!agg.days[day]) agg.days[day] = { visits: 0, users: 0, pageViews: 0, installs: 0, pwaActive: 0, sources: {}, pages: { home: blankPageMetric(), guide: blankPageMetric() } };
+  agg.days[day].sources ||= {};
   agg.days[day].pages ||= { home: blankPageMetric(), guide: blankPageMetric() };
   ensurePageMetric(agg.days[day].pages, 'home');
   ensurePageMetric(agg.days[day].pages, 'guide');
@@ -220,10 +232,16 @@ export class HabroMetrics {
     const country = clean(body.country, 8) || 'XX';
     const standalone = Boolean(body.standalone);
     const pageKey = trackedPageKey(body.path);
+    const source = clean(body.source || 'direct', 40).toLowerCase() || 'direct';
+    const medium = clean(body.medium || 'none', 40).toLowerCase() || 'none';
+    const campaign = clean(body.campaign || 'none', 80).toLowerCase() || 'none';
+    const firstSource = clean(body.firstSource || source, 40).toLowerCase() || source;
+    const lastSource = clean(body.lastSource || source, 40).toLowerCase() || source;
 
     const agg = (await this.state.storage.get('agg')) || blankAgg();
     agg.pwaNewInstalls = Number(agg.pwaNewInstalls || 0);
     agg.pwaRecovered = Number(agg.pwaRecovered || 0);
+    agg.sources ||= {};
     agg.pages ||= { home: blankPageMetric(), guide: blankPageMetric() };
     ensurePageMetric(agg.pages, 'home');
     ensurePageMetric(agg.pages, 'guide');
@@ -234,7 +252,7 @@ export class HabroMetrics {
     const userKey = `u:${clientId}`;
     let user = await this.state.storage.get(userKey);
     if (!user) {
-      user = { firstSeen: now, lastSeen: now, device, os, browser, country, pwaInstalled: false, lastPwaAt: null };
+      user = { firstSeen: now, lastSeen: now, device, os, browser, country, firstSource, lastSource: source, lastNonDirectSource: source !== 'direct' && source !== 'internal' ? source : null, pwaInstalled: false, lastPwaAt: null };
       agg.totalUsers += 1;
       inc(agg.usersByDevice, device);
       inc(agg.usersByOS, os);
@@ -246,11 +264,31 @@ export class HabroMetrics {
     user.os = os;
     user.browser = browser;
     user.country = country;
+    user.firstSource ||= firstSource;
+    user.lastSource = source;
+    if (source !== 'direct' && source !== 'internal') user.lastNonDirectSource = source;
+    user.lastCampaign = campaign;
+    user.lastMedium = medium;
 
     const dayUserKey = `du:${day}:${clientId}`;
     if (!(await this.state.storage.get(dayUserKey))) {
       await this.state.storage.put(dayUserKey, true);
       d.users += 1;
+    }
+
+    if (type === 'visit' || type === 'page_view') {
+      const sourceTotal = ensureSourceMetric(agg.sources, source);
+      const sourceDay = ensureSourceMetric(d.sources, source);
+      const sourceUserKey = `su:${source}:${clientId}`;
+      if (!(await this.state.storage.get(sourceUserKey))) {
+        await this.state.storage.put(sourceUserKey, true);
+        sourceTotal.users += 1;
+      }
+      const daySourceUserKey = `dsu:${day}:${source}:${clientId}`;
+      if (!(await this.state.storage.get(daySourceUserKey))) {
+        await this.state.storage.put(daySourceUserKey, true);
+        sourceDay.users += 1;
+      }
     }
 
     if ((type === 'visit' || type === 'page_view') && pageKey) {
@@ -276,6 +314,12 @@ export class HabroMetrics {
         agg.totalVisits += 1;
         d.visits += 1;
       }
+      const sourceVisitKey = `sv:${day}:${source}:${visitId}`;
+      if (!(await this.state.storage.get(sourceVisitKey))) {
+        await this.state.storage.put(sourceVisitKey, now);
+        ensureSourceMetric(agg.sources, source).visits += 1;
+        ensureSourceMetric(d.sources, source).visits += 1;
+      }
       if (pageKey) {
         const pageVisitKey = `vp:${day}:${pageKey}:${visitId}`;
         if (!(await this.state.storage.get(pageVisitKey))) {
@@ -287,6 +331,8 @@ export class HabroMetrics {
     } else if (type === 'page_view') {
       agg.totalPageViews += 1;
       d.pageViews += 1;
+      ensureSourceMetric(agg.sources, source).pageViews += 1;
+      ensureSourceMetric(d.sources, source).pageViews += 1;
       if (pageKey) {
         ensurePageMetric(agg.pages, pageKey).pageViews += 1;
         ensurePageMetric(d.pages, pageKey).pageViews += 1;
@@ -298,7 +344,10 @@ export class HabroMetrics {
         user.pwaInstalled = true;
         user.installedAt = now;
         user.installSource = type === 'pwa_installed' ? 'new' : 'recovered';
+        user.installAttribution = clean(body.installAttribution || user.lastNonDirectSource || user.firstSource || lastSource || source, 40).toLowerCase() || 'direct';
         agg.pwaInstalls += 1;
+        ensureSourceMetric(agg.sources, user.installAttribution).pwaInstalls += 1;
+        ensureSourceMetric(d.sources, user.installAttribution).pwaInstalls += 1;
         if (type === 'pwa_installed') agg.pwaNewInstalls += 1;
         else agg.pwaRecovered += 1;
         d.installs += 1;
@@ -318,7 +367,10 @@ export class HabroMetrics {
         user.pwaInstalled = true;
         user.installedAt = now;
         user.installSource = 'recovered';
+        user.installAttribution = clean(body.installAttribution || user.lastNonDirectSource || user.firstSource || lastSource || source, 40).toLowerCase() || 'direct';
         agg.pwaInstalls += 1;
+        ensureSourceMetric(agg.sources, user.installAttribution).pwaInstalls += 1;
+        ensureSourceMetric(d.sources, user.installAttribution).pwaInstalls += 1;
         agg.pwaRecovered += 1;
         d.installs += 1;
         inc(agg.installsByOS, os);
@@ -379,6 +431,7 @@ export class HabroMetrics {
         home: ensurePageMetric(agg.pages || {}, 'home'),
         guide: ensurePageMetric(agg.pages || {}, 'guide')
       },
+      sources: agg.sources || {},
       breakdown: {
         device: agg.usersByDevice || {},
         os: agg.usersByOS || {},
@@ -390,6 +443,7 @@ export class HabroMetrics {
       days: days.slice(-60).map(([date, values]) => ({
         date,
         ...values,
+        sources: values.sources || {},
         pages: {
           home: ensurePageMetric(values.pages || {}, 'home'),
           guide: ensurePageMetric(values.pages || {}, 'guide')
