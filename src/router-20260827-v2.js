@@ -133,6 +133,24 @@ function inc(obj, key) {
   obj[k] = (obj[k] || 0) + 1;
 }
 
+function trackedPageKey(pathname) {
+  let p = clean(pathname || '/', 180).split('?')[0].split('#')[0] || '/';
+  if (p !== '/' && p.endsWith('/')) p = p.slice(0, -1);
+  if (p === '') p = '/';
+  if (p === '/') return 'home';
+  if (p === '/guia-instalacion') return 'guide';
+  return null;
+}
+
+function blankPageMetric() {
+  return { visits: 0, pageViews: 0, users: 0 };
+}
+
+function ensurePageMetric(container, key) {
+  if (!container[key]) container[key] = blankPageMetric();
+  return container[key];
+}
+
 function blankAgg() {
   return {
     totalUsers: 0,
@@ -151,12 +169,19 @@ function blankAgg() {
     usersByCountry: {},
     installsByOS: {},
     installsByDevice: {},
+    pages: {
+      home: blankPageMetric(),
+      guide: blankPageMetric()
+    },
     days: {}
   };
 }
 
 function ensureDay(agg, day) {
-  if (!agg.days[day]) agg.days[day] = { visits: 0, users: 0, pageViews: 0, installs: 0, pwaActive: 0 };
+  if (!agg.days[day]) agg.days[day] = { visits: 0, users: 0, pageViews: 0, installs: 0, pwaActive: 0, pages: { home: blankPageMetric(), guide: blankPageMetric() } };
+  agg.days[day].pages ||= { home: blankPageMetric(), guide: blankPageMetric() };
+  ensurePageMetric(agg.days[day].pages, 'home');
+  ensurePageMetric(agg.days[day].pages, 'guide');
   const keys = Object.keys(agg.days).sort();
   while (keys.length > 120) {
     const oldest = keys.shift();
@@ -194,10 +219,14 @@ export class HabroMetrics {
     const browser = clean(body.browser, 24) || 'unknown';
     const country = clean(body.country, 8) || 'XX';
     const standalone = Boolean(body.standalone);
+    const pageKey = trackedPageKey(body.path);
 
     const agg = (await this.state.storage.get('agg')) || blankAgg();
     agg.pwaNewInstalls = Number(agg.pwaNewInstalls || 0);
     agg.pwaRecovered = Number(agg.pwaRecovered || 0);
+    agg.pages ||= { home: blankPageMetric(), guide: blankPageMetric() };
+    ensurePageMetric(agg.pages, 'home');
+    ensurePageMetric(agg.pages, 'guide');
     agg.firstEventAt ||= now;
     agg.lastEventAt = now;
     const d = ensureDay(agg, day);
@@ -224,6 +253,21 @@ export class HabroMetrics {
       d.users += 1;
     }
 
+    if ((type === 'visit' || type === 'page_view') && pageKey) {
+      const pageTotal = ensurePageMetric(agg.pages, pageKey);
+      const dayPage = ensurePageMetric(d.pages, pageKey);
+      const pageUserKey = `pu:${pageKey}:${clientId}`;
+      if (!(await this.state.storage.get(pageUserKey))) {
+        await this.state.storage.put(pageUserKey, true);
+        pageTotal.users += 1;
+      }
+      const dayPageUserKey = `dpu:${day}:${pageKey}:${clientId}`;
+      if (!(await this.state.storage.get(dayPageUserKey))) {
+        await this.state.storage.put(dayPageUserKey, true);
+        dayPage.users += 1;
+      }
+    }
+
     if (type === 'visit') {
       const visitId = sessionId || `${clientId}:${day}`;
       const visitKey = `v:${visitId}`;
@@ -232,9 +276,21 @@ export class HabroMetrics {
         agg.totalVisits += 1;
         d.visits += 1;
       }
+      if (pageKey) {
+        const pageVisitKey = `vp:${day}:${pageKey}:${visitId}`;
+        if (!(await this.state.storage.get(pageVisitKey))) {
+          await this.state.storage.put(pageVisitKey, now);
+          ensurePageMetric(agg.pages, pageKey).visits += 1;
+          ensurePageMetric(d.pages, pageKey).visits += 1;
+        }
+      }
     } else if (type === 'page_view') {
       agg.totalPageViews += 1;
       d.pageViews += 1;
+      if (pageKey) {
+        ensurePageMetric(agg.pages, pageKey).pageViews += 1;
+        ensurePageMetric(d.pages, pageKey).pageViews += 1;
+      }
     } else if (type === 'install_available') {
       agg.installAvailable += 1;
     } else if (type === 'pwa_installed' || type === 'pwa_first_standalone_launch') {
@@ -319,6 +375,10 @@ export class HabroMetrics {
       },
       last7: recent(7),
       last30: recent(30),
+      pages: {
+        home: ensurePageMetric(agg.pages || {}, 'home'),
+        guide: ensurePageMetric(agg.pages || {}, 'guide')
+      },
       breakdown: {
         device: agg.usersByDevice || {},
         os: agg.usersByOS || {},
@@ -327,7 +387,14 @@ export class HabroMetrics {
         installsByOS: agg.installsByOS || {},
         installsByDevice: agg.installsByDevice || {}
       },
-      days: days.slice(-30).map(([date, values]) => ({ date, ...values }))
+      days: days.slice(-60).map(([date, values]) => ({
+        date,
+        ...values,
+        pages: {
+          home: ensurePageMetric(values.pages || {}, 'home'),
+          guide: ensurePageMetric(values.pages || {}, 'guide')
+        }
+      }))
     }, { headers: { 'Cache-Control': 'no-store' } });
   }
 }
@@ -528,6 +595,111 @@ async function cloudflareHistory(env, firstTrackingAt) {
   };
 }
 
+async function cloudflarePathHistory(env, firstTrackingAt) {
+  const token = clean(env.HABRO_CF_API_TOKEN, 300);
+  if (!token) return { available:false, setupRequired:true, reason:'HABRO_CF_API_TOKEN no configurado', days:[] };
+
+  let zoneTag;
+  try { zoneTag = await cloudflareZoneId(env); } catch (_) { zoneTag = null; }
+  if (!zoneTag) return { available:false, setupRequired:true, reason:'No se pudo resolver la zona de habroremote.com', days:[] };
+
+  const trackingTs = Number(firstTrackingAt || 0);
+  const trackingDate = trackingTs ? new Date(trackingTs).toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
+  const end = `${trackingDate}T00:00:00Z`;
+  const requestedStart = clean(env.HABRO_CF_HISTORY_START,32) || '2026-08-01T00:00:00Z';
+  const starts = [requestedStart, new Date(Date.parse(end)-30*86400000).toISOString(), new Date(Date.parse(end)-7*86400000).toISOString()];
+  const specs = [
+    { key:'home', path:'/' },
+    { key:'guide', path:'/guia-instalacion/' }
+  ];
+
+  for (const start of starts) {
+    if (Date.parse(end) <= Date.parse(start)) continue;
+    try {
+      const byDate = new Map();
+      for (const spec of specs) {
+        const query = `query HabroPath($zoneTag: string, $start: Time, $end: Time, $host: string, $path: string) {
+          viewer {
+            zones(filter: {zoneTag: $zoneTag}) {
+              daily: httpRequestsAdaptiveGroups(
+                limit: 1000
+                orderBy: [date_ASC]
+                filter: {
+                  datetime_geq: $start
+                  datetime_lt: $end
+                  requestSource: "eyeball"
+                  clientRequestHTTPHost: $host
+                  clientRequestPath: $path
+                }
+              ) {
+                count
+                sum { visits }
+                dimensions { date }
+              }
+            }
+          }
+        }`;
+        const gql = await fetch('https://api.cloudflare.com/client/v4/graphql', {
+          method:'POST',
+          headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+          body:JSON.stringify({query,variables:{zoneTag,start,end,host:'habroremote.com',path:spec.path}})
+        });
+        if(!gql.ok) throw new Error(`path_graphql_http_${gql.status}`);
+        const payload=await gql.json();
+        if(payload?.errors?.length) throw new Error(payload.errors.map(e=>e.message).join(' | ').slice(0,300));
+        const rows=payload?.data?.viewer?.zones?.[0]?.daily||[];
+        for(const row of rows){
+          const date=row?.dimensions?.date;
+          if(!date) continue;
+          if(!byDate.has(date)) byDate.set(date,{date,home:{accesses:0,visits:0},guide:{accesses:0,visits:0},source:'cloudflare-edge'});
+          byDate.get(date)[spec.key]={
+            accesses:Number(row?.count||0),
+            visits:Number(row?.sum?.visits||0)
+          };
+        }
+      }
+      return {
+        available:true,
+        source:'Cloudflare HTTP Analytics · ruta exacta',
+        rangeStart:start.slice(0,10),
+        rangeEnd:trackingDate,
+        days:[...byDate.values()].sort((a,b)=>a.date.localeCompare(b.date))
+      };
+    } catch (_) {}
+  }
+  return { available:false, setupRequired:false, reason:'No hay histórico por ruta disponible para el rango solicitado.', days:[] };
+}
+
+function combinedPageSeries(pathHistory, ownDays) {
+  const byDate = new Map();
+  for (const d of (pathHistory?.days || [])) {
+    byDate.set(d.date, {
+      date:d.date,
+      source:'cloudflare',
+      home:{ users:null, visits:Number(d.home?.visits||0), accesses:Number(d.home?.accesses||0) },
+      guide:{ users:null, visits:Number(d.guide?.visits||0), accesses:Number(d.guide?.accesses||0) }
+    });
+  }
+  for (const d of (ownDays || [])) {
+    byDate.set(d.date, {
+      date:d.date,
+      source:'habro',
+      home:{
+        users:Number(d.pages?.home?.users||0),
+        visits:Number(d.pages?.home?.visits||0),
+        accesses:Number(d.pages?.home?.pageViews||0)
+      },
+      guide:{
+        users:Number(d.pages?.guide?.users||0),
+        visits:Number(d.pages?.guide?.visits||0),
+        accesses:Number(d.pages?.guide?.pageViews||0)
+      }
+    });
+  }
+  return [...byDate.values()].sort((a,b)=>a.date.localeCompare(b.date)).slice(-60);
+}
+
+
 function combinedVisitSeries(history, ownDays) {
   const byDate = new Map();
   for (const d of (history?.days || [])) byDate.set(d.date, { date: d.date, visits: Number(d.visits || 0), source: 'cloudflare' });
@@ -545,7 +717,10 @@ async function analyticsSummary(request, env) {
 
   const ownResponse = await analyticsStub(env).fetch('https://habro.metrics/summary');
   const own = await ownResponse.json();
-  const history = await cloudflareHistory(env, own?.totals?.firstTrackingAt);
+  const [history, pathHistory] = await Promise.all([
+    cloudflareHistory(env, own?.totals?.firstTrackingAt),
+    cloudflarePathHistory(env, own?.totals?.firstTrackingAt)
+  ]);
   const historicalVisits = history.available ? Number(history.totalVisits || 0) : 0;
   const lifetimeVisits = historicalVisits + Number(own?.totals?.visits || 0);
   const series = combinedVisitSeries(history, own?.days || []);
@@ -553,12 +728,14 @@ async function analyticsSummary(request, env) {
   return Response.json({
     ...own,
     historical: history,
+    historicalPages: pathHistory,
     combined: {
       lifetimeVisits,
       historicalVisits,
       exactTrackedVisits: Number(own?.totals?.visits || 0),
       trackingStart: own?.totals?.firstTrackingAt || null,
-      visitsSeries: series
+      visitsSeries: series,
+      pagesSeries: combinedPageSeries(pathHistory, own?.days || [])
     }
   }, { headers: { 'Cache-Control': 'no-store' } });
 }
