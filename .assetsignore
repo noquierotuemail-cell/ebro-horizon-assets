@@ -8,3 +8,7 @@ chatkit-backend
 chatkit-backend/**
 .git
 .git/**
+
+# Local route checks are not public assets
+tests
+tests/**

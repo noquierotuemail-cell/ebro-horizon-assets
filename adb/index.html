@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="description" content="HABRO ADB. Conexión USB, aplicaciones, consola, pantalla y archivos del sistema Android del coche.">
+  <title>HABRO · ADB</title>
+  <link rel="icon" href="assets/habro-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="habro.css">
+  <script src="vendor/adb.js" defer></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Ir al contenido</a>
+  <header class="topbar">
+    <a class="brand" href="#dashboard" aria-label="HABRO, inicio"><img src="assets/habro-logo.svg" alt="HABRO"><span>ADB</span></a>
+    <div class="top-actions"><span class="connection" id="connectionState"><i class="dot"></i><span>Desconectado</span></span><button id="themeButton" class="icon-button" aria-label="Cambiar tema" title="Cambiar tema"><i data-icon="moon"></i></button><button id="connectButton" class="button primary"><i data-icon="usb"></i><span>Conectar coche</span></button></div>
+  </header>
+  <nav class="navigation" aria-label="Herramientas ADB">
+    <button data-view="dashboard" class="nav-item active" aria-current="page"><i data-icon="house"></i><span>Inicio</span></button>
+    <button data-view="apps" class="nav-item"><i data-icon="grid-2x2"></i><span>Aplicaciones</span></button>
+    <button data-view="console" class="nav-item"><i data-icon="terminal"></i><span>Consola</span></button>
+    <button data-view="screen" class="nav-item"><i data-icon="monitor"></i><span>Pantalla</span></button>
+    <button data-view="files" class="nav-item"><i data-icon="folder"></i><span>Archivos</span></button>
+    <div class="nav-foot"><i data-icon="cable"></i><span>Conexión USB directa</span><small>Los datos del coche se quedan en tu equipo.</small><a href="ayuda.html" target="_blank" rel="noopener">Guía de conexión ↗</a></div>
+  </nav>
+  <main id="main" class="workspace">
+    <div id="compatibilityBanner" class="notice" role="status" hidden></div>
+    <div id="operationProgress" class="operation" hidden><span id="operationLabel"></span><progress id="operationBar" max="100"></progress><button id="cancelOperation" class="text-button">Cancelar</button></div>
+    <section class="view active" id="view-dashboard" aria-labelledby="dashboardTitle">
+      <div class="page-heading"><div><p class="eyebrow">HERRAMIENTAS DEL COCHE</p><h1 id="dashboardTitle">Todo, conectado.</h1><p class="subtitle">Accede al sistema Android de tu coche desde el ordenador.</p></div><a class="text-link" href="ayuda.html" target="_blank" rel="noopener">Cómo conectar <span>↗</span></a></div>
+      <div class="connection-card card">
+        <div class="connection-illustration"><i data-icon="usb"></i></div>
+        <div class="connection-copy"><span class="eyebrow" id="deviceEyebrow">CONEXIÓN ADB · USB</span><h2 id="deviceName">Conecta con tu coche</h2><p id="deviceDescription">Conecta el cable de datos, activa la depuración USB y acepta la autorización en la pantalla del coche.</p><p class="code-entry"><a href="codigo.html">Obtener código ADB · VIN + RAND ↗</a></p><div class="connection-meta" id="deviceMeta" hidden></div></div>
+        <button class="button primary large" id="heroConnect"><i data-icon="plug-zap"></i><span>Conectar por USB</span></button>
+      </div>
+      <div class="stats-grid">
+        <article class="stat card"><i data-icon="smartphone"></i><span>Sistema</span><strong id="statAndroid">—</strong><small id="statSdk">Versión de Android</small></article>
+        <article class="stat card"><i data-icon="grid-2x2"></i><span>Aplicaciones</span><strong id="statApps">—</strong><small>Usuario activo</small></article>
+        <article class="stat card"><i data-icon="hard-drive"></i><span>Espacio libre</span><strong id="statStorage">—</strong><small id="statStorageDetail">Almacenamiento interno</small></article>
+        <article class="stat card"><i data-icon="radio"></i><span>Sesión</span><strong id="statSession">Sin conexión</strong><small id="statSessionDetail">Esperando autorización</small></article>
+      </div>
+      <div class="dashboard-bottom">
+        <article class="card actions-card"><div class="section-heading"><h2>¿Qué quieres hacer?</h2></div><div class="quick-grid">
+          <button class="quick-action" data-action="install"><i data-icon="package-plus"></i><span><strong>Instalar APK</strong><small>Añade una aplicación</small></span><b>↗</b></button>
+          <button class="quick-action" data-go="apps"><i data-icon="grid-2x2"></i><span><strong>Ver aplicaciones</strong><small>Abre y gestiona tus apps</small></span><b>↗</b></button>
+          <button class="quick-action" data-go="screen"><i data-icon="monitor"></i><span><strong>Ver pantalla</strong><small>Imagen y control táctil</small></span><b>↗</b></button>
+          <button class="quick-action" data-go="console"><i data-icon="terminal"></i><span><strong>Abrir consola</strong><small>Comandos y diagnóstico</small></span><b>↗</b></button>
+        </div></article>
+        <article class="card activity-card"><div class="section-heading"><h2>Actividad</h2><button id="clearActivity" class="text-button">Limpiar</button></div><div id="activityLog" class="activity-log" role="log" aria-live="polite"><div class="empty-state compact"><i data-icon="check-circle-2"></i><strong>Listo para conectar</strong><p>Las operaciones aparecerán aquí.</p></div></div></article>
+      </div>
+      <p class="footnote">Trabaja con el coche estacionado. Esta herramienta accede a Android; la disponibilidad de cada función depende del sistema y sus permisos.</p>
+    </section>
+    <section class="view" id="view-apps" aria-labelledby="appsTitle" hidden>
+      <div class="page-heading"><div><p class="eyebrow">TU SISTEMA ANDROID</p><h1 id="appsTitle">Aplicaciones</h1><p class="subtitle">Instala, abre y gestiona las aplicaciones del coche.</p></div><div class="button-group"><button class="button secondary" id="refreshApps" data-device><i data-icon="refresh-cw"></i>Actualizar</button><button class="button primary" data-action="install" data-device><i data-icon="plus"></i>Instalar APK</button></div></div>
+      <article class="card apps-card"><div class="apps-toolbar"><label class="search-field"><i data-icon="search"></i><input id="appSearch" type="search" placeholder="Buscar por nombre de paquete" aria-label="Buscar aplicaciones"></label><button class="button secondary" id="backupApps" data-device><i data-icon="download"></i>Exportar APK</button></div>
+        <div class="filter-bar" aria-label="Filtrar aplicaciones"><button class="active" data-filter="all">Todas <span id="countAll">0</span></button><button data-filter="user">Instaladas <span id="countUser">0</span></button><button data-filter="system">Sistema <span id="countSystem">0</span></button><button data-filter="disabled">Desactivadas <span id="countDisabled">0</span></button></div>
+        <div class="bulk-toolbar" id="bulkToolbar" hidden><span id="selectionCount"></span><div class="button-group"><button data-bulk="download" class="text-button">Descargar</button><button data-bulk="enable" class="text-button">Activar</button><button data-bulk="disable" class="text-button">Desactivar</button><button data-bulk="stop" class="text-button">Detener</button><button data-bulk="uninstall" class="text-button danger-text">Desinstalar</button></div></div>
+        <div class="table-wrap"><table><thead><tr><th class="check-cell"><input id="selectAllApps" type="checkbox" aria-label="Seleccionar aplicaciones visibles"></th><th>Aplicación</th><th>Tipo</th><th>Estado</th><th><span class="sr-only">Acciones</span></th></tr></thead><tbody id="appTableBody"><tr><td colspan="5"><div class="empty-state"><i data-icon="grid-2x2"></i><strong>Tus aplicaciones aparecerán aquí</strong><p>Conecta el coche para cargar la lista.</p></div></td></tr></tbody></table></div>
+      </article><p class="footnote">La exportación guarda los APK, incluidas sus partes. No incluye datos privados de las aplicaciones.</p>
+    </section>
+    <section class="view" id="view-console" aria-labelledby="consoleTitle" hidden>
+      <div class="page-heading"><div><p class="eyebrow">DIAGNÓSTICO</p><h1 id="consoleTitle">Consola</h1><p class="subtitle">Ejecuta comandos en el Android conectado.</p></div><div class="button-group"><button id="startLogcat" class="button secondary" data-device><i data-icon="radio"></i>Iniciar registro</button><button id="stopCommand" class="button secondary" disabled><i data-icon="square"></i>Detener</button><button id="saveConsole" class="button secondary"><i data-icon="download"></i>Guardar</button></div></div>
+      <div class="console-layout"><article class="terminal-card"><div class="terminal-top"><span><i class="terminal-dot"></i> HABRO · Android shell</span><div><button id="copyConsole" class="text-button">Copiar</button><button id="clearConsole" class="text-button">Limpiar</button></div></div><pre id="terminalOutput" tabindex="0" aria-label="Salida de la consola">Conecta el coche para comenzar.</pre><form id="terminalForm" class="terminal-form"><span>›</span><input id="terminalInput" aria-label="Comando ADB shell" placeholder="Escribe un comando…" autocomplete="off" spellcheck="false" list="commandSuggestions"><button type="submit" class="button primary" data-device aria-label="Ejecutar comando"><i data-icon="arrow-up"></i></button></form><datalist id="commandSuggestions"></datalist></article>
+      <aside class="card command-card"><p class="eyebrow">COMANDOS RÁPIDOS</p><button data-command="getprop ro.build.version.release"><i data-icon="smartphone"></i><span>Versión de Android<small>getprop</small></span></button><button data-command="pm list packages -3"><i data-icon="grid-2x2"></i><span>Aplicaciones instaladas<small>pm list packages -3</small></span></button><button data-command="df -h /data"><i data-icon="hard-drive"></i><span>Almacenamiento<small>df -h /data</small></span></button><button data-command="dumpsys meminfo"><i data-icon="memory-stick"></i><span>Uso de memoria<small>dumpsys meminfo</small></span></button><button data-command="wm size"><i data-icon="monitor"></i><span>Resolución<small>wm size</small></span></button><button data-command="reboot" data-confirm="Reiniciar el sistema Android del coche"><i data-icon="rotate-cw"></i><span>Reiniciar Android<small>Se cerrará la conexión</small></span></button></aside></div>
+    </section>
+    <section class="view" id="view-screen" aria-labelledby="screenTitle" hidden>
+      <div class="page-heading"><div><p class="eyebrow">CONTROL DEL SISTEMA</p><h1 id="screenTitle">Pantalla del coche</h1><p class="subtitle" id="screenStatus">Conecta el coche para ver su pantalla.</p></div><div class="button-group"><button id="captureScreen" class="button secondary" data-device><i data-icon="camera"></i>Captura</button><button id="startScreen" class="button primary" data-device><i data-icon="play"></i>Ver en directo</button></div></div>
+      <div class="screen-layout"><article class="card screen-card"><div class="screen-toolbar"><span id="screenResolution">Sin imagen</span><div class="button-group"><button id="saveScreen" class="text-button" disabled>Guardar imagen</button><button id="fullscreenButton" class="icon-button" aria-label="Pantalla completa"><i data-icon="maximize"></i></button></div></div><div class="screen-stage" id="screenStage"><div class="empty-state" id="screenEmpty"><i data-icon="monitor"></i><strong>La pantalla, a tu alcance</strong><p>Inicia la vista para controlar toques y deslizamientos.</p></div><canvas id="screenCanvas" hidden aria-label="Pantalla interactiva del Android conectado" tabindex="0"></canvas></div></article>
+      <aside class="card remote-card"><p class="eyebrow">CONTROLES</p><div class="remote-grid"><button data-key="4"><i data-icon="chevron-left"></i><span>Atrás</span></button><button data-key="3"><i data-icon="circle"></i><span>Inicio</span></button><button data-key="187"><i data-icon="square"></i><span>Recientes</span></button><button data-key="25"><i data-icon="volume-1"></i><span>Volumen −</span></button><button data-key="24"><i data-icon="volume-2"></i><span>Volumen +</span></button><button data-key="26"><i data-icon="power"></i><span>Pantalla</span></button></div><form id="remoteTextForm"><label for="remoteText">Enviar texto</label><input id="remoteText" placeholder="Texto sin acentos" autocomplete="off"><button class="button secondary" data-device>Enviar al coche</button></form><p class="footnote">Los toques y deslizamientos se envían al dispositivo conectado.</p></aside></div>
+    </section>
+    <section class="view" id="view-files" aria-labelledby="filesTitle" hidden>
+      <div class="page-heading"><div><p class="eyebrow">ENTRE EL COCHE Y TU EQUIPO</p><h1 id="filesTitle">Archivos</h1><p class="subtitle">Explora carpetas, envía archivos y descarga lo que necesites.</p></div><button id="uploadFileButton" class="button primary" data-device><i data-icon="upload"></i>Enviar archivo</button></div>
+      <article class="card files-card"><form id="pathForm" class="path-form"><button type="button" id="parentDirectory" class="icon-button" aria-label="Carpeta superior" data-device><i data-icon="arrow-up"></i></button><label class="path-field"><i data-icon="folder"></i><input id="remotePath" value="/sdcard/Download" aria-label="Ruta del dispositivo" spellcheck="false"></label><button class="button secondary" data-device>Abrir</button></form><div class="filter-bar"><button data-path="/sdcard/Download">Descargas</button><button data-path="/sdcard/Pictures">Imágenes</button><button data-path="/sdcard/Documents">Documentos</button></div><div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Tamaño</th><th>Modificado</th><th><span class="sr-only">Acciones</span></th></tr></thead><tbody id="fileTableBody"><tr><td colspan="4"><div class="empty-state"><i data-icon="folder"></i><strong>Explora los archivos del coche</strong><p>Conecta el dispositivo para abrir una carpeta.</p></div></td></tr></tbody></table></div></article><form id="downloadPathForm" class="direct-download"><label for="downloadPath">Descargar por ruta completa</label><div><input id="downloadPath" placeholder="/sdcard/Download/archivo.zip" spellcheck="false"><button class="button secondary" data-device><i data-icon="download"></i>Descargar</button></div></form>
+    </section>
+  </main>
+  <input id="apkInput" type="file" accept=".apk" multiple hidden><input id="uploadInput" type="file" multiple hidden>
+  <dialog id="appDialog" class="dialog app-dialog"><div class="dialog-heading"><div><p class="eyebrow">APLICACIÓN</p><h2 id="appDialogName"></h2></div><button class="icon-button" data-close="appDialog" aria-label="Cerrar"><i data-icon="x"></i></button></div><p id="appDialogMeta" class="muted"></p><div id="appDetails" class="app-details"></div><div class="app-dialog-actions"><button class="button primary" data-app-action="launch"><i data-icon="play"></i>Abrir aplicación</button><button class="button secondary" data-app-action="download"><i data-icon="download"></i>Descargar APK</button><button class="button secondary" data-app-action="enable">Activar</button><button class="button secondary" data-app-action="disable">Desactivar</button><button class="button secondary" data-app-action="stop">Detener</button><button class="button secondary" data-app-action="clear">Borrar datos</button><button class="button secondary" data-app-action="permissions">Permisos especiales</button><button class="button danger" data-app-action="uninstall">Desinstalar</button></div></dialog>
+  <dialog id="confirmDialog" class="dialog confirm-dialog"><p class="eyebrow">CONFIRMAR OPERACIÓN</p><h2 id="confirmTitle"></h2><p id="confirmDescription"></p><div class="dialog-actions"><button id="confirmCancel" class="button secondary">Cancelar</button><button id="confirmAccept" class="button primary">Continuar</button></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

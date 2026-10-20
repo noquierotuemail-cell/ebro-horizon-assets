@@ -1,4 +1,5 @@
 import app from './index.js';
+import { serveAdb } from './adb-assets.js';
 
 const REPO = 'noquierotuemail-cell/ebro-horizon-assets';
 const IMAGE_EXT = /\.(?:webp|png|jpe?g|gif|svg)$/i;
@@ -807,6 +808,8 @@ async function analyticsSummary(request, env) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+
+    if (url.pathname === '/adb' || url.pathname.startsWith('/adb/')) return serveAdb(request, env);
 
     if (url.pathname === '/linkedin') return brandedSocialRedirect(url, 'linkedin', '/');
     if (url.pathname === '/tiktok') return brandedSocialRedirect(url, 'tiktok', '/');
