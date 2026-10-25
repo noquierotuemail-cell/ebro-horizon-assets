@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="description" content="Calcula la clave diaria de seis cifras del menú OTA con tu VIN y la fecha. Una herramienta local de HABRO.">
+  <title>Clave OTA · HABRO</title>
+  <link rel="icon" href="assets/habro-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="habro.css">
+  <link rel="stylesheet" href="ota.css">
+  <script type="module" src="ota.js"></script>
+</head>
+<body class="ota-page">
+  <a class="skip-link" href="#main">Ir a la calculadora</a>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="HABRO, inicio"><img src="assets/habro-logo.svg" alt="HABRO"><span>HERRAMIENTAS</span></a>
+    <div class="ota-top-actions">
+      <button id="otaTheme" class="text-button" type="button">Tema oscuro</button>
+      <a class="button secondary" href="/adb/">Volver a ADB <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main id="main" class="ota-workspace">
+    <nav class="ota-switch" aria-label="Tipo de calculadora">
+      <a href="ota.html" aria-current="page">Clave OTA <span>VIN + fecha</span></a>
+      <a href="codigo.html">Código ADB <span>VIN + RAND</span></a>
+    </nav>
+
+    <div class="ota-heading">
+      <p class="eyebrow">MENÚ DE INGENIERÍA OTA</p>
+      <h1>Tu clave del día.</h1>
+      <p class="subtitle">El VIN, la fecha y seis cifras. Todo desde aquí.</p>
+    </div>
+
+    <div class="ota-layout">
+      <section class="card ota-form-card" aria-labelledby="formTitle">
+        <div class="ota-card-heading"><span class="ota-step" aria-hidden="true">01</span><h2 id="formTitle">Datos del coche</h2></div>
+        <form id="otaForm" autocomplete="off" novalidate>
+          <div class="ota-field">
+            <label for="otaVin">VIN o últimas 6 cifras</label>
+            <input id="otaVin" type="text" required autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="VIN completo o 6 cifras" aria-describedby="vinHelp">
+            <p id="vinHelp">Puedes pegar el VIN completo de 17 caracteres. La calculadora extrae las últimas seis cifras numéricas.</p>
+          </div>
+          <div class="ota-field">
+            <div class="ota-field-label"><label for="otaDate">Fecha del coche</label><button id="otaToday" class="text-button" type="button">Usar hoy</button></div>
+            <input id="otaDate" type="date" required aria-describedby="dateHelp dateMode">
+            <p id="dateHelp">Empezamos con la fecha de este dispositivo. Cámbiala si el coche muestra otro día.</p>
+            <span id="dateMode" class="ota-date-mode">Fecha de hoy</span>
+          </div>
+          <div class="ota-form-actions">
+            <button id="otaGenerate" class="button primary large" type="submit" disabled>Calcular clave <span aria-hidden="true">→</span></button>
+            <button id="otaClear" class="text-button" type="button">Borrar datos</button>
+          </div>
+          <p id="otaMessage" class="ota-message" role="status" aria-live="polite" aria-atomic="true"></p>
+        </form>
+        <div class="ota-privacy">
+          <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg>
+          <p>Tu VIN se queda en este navegador.<br><span>La herramienta no lo envía ni lo guarda.</span></p>
+        </div>
+        <noscript><p class="ota-message error">Activa JavaScript para calcular la clave.</p></noscript>
+      </section>
+
+      <section id="otaResult" class="card ota-result-card" aria-labelledby="resultTitle">
+        <div class="ota-card-heading"><span class="ota-step" aria-hidden="true">02</span><h2 id="resultTitle">Tu clave OTA</h2></div>
+        <div class="ota-code-area">
+          <div class="ota-code-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><circle cx="8" cy="15" r="5"/><path d="m11.5 11.5 8-8M16 7l3 3M18 5l3 3M6.5 15h.01"/></svg></div>
+          <label for="otaCode" class="sr-only">Clave OTA de seis cifras</label>
+          <input id="otaCode" class="ota-code" type="text" readonly autocomplete="off" spellcheck="false" placeholder="······" aria-describedby="otaResultDate">
+          <p id="otaResultDate" class="ota-result-date">Introduce los datos para ver tu clave.</p>
+          <p id="otaResultVin" class="ota-result-vin" hidden></p>
+          <button id="otaCopy" class="button secondary ota-copy" type="button" disabled>
+            <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+            <span id="otaCopyLabel">Copiar clave</span>
+          </button>
+          <p id="otaCopyMessage" class="ota-copy-message" role="status" aria-live="polite" aria-atomic="true"></p>
+        </div>
+        <div class="ota-result-note"><span class="ota-note-dot" aria-hidden="true"></span><p>La clave corresponde a la fecha elegida. Si cambia el día, vuelve a calcularla.</p></div>
+      </section>
+    </div>
+
+    <section class="ota-how" aria-labelledby="howTitle">
+      <h2 id="howTitle">De aquí a la pantalla del coche.</h2>
+      <ol>
+        <li><span aria-hidden="true">1</span><div><h3>Abre el menú OTA</h3><p>Usa esta calculadora si te pide una clave diaria de seis cifras.</p></div></li>
+        <li><span aria-hidden="true">2</span><div><h3>Comprueba la fecha</h3><p>El día elegido aquí debe coincidir con el que muestra el coche.</p></div></li>
+        <li><span aria-hidden="true">3</span><div><h3>Introduce la clave</h3><p>Escribe las seis cifras en el coche, incluidos los ceros iniciales.</p></div></li>
+      </ol>
+    </section>
+    <div class="ota-bottom">
+      <p>Cálculo basado en la fórmula facilitada para el menú OTA. La aceptación en el coche está pendiente de prueba física.</p>
+      <a href="codigo.html">¿Tu pantalla pide un RAND? <span aria-hidden="true">↗</span></a>
+    </div>
+  </main>
+  <footer class="ota-footer"><a href="/">HABRO RemoteApp</a><a href="/adb/">Herramientas ADB <span aria-hidden="true">↗</span></a></footer>
+</body>
+</html>

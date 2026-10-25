@@ -12,6 +12,10 @@ const paths = new Set([
   "/adb/core.mjs",
   "/adb/habro.css",
   "/adb/index.html",
+  "/adb/ota.html",
+  "/adb/ota.js",
+  "/adb/ota.css",
+  "/adb/ota-generator.mjs",
   "/adb/vendor/THIRD_PARTY_NOTICES.txt",
   "/adb/vendor/adb.js",
   "/adb/vendor/adb.js.LEGAL.txt",
@@ -19,6 +23,7 @@ const paths = new Set([
   "/adb/vendor/scrcpy-server-v3.3.3",
   "/adb/",
   "/adb/codigo",
+  "/adb/ota",
   "/adb/ayuda",
   "/adb/index"
 ]);
