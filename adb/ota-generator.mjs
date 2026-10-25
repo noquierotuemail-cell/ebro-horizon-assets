@@ -10,13 +10,11 @@ function inputError(message, field) {
 
 export function calculateOtaCode(value, dateValue) {
   const vin = String(value ?? '').trim().toUpperCase();
-  if (!/^\d{6}$/.test(vin) && !/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) {
-    throw inputError('Introduce el VIN completo de 17 caracteres o solo las últimas 6 cifras.', 'vin');
+  if (!/^[A-HJ-NPR-Z0-9]{6}$/.test(vin) && !/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) {
+    throw inputError('Introduce el VIN completo de 17 caracteres o sus últimos 6 caracteres.', 'vin');
   }
-  const suffix = vin.replace(/\D/g, '').slice(-6);
-  if (suffix.length !== 6) {
-    throw inputError('El VIN debe contener al menos 6 cifras. Comprueba los datos.', 'vin');
-  }
+  const suffix = vin.slice(-6);
+  const digits = Number(suffix.replace(/\D/g, '') || '0');
 
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateValue ?? ''));
   if (!match) throw inputError('Selecciona una fecha válida.', 'date');
@@ -28,6 +26,6 @@ export function calculateOtaCode(value, dateValue) {
     throw inputError('Esa fecha no existe. Comprueba el día, el mes y el año.', 'date');
   }
   const factor = Number(yearText.slice(-2) + monthText + dayText);
-  const product = (Number(suffix) + 123456) * factor;
+  const product = (digits + 123456) * factor;
   return { code: String(product % 1000000).padStart(6, '0'), suffix, date: dateValue };
 }

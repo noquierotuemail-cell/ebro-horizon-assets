@@ -65,29 +65,45 @@ export async function drainText(stream, onText, maxBytes = 8 * 1024 * 1024) {
   } catch (error) { await reader.cancel(error).catch(() => {}); throw error; }
   finally { reader.releaseLock(); }
 }
-export async function runShell(adb, command, { signal, onOutput, onProcess, timeout = 30000 } = {}) {
+export async function runShell(adb, command, { signal, onOutput, onProcess, timeout = 30000, check = true } = {}) {
   const controller = new AbortController();
   const forward = () => controller.abort(signal.reason);
   if (signal?.aborted) controller.abort(signal.reason);
   else signal?.addEventListener('abort', forward, { once: true });
   const timer = timeout ? setTimeout(() => controller.abort(new Error('El comando no ha respondido a tiempo.')), timeout) : null;
-  let process;
+  let process, abortHandler;
+  let output = { stdout: '', stderr: '', exitCode: null };
+  const stop = () => { try { Promise.resolve(process?.kill?.()).catch(() => {}); } catch {} };
+  const aborted = new Promise((_, reject) => {
+    abortHandler = () => { stop(); reject(controller.signal.reason); };
+    controller.signal.addEventListener('abort', abortHandler, { once: true });
+  });
   try {
+    controller.signal.throwIfAborted();
     const service = adb.subprocess.shellProtocol || adb.subprocess.noneProtocol;
-    process = await service.spawn(['sh', '-c', quote(command)], controller.signal);
+    process = await Promise.race([service.spawn(['sh', '-c', quote(command)], controller.signal).then(value => {
+      if (controller.signal.aborted) { try { Promise.resolve(value.kill?.()).catch(() => {}); } catch {} }
+      return value;
+    }), aborted]);
     onProcess?.(process);
     const exitPromise = Promise.resolve(process.exited);
     if (process.stdout) {
-      const [stdout, stderr, exitCode] = await Promise.all([drainText(process.stdout, onOutput), drainText(process.stderr, onOutput), exitPromise]);
+      const [stdout, stderr, exitCode] = await Promise.race([Promise.all([drainText(process.stdout, onOutput), drainText(process.stderr, onOutput), exitPromise]), aborted]);
+      output = { stdout, stderr, exitCode };
       controller.signal.throwIfAborted();
-      if (exitCode !== 0) throw new Error((stderr || stdout || `El comando terminó con código ${exitCode}.`).trim());
-      return { stdout, stderr, exitCode };
+      if (check && exitCode !== 0) throw new Error((stderr || stdout || `El comando terminó con código ${exitCode}.`).trim());
+      return output;
     }
-    const [stdout] = await Promise.all([drainText(process.output, onOutput), exitPromise]);
+    const [stdout] = await Promise.race([Promise.all([drainText(process.output, onOutput), exitPromise]), aborted]);
+    output = { stdout, stderr: '', exitCode: null };
     controller.signal.throwIfAborted();
-    return { stdout, stderr: '', exitCode: null };
-  } catch (error) { try { await process?.kill?.(); } catch {} throw controller.signal.aborted ? controller.signal.reason : error; }
-  finally { if (timer) clearTimeout(timer); signal?.removeEventListener('abort', forward); }
+    return output;
+  } catch (error) {
+    stop(); const failure = controller.signal.aborted ? controller.signal.reason : error;
+    if (failure && typeof failure === 'object') Object.assign(failure, output);
+    throw failure;
+  }
+  finally { if (timer) clearTimeout(timer); signal?.removeEventListener('abort', forward); controller.signal.removeEventListener('abort', abortHandler); }
 }
 export async function collectBinary(stream, { signal, limit = 256 * 1024 * 1024, onProgress } = {}) {
   const reader = stream.getReader(); const parts = []; let total = 0;

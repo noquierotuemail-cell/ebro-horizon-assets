@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import app from '../src/router-20260827-v2.js';
 // Cloudflare's HTMLRewriter is supplied by the Worker runtime.
 globalThis.HTMLRewriter = class { on() { return this; } transform(response) { return response; } };
@@ -11,6 +12,20 @@ test('ADB canonical URL retains query and leads to the asset directory', async (
  const r = await app.fetch(new Request(origin+'/adb?test=1'),env,{});
  assert.equal(r.status,308);
  assert.equal(r.headers.get('location'),origin+'/adb/?test=1');
+});
+test('Installer modules and the pinned binary are reachable through the active Worker', async () => {
+ const assets = { ASSETS: { fetch: async request => new Response(await readFile(new URL('..' + new URL(request.url).pathname, import.meta.url))) } };
+ for (const path of ['/adb/installer.css', '/adb/install-archive.mjs', '/adb/sessionwriter.mjs', '/adb/vendor/SESSIONWRITER-NOTICE.txt', '/adb/vendor/sop6-sessionwriter.dex']) {
+  const response = await app.fetch(new Request(origin+path), assets, {});
+  assert.equal(response.status, 200, path);
+  const bytes = Buffer.from(await response.arrayBuffer());
+  assert.deepEqual(bytes, await readFile(new URL('..'+path, import.meta.url)), path);
+  if (path.endsWith('.mjs')) assert.match(response.headers.get('content-type'), /javascript/);
+  if (path.endsWith('.dex')) {
+   assert.equal(bytes.length, 22652);
+   assert.equal(createHash('sha256').update(bytes).digest('hex'), '58303723aac47a91c8a31127a99d79c57ab435ccf21fcb28a8b772495ea2e9b8');
+  }
+ }
 });
 test('ADB HTML is served without marketing code and explicitly allows same-origin USB', async () => {
  const r = await app.fetch(new Request(origin+'/adb/'),env,{});

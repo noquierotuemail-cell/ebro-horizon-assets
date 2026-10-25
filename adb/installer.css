@@ -1,0 +1,102 @@
+/* The HABRO SVG is white: keep it visible in both themes. */
+.brand img { filter: invert(1); }
+html[data-theme=dark] .brand img { filter: none; }
+.nav-label-short { display: none; }
+
+#view-installer { max-width: 1240px; }
+#view-installer .page-heading { margin-bottom: 20px; }
+#view-installer h1 { max-width: 680px; }
+.installer-intro { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px; margin-bottom: 28px; color: var(--muted); font-size: 12px; }
+.installer-intro span { display: inline-flex; align-items: center; gap: 7px; }
+.installer-intro .icon { width: 15px; height: 15px; color: var(--accent); }
+.installer-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px; }
+.installer-step { padding: 28px; min-width: 0; }
+.installer-step-heading { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+.installer-step-heading .eyebrow { font-size: 10px; margin-bottom: 5px; }
+.installer-step-heading h2 { font-size: 22px; letter-spacing: -.025em; line-height: 1.2; }
+.installer-step-heading > .icon { margin-left: auto; flex-shrink: 0; width: 22px; height: 22px; color: var(--muted); }
+.installer-step-number { display: grid; place-items: center; flex: 0 0 44px; height: 44px; border-radius: 14px; background: var(--accent-soft); color: var(--accent); font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.installer-step > p, .installer-engineering-body > p { font-size: 14px; line-height: 1.7; color: var(--muted); }
+.installer-code-link { margin: 19px 0 3px; }
+.installer-code-link span { margin-left: 8px; }
+.installer-step .installer-note, .installer-note { margin-top: 12px; font-size: 12px; line-height: 1.65; color: var(--muted); overflow-wrap: anywhere; }
+.installer-engineering { border-top: 1px solid var(--line); margin-top: 22px; padding-top: 18px; }
+.installer-engineering summary, .installer-diagnostics summary { cursor: pointer; font-size: 13px; font-weight: 600; line-height: 1.6; }
+.installer-engineering summary:focus-visible, .installer-diagnostics summary:focus-visible, #installerMethod:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; border-radius: 3px; }
+.installer-engineering-body { padding-top: 12px; }
+.installer-engineering-body label, .installer-file-grid label { display: block; font-size: 13px; font-weight: 600; margin: 0 0 10px; }
+.installer-engineering-body label { margin-top: 16px; }
+.installer-code-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+#engineeringCode { width: 136px; font-variant-numeric: tabular-nums; letter-spacing: .14em; font-size: 17px; }
+.installer-code-controls .button { font-size: 13px; }
+.installer-checklist { list-style: none; padding: 0; margin: 0 0 22px; counter-reset: connect; display: grid; gap: 14px; }
+.installer-checklist li { counter-increment: connect; display: flex; align-items: flex-start; gap: 11px; font-size: 14px; line-height: 1.6; color: var(--muted); }
+.installer-checklist li::before { content: counter(connect); display: grid; place-items: center; flex: 0 0 22px; height: 22px; border-radius: 50%; background: var(--surface2); color: var(--ink); font-size: 11px; font-weight: 600; margin-top: 1px; }
+.installer-connection-box { margin-top: 20px; padding: 15px 17px; background: var(--surface2); border-radius: 14px; }
+#installerConnection { margin: 0 0 5px; font-weight: 600; font-size: 13px; }
+#installerDeviceInfo { font-size: 12px; line-height: 1.65; color: var(--muted); overflow-wrap: anywhere; white-space: pre-line; }
+.installer-upload { grid-column: 1/-1; }
+.installer-file-grid { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); gap: 28px; }
+.installer-file-field, .installer-method-field { min-width: 0; }
+#installerFile { width: 100%; display: block; font-size: 13px; padding: 11px 13px; min-height: 49px; }
+#installerFile::file-selector-button { border: 0; border-radius: 7px; padding: 7px 10px; margin-right: 10px; background: var(--surface); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+#installerFile:disabled::file-selector-button { cursor: default; }
+#installerMethod { width: 100%; min-height: 49px; padding: 12px 34px 12px 14px; border: 1px solid transparent; border-radius: 12px; background: var(--surface2); color: var(--ink); font-size: 14px; }
+.installer-submit { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px 24px; border-top: 1px solid var(--line); margin-top: 24px; padding-top: 24px; }
+.installer-submit .installer-note { margin-top: 9px; }
+.installer-submit > .text-link { font-size: 13px; }
+.installer-result { padding: 26px 28px; margin-top: 22px; border-color: var(--accent); }
+.installer-result[data-status=success] { border-color: var(--green); }
+.installer-result[data-status=error] { border-color: var(--red); }
+.installer-result[data-status=warning] { border-color: #c17b16; }
+#installerVerify { margin-top: 16px; }
+#installerFileInfo { white-space: pre-line; }
+.installer-result h2 { font-size: 21px; margin: 0 0 10px; overflow-wrap: anywhere; }
+.installer-result > p:not(.eyebrow) { color: var(--muted); font-size: 14px; line-height: 1.7; white-space: pre-line; overflow-wrap: anywhere; }
+.installer-diagnostics { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+#installerLog { background: var(--surface2); color: var(--ink); padding: 16px; border-radius: 12px; font: 12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; overflow: auto; margin: 14px 0; }
+.installer-privacy { display: flex; align-items: flex-start; gap: 8px; }
+.installer-privacy > .icon { width: 15px; height: 15px; flex: 0 0 15px; margin-top: 2px; }
+
+@media (max-width:1100px) {
+  .installer-step { padding: 23px; }
+  .installer-step-heading { gap: 11px; }
+  .installer-step-heading h2 { font-size: 20px; }
+  .installer-step-heading > .icon { display: none; }
+}
+@media (max-width:800px) {
+  .installer-grid { grid-template-columns: minmax(0,1fr); gap: 18px; }
+  .installer-upload { grid-column: auto; }
+  .installer-file-grid { grid-template-columns: minmax(0,1fr); gap: 22px; }
+}
+@media (max-width:680px) {
+  .navigation { grid-template-columns: repeat(6,minmax(0,1fr)); }
+  .nav-item { min-width: 0; }
+  .nav-item span { font-size: 11px; }
+  .nav-item .nav-label-full { display: none; }
+  .nav-item .nav-label-short { display: inline; }
+  #view-installer h1 { font-size: 31px; line-height: 1.12; }
+  .installer-intro { gap: 10px 16px; margin-bottom: 22px; font-size: 11px; }
+  .installer-step { padding: 23px 20px; }
+  .installer-step-heading { margin-bottom: 19px; }
+  .installer-step-heading h2 { font-size: 21px; }
+  .installer-step-number { flex-basis: 40px; height: 40px; border-radius: 13px; font-size: 14px; }
+  .installer-code-link { max-width: 100%; font-size: 13px; }
+  .installer-submit { align-items: stretch; gap: 21px; }
+  .installer-submit > div { width: 100%; }
+  #installerStart { width: 100%; font-size: 14px; }
+  .installer-submit .installer-note { text-align: center; }
+  .installer-submit > .text-link { font-size: 12px; }
+  .installer-result { padding: 23px 20px; }
+}
+@media (max-width:380px) {
+  .topbar .brand { gap: 6px; }
+  .topbar .brand img { width: 86px; }
+  .topbar .brand > span { display: none; }
+  .top-actions { gap: 5px; }
+  .top-actions > .button { font-size: 12px; max-width: 148px; }
+  .nav-item span { font-size: 10px; }
+  .installer-step { padding: 21px 17px; }
+  .installer-step-heading h2 { font-size: 20px; }
+  .installer-step-heading .eyebrow { font-size: 9px; }
+}
