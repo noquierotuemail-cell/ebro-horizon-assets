@@ -240,6 +240,7 @@ export class HabroMetrics {
     if (request.method === 'POST' && url.pathname === '/adb/mint') return this.adbMint(request);
     if (request.method === 'POST' && url.pathname === '/adb/redeem') return this.adbRedeem(request);
     if (request.method === 'POST' && url.pathname === '/adb/validate') return this.adbValidate(request);
+    if (request.method === 'POST' && url.pathname === '/adb/registry') return this.adbRegistry(request);
     return new Response('Not found', { status: 404 });
   }
 
@@ -251,16 +252,23 @@ export class HabroMetrics {
     const tokenHash = await sha256Hex(token);
     const label = cleanAccessLabel(body.label);
     const persistent = body.persistent === true;
-    const expiresAt = persistent ? null : now + ADB_ACCESS_DEFAULTS.tokenTtlMs;
+    const twelveHours = body.twelveHours === true;
+    if (!label) return Response.json({ ok:false, error:'recipient_required' }, { status:400 });
+    if (persistent && twelveHours) return Response.json({ ok:false, error:'incompatible_token_modes' }, { status:400 });
+    const tokenTtlMs = twelveHours ? ADB_ACCESS_DEFAULTS.twelveHourTokenTtlMs : ADB_ACCESS_DEFAULTS.tokenTtlMs;
+    const expiresAt = persistent ? null : now + tokenTtlMs;
     await this.state.storage.put(`adb:token:${tokenHash}`, {
       createdAt: now,
       expiresAt,
       usedAt: null,
+      lastUsedAt: null,
+      redemptionCount: 0,
       persistent,
+      twelveHours,
       label,
       sessionTtlMs: ADB_ACCESS_DEFAULTS.sessionTtlMs
     });
-    return Response.json({ ok: true, token, persistent, expiresAt, sessionTtlMs: ADB_ACCESS_DEFAULTS.sessionTtlMs });
+    return Response.json({ ok:true, token, persistent, twelveHours, expiresAt, sessionTtlMs:ADB_ACCESS_DEFAULTS.sessionTtlMs });
   }
 
   async adbRedeem(request) {
@@ -277,19 +285,21 @@ export class HabroMetrics {
       const key = `adb:token:${tokenHash}`;
       const record = await txn.get(key);
       const persistent = record?.persistent === true;
+      const twelveHours = record?.twelveHours === true;
       if (!record || (!persistent && record.usedAt) || (!persistent && Number(record.expiresAt || 0) <= now)) return;
-      if (!persistent) {
-        record.usedAt = now;
-        await txn.put(key, record);
-      }
+      record.redemptionCount = Number(record.redemptionCount || 0) + 1;
+      record.lastUsedAt = now;
+      if (!persistent) record.usedAt = now;
+      await txn.put(key, record);
       const sessionExpiresAt = now + Number(record.sessionTtlMs || ADB_ACCESS_DEFAULTS.sessionTtlMs);
       await txn.put(`adb:session:${sessionHash}`, {
         createdAt: now,
         expiresAt: sessionExpiresAt,
         label: cleanAccessLabel(record.label),
+        tokenId: tokenHash.slice(0, 10),
         revokedAt: null
       });
-      result = { session, expiresAt: sessionExpiresAt, persistent };
+      result = { session, expiresAt:sessionExpiresAt, persistent, twelveHours };
     });
     if (!result) return Response.json({ ok:false, error:'invalid_or_used_token' }, { status:401 });
     return Response.json({ ok:true, ...result });
@@ -309,6 +319,30 @@ export class HabroMetrics {
       return Response.json({ ok:true, valid:false });
     }
     return Response.json({ ok:true, valid:true, expiresAt:record.expiresAt, label:cleanAccessLabel(record.label) });
+  }
+
+  async adbRegistry() {
+    const entries = await this.state.storage.list({ prefix:'adb:token:' });
+    const now = Date.now();
+    const records = [];
+    for (const [key, record] of entries) {
+      if (!record || typeof record !== 'object') continue;
+      const persistent = record.persistent === true;
+      records.push({
+        id: String(key).slice('adb:token:'.length, 'adb:token:'.length + 10),
+        label: cleanAccessLabel(record.label) || 'Sin identificar',
+        createdAt: Number(record.createdAt || 0),
+        expiresAt: record.expiresAt == null ? null : Number(record.expiresAt),
+        usedAt: record.usedAt == null ? null : Number(record.usedAt),
+        lastUsedAt: record.lastUsedAt == null ? null : Number(record.lastUsedAt),
+        redemptionCount: Number(record.redemptionCount || (record.usedAt ? 1 : 0)),
+        persistent,
+        twelveHours: record.twelveHours === true,
+        expired: !persistent && !record.usedAt && Number(record.expiresAt || 0) <= now
+      });
+    }
+    records.sort((a,b) => b.createdAt - a.createdAt);
+    return Response.json({ ok:true, records:records.slice(0, 200) }, { headers:{'Cache-Control':'no-store'} });
   }
 
   async record(request) {
@@ -908,10 +942,31 @@ async function adbAdminAccess(request, env) {
   let form;
   try { form = await request.formData(); } catch (_) { return adminAccessPage({ message:'Solicitud no válida.' }); }
   if (String(form.get('password') || '') !== configured) return adminAccessPage({ message:'Contraseña incorrecta.' });
+
+  const registryResult = async () => {
+    try {
+      const { response, data } = await adbStateCall(env, '/adb/registry', {});
+      return response.ok && Array.isArray(data?.records) ? data.records : [];
+    } catch (_) { return []; }
+  };
+
+  const action = String(form.get('action') || 'generate');
+  if (action === 'list') return adminAccessPage({ registry:await registryResult() });
+
+  const label = cleanAccessLabel(form.get('label'));
   const persistent = form.get('persistent') === '1';
-  const { response, data } = await adbStateCall(env, '/adb/mint', { label: cleanAccessLabel(form.get('label')), persistent });
-  if (!response.ok || !data?.token) return adminAccessPage({ message:'No se ha podido crear el token.' });
-  return adminAccessPage({ token:data.token, persistent:data.persistent === true });
+  const twelveHours = form.get('twelveHours') === '1';
+  if (!label) return adminAccessPage({ message:'Indica a quién entregas el token.', registry:await registryResult() });
+  if (persistent && twelveHours) return adminAccessPage({ message:'Elige token de 12 horas o persistente, no ambos.', registry:await registryResult() });
+
+  const { response, data } = await adbStateCall(env, '/adb/mint', { label, persistent, twelveHours });
+  if (!response.ok || !data?.token) return adminAccessPage({ message:'No se ha podido crear el token.', registry:await registryResult() });
+  return adminAccessPage({
+    token:data.token,
+    persistent:data.persistent === true,
+    twelveHours:data.twelveHours === true,
+    registry:await registryResult()
+  });
 }
 
 async function redeemAdbAccess(request, env, token, next) {
