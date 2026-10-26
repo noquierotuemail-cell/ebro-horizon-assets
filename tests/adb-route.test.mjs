@@ -38,7 +38,7 @@ test('ADB canonical URL retains query and leads to the asset directory', async (
 test('ADB redirects anonymous navigation to the one-time-token login', async () => {
   const r = await app.fetch(new Request(origin+'/adb/',{headers:{Accept:'text/html'}}),authEnv(),{});
   assert.equal(r.status,302);
-  assert.match(r.headers.get('location'), /^\/adb\/access\?next=/);
+  assert.match(r.headers.get('location'), /^https:\/\/habroremote\.com\/adb\/access\?next=/);
 });
 
 test('A valid session can load the protected installer resources', async () => {
