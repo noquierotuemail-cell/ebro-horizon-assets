@@ -41,6 +41,16 @@ test('ADB redirects anonymous navigation to the one-time-token login', async () 
   assert.match(r.headers.get('location'), /^https:\/\/habroremote\.com\/adb\/access\?next=/);
 });
 
+test('ADB access page uses the official HABRO identity', async () => {
+  const r = await app.fetch(new Request(origin+'/adb/access',{headers:{Accept:'text/html'}}),authEnv(),{});
+  assert.equal(r.status,200);
+  const body = await r.text();
+  assert.match(body,/habro-remoteapp-horizontal-v8641\.svg/);
+  assert.match(body,/\/assets\/app-icon\.webp/);
+  assert.match(body,/Acceso privado a HABRO ADB/);
+  assert.match(r.headers.get('content-security-policy'),/img-src 'self'/);
+});
+
 test('tokens in query strings are never redeemed', async () => {
   const r = await app.fetch(new Request(origin+'/adb/access?token='+ 'b'.repeat(64),{headers:{Accept:'text/html'}}),authEnv(),{});
   assert.equal(r.status,200);
