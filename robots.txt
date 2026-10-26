@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /adb/
+Disallow: /admin/
 
 Sitemap: https://habroremote.com/sitemap.xml

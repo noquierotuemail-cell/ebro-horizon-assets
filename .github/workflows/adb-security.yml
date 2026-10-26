@@ -1,0 +1,32 @@
+name: Validate HABRO ADB
+
+on:
+  pull_request:
+    paths:
+      - 'adb/**'
+      - 'src/adb-*.js'
+      - 'src/router-20260827-v2.js'
+      - 'tests/**'
+      - '.github/workflows/adb-security.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'adb/**'
+      - 'src/adb-*.js'
+      - 'src/router-20260827-v2.js'
+      - 'tests/**'
+      - '.github/workflows/adb-security.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/*.test.mjs

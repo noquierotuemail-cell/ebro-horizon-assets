@@ -1,5 +1,3 @@
-import { calculateOtaCode, localDateValue } from './ota-generator.mjs';
-
 const $ = id => document.getElementById(id);
 const form = $('otaForm');
 const vin = $('otaVin');
@@ -7,6 +5,9 @@ const date = $('otaDate');
 let useToday = true;
 let revision = 0;
 
+function localDateValue(now = new Date()) {
+  return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+}
 function setTheme(value) {
   document.documentElement.dataset.theme = value;
   $('otaTheme').textContent = value === 'dark' ? 'Tema claro' : 'Tema oscuro';
@@ -22,7 +23,6 @@ function message(text = '', error = false) {
   $('otaMessage').textContent = text;
   $('otaMessage').classList.toggle('error', error);
 }
-
 function invalidate() {
   revision++;
   $('otaResult').classList.remove('has-code');
@@ -37,12 +37,10 @@ function invalidate() {
   date.removeAttribute('aria-invalid');
   message();
 }
-
 function updateDateMode() {
   $('dateMode').textContent = useToday ? 'Fecha de hoy' : 'Fecha elegida manualmente';
   $('dateMode').classList.toggle('custom', !useToday);
 }
-
 function refreshToday() {
   const today = localDateValue();
   if (useToday && date.value !== today) {
@@ -53,57 +51,77 @@ function refreshToday() {
   }
   updateDateMode();
 }
+function validateVin(value) {
+  const normalized = String(value || '').trim().toUpperCase();
+  if (!/^[A-HJ-NPR-Z0-9]{6}$/.test(normalized) && !/^[A-HJ-NPR-Z0-9]{17}$/.test(normalized)) {
+    const error = new Error('Introduce el VIN completo de 17 caracteres o sus últimos 6 caracteres.');
+    error.field = 'vin'; throw error;
+  }
+  return normalized;
+}
 
 vin.addEventListener('input', invalidate);
 vin.addEventListener('blur', () => { vin.value = vin.value.trim().toUpperCase(); });
 date.addEventListener('input', () => {
   useToday = date.value === localDateValue();
-  invalidate();
-  updateDateMode();
+  invalidate(); updateDateMode();
 });
 $('otaToday').addEventListener('click', () => {
-  useToday = true;
-  date.value = localDateValue();
-  invalidate();
-  updateDateMode();
+  useToday = true; date.value = localDateValue(); invalidate(); updateDateMode();
 });
 $('otaClear').addEventListener('click', () => {
-  form.reset();
-  useToday = true;
-  date.value = localDateValue();
-  invalidate();
-  updateDateMode();
-  vin.focus();
+  form.reset(); useToday = true; date.value = localDateValue(); invalidate(); updateDateMode(); vin.focus();
 });
 
-form.addEventListener('submit', event => {
+form.addEventListener('submit', async event => {
   event.preventDefault();
   refreshToday();
   invalidate();
-  let result;
-  try { result = calculateOtaCode(vin.value, date.value); }
-  catch (error) {
-    const field = error.field === 'date' ? date : vin;
-    field.setAttribute('aria-invalid', 'true');
-    field.focus();
-    message(error.message, true);
-    return;
-  }
-  vin.value = vin.value.trim().toUpperCase();
-  const [year, month, day] = result.date.split('-').map(Number);
-  const calendarDate = new Date(0);
-  calendarDate.setFullYear(year, month - 1, day);
-  calendarDate.setHours(12, 0, 0, 0);
-  const dateLabel = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).format(calendarDate);
-  $('otaCode').value = result.code;
-  $('otaResultDate').textContent = `Para el ${dateLabel}`;
-  $('otaResultVin').textContent = `VIN ··· ${result.suffix}`;
-  $('otaResultVin').hidden = false;
-  $('otaCopy').disabled = false;
-  $('otaResult').classList.add('has-code');
-  message(`Clave calculada para el ${dateLabel}.`);
-  if (matchMedia('(max-width: 800px)').matches) {
-    $('otaResult').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
+  let normalizedVin;
+  try { normalizedVin = validateVin(vin.value); }
+  catch (error) { vin.setAttribute('aria-invalid', 'true'); vin.focus(); message(error.message, true); return; }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date.value)) { date.setAttribute('aria-invalid','true'); date.focus(); message('Selecciona una fecha válida.', true); return; }
+  vin.value = normalizedVin;
+  const request = revision;
+  $('otaGenerate').disabled = true;
+  $('otaGenerate').textContent = 'Calculando…';
+  form.setAttribute('aria-busy','true');
+  try {
+    const response = await fetch('/adb/api/ota', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      cache:'no-store',
+      body:JSON.stringify({vin:normalizedVin,date:date.value})
+    });
+    if (response.status === 401) { location.assign('/adb/access?next=%2Fadb%2Fota'); return; }
+    const result = await response.json();
+    if (!response.ok || !result?.code) {
+      const error = new Error(result?.message || 'No se ha podido calcular la clave.');
+      error.field = result?.field || null; throw error;
+    }
+    if (request !== revision) return;
+    const [year, month, day] = result.date.split('-').map(Number);
+    const calendarDate = new Date(0); calendarDate.setFullYear(year, month - 1, day); calendarDate.setHours(12,0,0,0);
+    const dateLabel = new Intl.DateTimeFormat('es-ES', { day:'numeric', month:'long', year:'numeric' }).format(calendarDate);
+    $('otaCode').value = result.code;
+    $('otaResultDate').textContent = `Para el ${dateLabel}`;
+    $('otaResultVin').textContent = `VIN ··· ${result.suffix}`;
+    $('otaResultVin').hidden = false;
+    $('otaCopy').disabled = false;
+    $('otaResult').classList.add('has-code');
+    message(`Clave calculada para el ${dateLabel}.`);
+    if (matchMedia('(max-width: 800px)').matches) $('otaResult').scrollIntoView({ behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth', block:'nearest' });
+  } catch (error) {
+    if (request !== revision) return;
+    if (error?.field === 'vin') vin.setAttribute('aria-invalid','true');
+    if (error?.field === 'date') date.setAttribute('aria-invalid','true');
+    message(error?.message || 'No se ha podido calcular la clave. Vuelve a intentarlo.', true);
+  } finally {
+    if (request === revision) {
+      $('otaGenerate').disabled = false;
+      $('otaGenerate').textContent = 'Calcular clave →';
+      form.removeAttribute('aria-busy');
+    }
   }
 });
 
@@ -115,13 +133,10 @@ $('otaCopy').addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(code);
     if (request !== revision) return;
-    $('otaCopyLabel').textContent = 'Copiada';
-    $('otaCopyMessage').textContent = 'Clave copiada.';
+    $('otaCopyLabel').textContent = 'Copiada'; $('otaCopyMessage').textContent = 'Clave copiada.';
   } catch {
     if (request !== revision) return;
-    $('otaCode').focus();
-    $('otaCode').select();
-    $('otaCode').setSelectionRange(0, code.length);
+    $('otaCode').focus(); $('otaCode').select(); $('otaCode').setSelectionRange(0, code.length);
     $('otaCopyMessage').textContent = 'Mantén pulsada la clave seleccionada y elige Copiar.';
   }
 });
@@ -130,11 +145,7 @@ window.addEventListener('focus', refreshToday);
 window.addEventListener('pageshow', refreshToday);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshToday(); });
 window.setInterval(refreshToday, 30000);
-window.addEventListener('pagehide', () => {
-  form.reset();
-  useToday = true;
-  invalidate();
-});
+window.addEventListener('pagehide', () => { form.reset(); useToday = true; invalidate(); });
 date.value = localDateValue();
 $('otaGenerate').disabled = false;
 updateDateMode();

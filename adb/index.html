@@ -60,7 +60,7 @@
       <div class="installer-grid">
         <article class="card installer-step" aria-labelledby="installerPrepareTitle">
           <div class="installer-step-heading"><span class="installer-step-number" aria-hidden="true">01</span><div><p class="eyebrow">ANTES DE CONECTAR</p><h2 id="installerPrepareTitle">Prepara el coche</h2></div><i data-icon="key-round"></i></div>
-          <p>Con el coche estacionado, activa ADB en su sistema. Si el menú OTA pide una clave diaria, calcúlala con el VIN o sus últimos seis caracteres y la fecha del coche.</p>
+          <p>Con el coche estacionado, activa ADB en su sistema. Si el menú OTA pide una clave diaria, utiliza la calculadora protegida de HABRO con los datos que solicita la pantalla del coche.</p>
           <a class="button secondary installer-code-link" href="ota.html" target="_blank" rel="noopener"><i data-icon="key-round"></i> Calcular clave OTA <span aria-hidden="true">↗</span></a>
           <p class="installer-note">La ruta para abrir por primera vez el menú de ingeniería depende del sistema y sigue pendiente de confirmar. La web necesita ADB activo para detectar el coche.</p>
           <details class="installer-engineering">
@@ -86,7 +86,7 @@
       </div>
       <aside id="installerPending" class="card installer-result" data-status="warning" hidden><p class="eyebrow">INTENTO PENDIENTE</p><h2>Revisa la instalación anterior</h2><p id="installerPendingText"></p><div class="button-group"><button id="installerVerify" type="button" class="button secondary" disabled>Comprobar instalación</button><button id="installerDismiss" type="button" class="text-button">Cerrar seguimiento</button></div></aside>
       <section id="installerResult" class="card installer-result" aria-live="polite" aria-atomic="false" hidden><p class="eyebrow">RESULTADO DE LA INSTALACIÓN</p><h2 id="installerResultTitle"></h2><p id="installerResultText"></p><details id="installerDiagnostics" class="installer-diagnostics" hidden><summary>Ver diagnóstico</summary><pre id="installerLog" tabindex="0" aria-label="Registro de instalación"></pre><button id="installerSaveLog" type="button" class="button secondary"><i data-icon="download"></i> Guardar registro</button></details></section>
-      <p class="footnote installer-privacy"><i data-icon="shield-check"></i><span>El VIN, las claves y los archivos se procesan en tu equipo. El archivo elegido se transfiere al coche por USB. La instalación depende de los permisos y la versión del sistema.</span></p>
+      <p class="footnote installer-privacy"><i data-icon="shield-check"></i><span>Los archivos y la conexión USB se procesan en tu equipo. Las claves se calculan dentro de tu sesión protegida de HABRO. El archivo elegido se transfiere al coche por USB. La instalación depende de los permisos y la versión del sistema.</span></p>
     </section>
     <section class="view" id="view-apps" aria-labelledby="appsTitle" hidden>
       <div class="page-heading"><div><p class="eyebrow">TU SISTEMA ANDROID</p><h1 id="appsTitle">Aplicaciones</h1><p class="subtitle">Instala, abre y gestiona las aplicaciones del coche.</p></div><div class="button-group"><button class="button secondary" id="refreshApps" data-device><i data-icon="refresh-cw"></i>Actualizar</button><button class="button primary" data-action="install" data-device><i data-icon="plus"></i>Instalar APK</button></div></div>
