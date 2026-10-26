@@ -41,6 +41,13 @@ test('ADB redirects anonymous navigation to the one-time-token login', async () 
   assert.match(r.headers.get('location'), /^https:\/\/habroremote\.com\/adb\/access\?next=/);
 });
 
+test('tokens in query strings are never redeemed', async () => {
+  const r = await app.fetch(new Request(origin+'/adb/access?token='+ 'b'.repeat(64),{headers:{Accept:'text/html'}}),authEnv(),{});
+  assert.equal(r.status,200);
+  assert.equal(r.headers.get('set-cookie'),null);
+  assert.match(await r.text(),/Introduce tu token/);
+});
+
 test('A valid session can load the protected installer resources', async () => {
   const assets = authEnv(async request => new Response(await readFile(new URL('..' + new URL(request.url).pathname, import.meta.url))));
   for (const path of ['/adb/installer.css', '/adb/install-archive.mjs', '/adb/sessionwriter.mjs', '/adb/vendor/sop6-sessionwriter.dex']) {
