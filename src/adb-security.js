@@ -1,5 +1,6 @@
 const ADB_COOKIE = 'habro_adb_session';
 const TOKEN_TTL_MS = 30 * 60 * 1000;
+const TOKEN_12H_TTL_MS = 12 * 60 * 60 * 1000;
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 const CODE_KEY_HEX = '31697060FAA6B4D5A5AD1C4D9A3BD07A';
 const CODE_SUFFIX = '0123';
@@ -114,10 +115,42 @@ button,input{font:inherit}
   return new Response(body, { status: message ? 401 : 200, headers: pageHeaders() });
 }
 
-export function adminAccessPage({ message = '', token = '', persistent = false } = {}) {
-  const result = token ? `<section class="result"><p><strong>${persistent ? 'Token persistente' : 'Token de un solo uso'}</strong></p><code>${escapeHtml(token)}</code><p>${persistent ? 'Puede reutilizarse y no caduca automáticamente. Entrégalo solo a una persona o dispositivo de confianza. La sesión creada dura 24 horas y el mismo token permite volver a entrar después.' : 'Cópialo y entrégalo al usuario por un canal seguro. No lo incluyas en una URL. Caduca en 30 minutos. Tras utilizarlo, la sesión dura 24 horas.'}</p></section>` : '';
-  const body = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title>Accesos ADB · HABRO</title><style>:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#090d12;color:#f5f7fa;padding:28px}.wrap{max-width:760px;margin:0 auto}.card{background:#121923;border:1px solid #283545;border-radius:24px;padding:28px;margin:18px 0}h1{margin:.2em 0}.field{display:grid;gap:7px;margin:18px 0}.field input{font:inherit;padding:13px 14px;border-radius:12px;border:1px solid #35465a;background:#090d12;color:white}.check{display:flex;align-items:flex-start;gap:10px;margin:18px 0;color:#e8eef5;font-size:14px;line-height:1.45}.check input{width:18px;height:18px;margin:1px 0 0;accent-color:#f5f7fa}.check-copy{display:grid;gap:3px}.check-copy small{color:#8fa0b2;font-size:12px}.button{font:inherit;font-weight:700;padding:13px 18px;border:0;border-radius:12px;cursor:pointer}.result{background:#0b1119;border-radius:18px;padding:20px;margin-top:20px}.result code{display:block;overflow-wrap:anywhere;background:#05080c;padding:14px;border-radius:10px}.msg{color:#ffb4b4}</style></head><body><main class="wrap"><p>HABRO · ADMIN</p><h1>Accesos temporales ADB</h1><section class="card"><p>Genera un token que solo podrá utilizarse una vez.</p><form method="post" action="/admin/adb-access" autocomplete="off"><div class="field"><label for="password">Contraseña de administración</label><input id="password" name="password" type="password" required autocomplete="current-password"></div><div class="field"><label for="label">Referencia opcional</label><input id="label" name="label" maxlength="80" placeholder="Ej. Usuario S900"></div><label class="check"><input id="persistent" name="persistent" type="checkbox" value="1"><span class="check-copy"><strong>Permitir token persistente</strong><small>Si lo activas, el token podrá reutilizarse y no caducará automáticamente.</small></span></label><button class="button" type="submit">Crear token</button><p class="msg">${escapeHtml(message)}</p></form>${result}</section></main></body></html>`;
-  return new Response(body, { status: message ? 401 : 200, headers: pageHeaders() });
+function formatAdminDate(value) {
+  if (!value) return '—';
+  try {
+    return new Intl.DateTimeFormat('es-ES', {
+      timeZone: 'Europe/Madrid', day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    }).format(new Date(Number(value)));
+  } catch (_) { return '—'; }
+}
+
+export function adminAccessPage({ message = '', token = '', persistent = false, twelveHours = false, registry = [] } = {}) {
+  const tokenType = persistent ? 'Token persistente' : twelveHours ? 'Token de un solo uso · 12 horas' : 'Token de un solo uso · 30 minutos';
+  const tokenInfo = persistent
+    ? 'Puede reutilizarse y no caduca automáticamente. Entrégalo solo a una persona o dispositivo de confianza. Cada sesión creada dura 24 horas.'
+    : twelveHours
+      ? 'Es de un solo uso y puede canjearse durante las próximas 12 horas. Tras utilizarlo, la sesión creada dura 24 horas.'
+      : 'Es de un solo uso y puede canjearse durante 30 minutos. Tras utilizarlo, la sesión creada dura 24 horas.';
+  const result = token ? `<section class="result"><p><strong>${tokenType}</strong></p><code>${escapeHtml(token)}</code><p>${tokenInfo}</p></section>` : '';
+  const rows = registry.map(item => {
+    const type = item.persistent ? 'Persistente' : item.twelveHours ? '12 horas' : '30 minutos';
+    const expiry = item.persistent ? 'Sin caducidad' : formatAdminDate(item.expiresAt);
+    const state = item.persistent
+      ? (item.redemptionCount ? `Activo · ${item.redemptionCount} acceso${item.redemptionCount === 1 ? '' : 's'}<small>Último: ${formatAdminDate(item.lastUsedAt)}</small>` : 'Activo · sin uso')
+      : item.usedAt
+        ? `Usado<small>${formatAdminDate(item.usedAt)}</small>`
+        : item.expired
+          ? 'Caducado'
+          : 'Activo · sin uso';
+    return `<tr><td><strong>${escapeHtml(item.label || 'Sin identificar')}</strong><small>ID ${escapeHtml(item.id || '—')}</small></td><td><span class="pill">${type}</span></td><td>${formatAdminDate(item.createdAt)}</td><td>${expiry}</td><td>${state}</td></tr>`;
+  }).join('');
+  const registryHtml = registry.length
+    ? `<section class="card registry"><div class="registry-head"><div><p class="kicker">REGISTRO</p><h2>Tokens entregados</h2></div><span>${registry.length} registro${registry.length === 1 ? '' : 's'}</span></div><div class="table-wrap"><table><thead><tr><th>Entregado a</th><th>Tipo</th><th>Creado</th><th>Caduca</th><th>Estado / uso</th></tr></thead><tbody>${rows}</tbody></table></div><p class="privacy-note">Por seguridad HABRO no guarda el token en claro. El ID mostrado identifica el registro sin permitir recuperar la clave.</p></section>`
+    : '';
+
+  const body = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title>Accesos ADB · HABRO</title><style>:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#090d12;color:#f5f7fa;padding:28px}.wrap{max-width:1040px;margin:0 auto}.card{background:#121923;border:1px solid #283545;border-radius:24px;padding:28px;margin:18px 0}h1{margin:.2em 0}.kicker{margin:0 0 5px;color:#8fa0b2;font-size:11px;letter-spacing:.14em}.field{display:grid;gap:7px;margin:18px 0}.field input{font:inherit;padding:13px 14px;border-radius:12px;border:1px solid #35465a;background:#090d12;color:white}.check{display:flex;align-items:flex-start;gap:10px;margin:15px 0;color:#e8eef5;font-size:14px;line-height:1.45}.check input{width:18px;height:18px;margin:1px 0 0;accent-color:#f5f7fa}.check-copy{display:grid;gap:3px}.check-copy small,.privacy-note,.registry td small{color:#8fa0b2;font-size:12px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.button{font:inherit;font-weight:700;padding:13px 18px;border:0;border-radius:12px;cursor:pointer}.button.primary{background:#f5f7fa;color:#0b1017}.button.secondary{background:#202b38;color:#f5f7fa;border:1px solid #35465a}.result{background:#0b1119;border-radius:18px;padding:20px;margin-top:20px}.result code{display:block;overflow-wrap:anywhere;background:#05080c;padding:14px;border-radius:10px}.msg{color:#ffb4b4}.registry-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:18px}.registry-head h2{margin:0}.registry-head>span{color:#8fa0b2;font-size:13px}.table-wrap{overflow:auto;border:1px solid #283545;border-radius:16px}table{width:100%;border-collapse:collapse;min-width:820px}th,td{text-align:left;padding:14px 15px;border-bottom:1px solid #25303d;vertical-align:top;font-size:13px}th{color:#8fa0b2;font-size:11px;text-transform:uppercase;letter-spacing:.08em;background:#0d131b}tbody tr:last-child td{border-bottom:0}.registry td strong,.registry td small{display:block}.registry td small{margin-top:4px}.pill{display:inline-block;padding:5px 8px;border-radius:999px;background:#202b38;color:#dce6ef;font-size:11px}.privacy-note{margin:16px 2px 0;line-height:1.5}@media(max-width:640px){body{padding:16px}.card{padding:20px}.actions .button{width:100%}}</style></head><body><main class="wrap"><p>HABRO · ADMIN</p><h1>Accesos ADB</h1><section class="card"><p>Genera un acceso e identifica siempre a quién se lo entregas.</p><form method="post" action="/admin/adb-access" autocomplete="off"><div class="field"><label for="password">Contraseña de administración</label><input id="password" name="password" type="password" required autocomplete="current-password"></div><div class="field"><label for="label">Entregado a</label><input id="label" name="label" maxlength="80" required placeholder="Nombre, alias o dispositivo"></div><label class="check"><input id="twelveHours" name="twelveHours" type="checkbox" value="1"><span class="check-copy"><strong>Token válido 12 horas</strong><small>Un solo uso. Amplía de 30 minutos a 12 horas el plazo para canjearlo.</small></span></label><label class="check"><input id="persistent" name="persistent" type="checkbox" value="1"><span class="check-copy"><strong>Permitir token persistente</strong><small>Reutilizable y sin caducidad automática. No puede combinarse con el token de 12 horas.</small></span></label><div class="actions"><button class="button primary" type="submit" name="action" value="generate">Crear token</button><button class="button secondary" type="submit" name="action" value="list" formnovalidate>Ver registro</button></div><p class="msg">${escapeHtml(message)}</p></form>${result}</section>${registryHtml}</main></body></html>`;
+  return new Response(body, { status: message ? 400 : 200, headers: pageHeaders() });
 }
 
 function xor(a, b) { return Uint8Array.from(a, (value, index) => value ^ b[index]); }
@@ -158,4 +191,4 @@ export function calculateOtaServer(value, dateValue) {
   return { code:String(product % 1000000).padStart(6,'0'), suffix, date:String(dateValue) };
 }
 
-export const ADB_ACCESS_DEFAULTS = Object.freeze({ tokenTtlMs:TOKEN_TTL_MS, sessionTtlMs:SESSION_TTL_MS });
+export const ADB_ACCESS_DEFAULTS = Object.freeze({ tokenTtlMs:TOKEN_TTL_MS, sessionTtlMs:SESSION_TTL_MS, twelveHourTokenTtlMs:TOKEN_12H_TTL_MS });
