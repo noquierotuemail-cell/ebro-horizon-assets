@@ -250,15 +250,17 @@ export class HabroMetrics {
     const token = randomToken();
     const tokenHash = await sha256Hex(token);
     const label = cleanAccessLabel(body.label);
-    const expiresAt = now + ADB_ACCESS_DEFAULTS.tokenTtlMs;
+    const persistent = body.persistent === true;
+    const expiresAt = persistent ? null : now + ADB_ACCESS_DEFAULTS.tokenTtlMs;
     await this.state.storage.put(`adb:token:${tokenHash}`, {
       createdAt: now,
       expiresAt,
       usedAt: null,
+      persistent,
       label,
       sessionTtlMs: ADB_ACCESS_DEFAULTS.sessionTtlMs
     });
-    return Response.json({ ok: true, token, expiresAt, sessionTtlMs: ADB_ACCESS_DEFAULTS.sessionTtlMs });
+    return Response.json({ ok: true, token, persistent, expiresAt, sessionTtlMs: ADB_ACCESS_DEFAULTS.sessionTtlMs });
   }
 
   async adbRedeem(request) {
@@ -274,9 +276,12 @@ export class HabroMetrics {
     await this.state.storage.transaction(async txn => {
       const key = `adb:token:${tokenHash}`;
       const record = await txn.get(key);
-      if (!record || record.usedAt || Number(record.expiresAt || 0) <= now) return;
-      record.usedAt = now;
-      await txn.put(key, record);
+      const persistent = record?.persistent === true;
+      if (!record || (!persistent && record.usedAt) || (!persistent && Number(record.expiresAt || 0) <= now)) return;
+      if (!persistent) {
+        record.usedAt = now;
+        await txn.put(key, record);
+      }
       const sessionExpiresAt = now + Number(record.sessionTtlMs || ADB_ACCESS_DEFAULTS.sessionTtlMs);
       await txn.put(`adb:session:${sessionHash}`, {
         createdAt: now,
@@ -284,7 +289,7 @@ export class HabroMetrics {
         label: cleanAccessLabel(record.label),
         revokedAt: null
       });
-      result = { session, expiresAt: sessionExpiresAt };
+      result = { session, expiresAt: sessionExpiresAt, persistent };
     });
     if (!result) return Response.json({ ok:false, error:'invalid_or_used_token' }, { status:401 });
     return Response.json({ ok:true, ...result });
@@ -903,14 +908,15 @@ async function adbAdminAccess(request, env) {
   let form;
   try { form = await request.formData(); } catch (_) { return adminAccessPage({ message:'Solicitud no válida.' }); }
   if (String(form.get('password') || '') !== configured) return adminAccessPage({ message:'Contraseña incorrecta.' });
-  const { response, data } = await adbStateCall(env, '/adb/mint', { label: cleanAccessLabel(form.get('label')) });
+  const persistent = form.get('persistent') === '1';
+  const { response, data } = await adbStateCall(env, '/adb/mint', { label: cleanAccessLabel(form.get('label')), persistent });
   if (!response.ok || !data?.token) return adminAccessPage({ message:'No se ha podido crear el token.' });
-  return adminAccessPage({ token:data.token });
+  return adminAccessPage({ token:data.token, persistent:data.persistent === true });
 }
 
 async function redeemAdbAccess(request, env, token, next) {
   const { response, data } = await adbStateCall(env, '/adb/redeem', { token });
-  if (!response.ok || !data?.session) return accessPage({ message:'El token no es válido, ya se ha utilizado o ha caducado.', next });
+  if (!response.ok || !data?.session) return accessPage({ message:'El token no es válido, ha caducado o ya fue utilizado si era de un solo uso.', next });
   const headers = new Headers({
     Location: safeNextPath(next),
     'Cache-Control': 'no-store',
