@@ -54,12 +54,63 @@ function pageHeaders() {
     'Cache-Control': 'no-store',
     'Referrer-Policy': 'no-referrer',
     'X-Robots-Tag': 'noindex, nofollow, noarchive',
-    'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
+    'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
   };
 }
 
 export function accessPage({ message = '', next = '/adb/' } = {}) {
-  const body = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b0f15"><meta name="robots" content="noindex,nofollow,noarchive"><title>Acceso HABRO ADB</title><style>:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#080b10;color:#f7f9fb;padding:24px}.card{width:min(460px,100%);background:#111721;border:1px solid #263140;border-radius:28px;padding:32px;box-shadow:0 24px 80px #0008}.brand{font-size:13px;letter-spacing:.18em;color:#8ca2bc}.brand strong{color:white;font-size:18px;letter-spacing:.06em}.eyebrow{margin:28px 0 8px;color:#91a4ba;font-size:12px;letter-spacing:.14em}.card h1{margin:0 0 12px;font-size:32px;line-height:1.05}.card p{color:#aebccc;line-height:1.55}.field{display:grid;gap:8px;margin:26px 0 18px}.field label{font-size:13px;color:#d9e2ec}.field input{width:100%;font:inherit;background:#090d13;color:white;border:1px solid #334154;border-radius:14px;padding:15px 16px;outline:none}.field input:focus{border-color:#7ba7d8;box-shadow:0 0 0 3px #7ba7d822}.button{width:100%;border:0;border-radius:14px;padding:15px 18px;font:inherit;font-weight:700;background:#f4f7fa;color:#0b1017;cursor:pointer}.msg{min-height:24px;margin:14px 0 0;color:#ffadad}.note{font-size:12px;color:#7f8ea0;margin-top:24px}</style></head><body><main class="card"><div class="brand"><strong>HABRO</strong> · ADB</div><p class="eyebrow">ACCESO PRIVADO</p><h1>Introduce tu token.</h1><p>El token es de un solo uso. Al validarlo, este navegador recibirá una sesión temporal para utilizar HABRO ADB.</p><form method="post" action="/adb/access" autocomplete="off"><input type="hidden" name="next" value="${escapeHtml(safeNextPath(next))}"><div class="field"><label for="token">Token de acceso</label><input id="token" name="token" type="password" required autocomplete="one-time-code" spellcheck="false" autofocus></div><button class="button" type="submit">Entrar</button><div class="msg" role="status">${escapeHtml(message)}</div></form><div class="note">El token caduca aunque no se utilice y deja de ser válido en el primer acceso correcto.</div></main></body></html>`;
+  const body = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f5f5f7"><meta name="robots" content="noindex,nofollow,noarchive"><title>Acceso HABRO ADB</title><style>
+:root{--bg:#f5f5f7;--surface:#fff;--ink:#0b0c0e;--muted:#6e6e73;--line:#d9d9de;--accent:#234f70;--accent-soft:#e9eef2;--shadow:0 24px 80px rgba(0,0,0,.08);--radius-xl:44px;--radius-lg:32px;--radius-md:22px;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;color-scheme:light}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+button,input{font:inherit}
+.topbar{background:rgba(245,245,247,.9);backdrop-filter:saturate(180%) blur(24px);border-bottom:1px solid rgba(0,0,0,.06)}
+.nav{width:min(calc(100% - 40px),1280px);height:74px;margin-inline:auto;display:flex;align-items:center}
+.brand{display:flex;align-items:center;gap:11px}
+.brand-app{width:40px;height:40px;border-radius:12px}
+.brand-copy{display:grid;gap:1px}
+.brand-copy strong{font-size:16px;letter-spacing:-.02em}
+.brand-copy small{font-size:11px;color:var(--muted)}
+.login-wrap{width:min(calc(100% - 40px),1080px);margin:clamp(42px,8vh,86px) auto;padding-bottom:54px}
+.login-card{display:grid;grid-template-columns:minmax(0,.92fr) minmax(420px,1.08fr);min-height:590px;background:var(--surface);border:1px solid rgba(0,0,0,.06);border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow)}
+.brand-panel{position:relative;overflow:hidden;background:#050607;color:#fff;padding:54px;display:flex;flex-direction:column;justify-content:space-between}
+.brand-panel:before,.brand-panel:after{content:"";position:absolute;border-radius:999px;filter:blur(4px);opacity:.5;pointer-events:none}
+.brand-panel:before{width:420px;height:420px;right:-250px;top:-190px;background:radial-gradient(circle,#234f70 0%,rgba(35,79,112,0) 68%)}
+.brand-panel:after{width:360px;height:360px;left:-220px;bottom:-170px;background:radial-gradient(circle,#647b8c 0%,rgba(100,123,140,0) 70%)}
+.brand-content,.brand-footer{position:relative;z-index:1}
+.official-logo{width:min(310px,88%);height:auto;margin-bottom:72px}
+.panel-eyebrow{margin:0 0 13px;font-size:12px;font-weight:750;letter-spacing:.13em;text-transform:uppercase;color:#9bb9d0}
+.brand-panel h1{max-width:420px;margin:0;font-size:clamp(38px,4.2vw,59px);line-height:.98;letter-spacing:-.05em}
+.brand-panel .lead{max-width:430px;margin:20px 0 0;color:#aeb4bc;font-size:17px;line-height:1.55;letter-spacing:-.01em}
+.brand-footer{display:flex;align-items:center;gap:9px;color:#9299a2;font-size:12px}
+.brand-footer .dot{width:7px;height:7px;border-radius:50%;background:#7fba9d;box-shadow:0 0 0 5px rgba(127,186,157,.1)}
+.form-panel{padding:clamp(44px,6vw,76px);display:flex;align-items:center}
+.form-inner{width:100%;max-width:460px;margin-inline:auto}
+.form-eyebrow{margin:0 0 12px;color:var(--accent);font-size:12px;font-weight:750;letter-spacing:.12em;text-transform:uppercase}
+.form-panel h2{margin:0;font-size:clamp(38px,4.7vw,56px);line-height:.98;letter-spacing:-.055em}
+.form-copy{margin:20px 0 32px;color:var(--muted);font-size:16px;line-height:1.58}
+.field{display:grid;gap:9px;margin-bottom:16px}
+.field label{font-size:13px;font-weight:650;color:#3f4145}
+.field input{width:100%;height:56px;border:1px solid #d5d7db;border-radius:16px;background:#fff;color:var(--ink);padding:0 17px;outline:none;font-size:16px;letter-spacing:.015em;box-shadow:inset 0 1px 0 rgba(0,0,0,.02)}
+.field input:focus{border-color:#7f9eb5;box-shadow:0 0 0 4px rgba(35,79,112,.10)}
+.button{display:inline-flex;align-items:center;justify-content:center;width:100%;min-height:54px;border:0;border-radius:999px;background:#111;color:#fff;font-weight:700;letter-spacing:-.015em;cursor:pointer;transition:transform .18s ease,background .18s ease}
+.button:hover{background:#242424}
+.button:active{transform:scale(.985)}
+.msg{min-height:22px;margin:14px 0 0;color:#b3261e;font-size:13px;line-height:1.45}
+.note{display:flex;gap:10px;margin-top:27px;padding-top:23px;border-top:1px solid #ececef;color:var(--muted);font-size:12px;line-height:1.55}
+.note-icon{flex:0 0 auto;width:24px;height:24px;border-radius:9px;background:var(--accent-soft);display:grid;place-items:center;color:var(--accent);font-weight:800;font-size:11px}
+@media(max-width:840px){.login-card{grid-template-columns:1fr}.brand-panel{min-height:300px;padding:38px}.official-logo{width:240px;margin-bottom:42px}.brand-panel h1{font-size:42px}.brand-footer{margin-top:36px}.form-panel{padding:42px 34px 48px}.login-wrap{margin-top:28px}}
+@media(max-width:560px){.nav{width:min(calc(100% - 28px),1280px);height:68px}.brand-app{width:36px;height:36px}.brand-copy strong{font-size:15px}.login-wrap{width:min(calc(100% - 24px),1080px);margin:18px auto 32px}.login-card{border-radius:30px}.brand-panel{min-height:250px;padding:30px 26px}.official-logo{width:210px;margin-bottom:34px}.brand-panel h1{font-size:35px}.brand-panel .lead{font-size:15px}.brand-footer{display:none}.form-panel{padding:36px 26px 40px}.form-panel h2{font-size:38px}.form-copy{font-size:15px;margin-bottom:27px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body>
+<header class="topbar"><div class="nav"><a class="brand" href="/" aria-label="HABRO RemoteApp"><img class="brand-app" src="/assets/app-icon.webp" width="40" height="40" alt=""><span class="brand-copy"><strong>HABRO RemoteApp</strong><small>EBRO S900 · Home Assistant</small></span></a></div></header>
+<main class="login-wrap"><section class="login-card">
+<div class="brand-panel"><div class="brand-content"><img class="official-logo" src="/assets/habro-remoteapp-horizontal-v8641.svg?v=20260903-2" alt="HABRO RemoteApp"><p class="panel-eyebrow">HERRAMIENTAS ADB</p><h1>Acceso privado a HABRO ADB.</h1><p class="lead">Conecta, instala y gestiona el sistema Android del coche desde una sesión autorizada.</p></div><div class="brand-footer"><span class="dot"></span><span>Conexión protegida · HABRO RemoteApp</span></div></div>
+<div class="form-panel"><div class="form-inner"><p class="form-eyebrow">ACCESO PRIVADO</p><h2>Introduce tu token.</h2><p class="form-copy">Utiliza el token temporal que has recibido. Después del primer acceso dejará de ser válido y este navegador mantendrá una sesión protegida.</p><form method="post" action="/adb/access" autocomplete="off"><input type="hidden" name="next" value="${escapeHtml(safeNextPath(next))}"><div class="field"><label for="token">Token de acceso</label><input id="token" name="token" type="password" required autocomplete="one-time-code" spellcheck="false" autofocus placeholder="Introduce tu token"></div><button class="button" type="submit">Entrar en HABRO ADB</button><div class="msg" role="status">${escapeHtml(message)}</div></form><div class="note"><span class="note-icon">✓</span><span>El token caduca aunque no se utilice y queda invalidado inmediatamente después del primer acceso correcto.</span></div></div></div>
+</section></main></body></html>`;
   return new Response(body, { status: message ? 401 : 200, headers: pageHeaders() });
 }
 
