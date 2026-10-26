@@ -984,7 +984,7 @@ async function adbGateway(request, env) {
     if (url.pathname.startsWith('/adb/api/')) return Response.json({ ok:false, error:'unauthorized' }, { status:401, headers:{'Cache-Control':'no-store'} });
     if (adbNeedsHtmlRedirect(request)) {
       const next = safeNextPath(url.pathname + url.search);
-      return Response.redirect('/adb/access?next=' + encodeURIComponent(next), 302);
+      return Response.redirect(new URL('/adb/access?next=' + encodeURIComponent(next), url.origin).toString(), 302);
     }
     return new Response('Unauthorized', { status:401, headers:{'Cache-Control':'no-store','X-Robots-Tag':'noindex, nofollow, noarchive'} });
   }
