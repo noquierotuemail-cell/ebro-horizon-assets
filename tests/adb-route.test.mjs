@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import app from '../src/router-20260827-v2.js';
+import app, { HabroMetrics } from '../src/router-20260827-v2.js';
 
 globalThis.HTMLRewriter = class { on() { return this; } transform(response) { return response; } };
 const origin = 'https://habroremote.com';
@@ -17,7 +17,7 @@ function authEnv(assetFetch = async () => new Response(html, {headers:{'content-
       if (path === '/adb/redeem') return body.token === 'b'.repeat(64)
         ? Response.json({ok:true,session:'a'.repeat(64),expiresAt:Date.now()+86400000})
         : Response.json({ok:false,error:'invalid_or_used_token'},{status:401});
-      if (path === '/adb/mint') return Response.json({ok:true,token:'b'.repeat(64),expiresAt:Date.now()+1800000,sessionTtlMs:86400000});
+      if (path === '/adb/mint') return Response.json({ok:true,token:'b'.repeat(64),persistent:body.persistent === true,expiresAt:body.persistent === true?null:Date.now()+1800000,sessionTtlMs:86400000});
       return new Response('Not found',{status:404});
     }
   };
@@ -80,6 +80,49 @@ test('sensitive downloadable bundle and integration notice are no longer web rou
     const r=await app.fetch(new Request(origin+path,{headers:authed}),env,{});
     assert.equal(r.status,404,path);
   }
+});
+
+test('admin token generator includes the persistent-token tick', async () => {
+  const r = await app.fetch(new Request(origin+'/admin/adb-access',{headers:{Accept:'text/html'}}),authEnv(),{});
+  assert.equal(r.status,200);
+  const body = await r.text();
+  assert.match(body,/name="persistent"/);
+  assert.match(body,/Permitir token persistente/);
+});
+
+test('persistent tokens can be redeemed repeatedly while one-time tokens cannot', async () => {
+  class MemoryStorage {
+    constructor(){ this.map = new Map(); }
+    async get(key){ return this.map.get(key); }
+    async put(key,value){ this.map.set(key, structuredClone(value)); }
+    async delete(key){ this.map.delete(key); }
+    async transaction(fn){ return fn(this); }
+  }
+  const metrics = new HabroMetrics({storage:new MemoryStorage()},{});
+  const call = (path, body) => metrics.fetch(new Request('https://habro.metrics'+path,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  }));
+
+  let r = await call('/adb/mint',{persistent:true,label:'persistente'});
+  const persistent = await r.json();
+  assert.equal(persistent.persistent,true);
+  assert.equal(persistent.expiresAt,null);
+  for (let i=0;i<2;i++) {
+    r = await call('/adb/redeem',{token:persistent.token});
+    assert.equal(r.status,200);
+    assert.equal((await r.json()).persistent,true);
+  }
+
+  r = await call('/adb/mint',{persistent:false,label:'un uso'});
+  const once = await r.json();
+  assert.equal(once.persistent,false);
+  assert.ok(Number(once.expiresAt) > Date.now());
+  r = await call('/adb/redeem',{token:once.token});
+  assert.equal(r.status,200);
+  r = await call('/adb/redeem',{token:once.token});
+  assert.equal(r.status,401);
 });
 
 test('one-time token exchange establishes an HttpOnly ADB session', async () => {
