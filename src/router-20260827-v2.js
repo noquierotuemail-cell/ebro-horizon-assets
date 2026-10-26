@@ -1,5 +1,19 @@
 import app from './index.js';
 import { serveAdb } from './adb-assets.js';
+import {
+  ADB_ACCESS_DEFAULTS,
+  accessPage,
+  adminAccessPage,
+  calculateOtaServer,
+  cleanAccessLabel,
+  clearSessionCookie,
+  generateAdbCode,
+  parseCookie,
+  randomToken,
+  safeNextPath,
+  sessionCookie,
+  sha256Hex
+} from './adb-security.js';
 
 const REPO = 'noquierotuemail-cell/ebro-horizon-assets';
 const IMAGE_EXT = /\.(?:webp|png|jpe?g|gif|svg)$/i;
@@ -223,7 +237,73 @@ export class HabroMetrics {
     const url = new URL(request.url);
     if (request.method === 'POST' && url.pathname === '/event') return this.record(request);
     if (request.method === 'GET' && url.pathname === '/summary') return this.summary(url);
+    if (request.method === 'POST' && url.pathname === '/adb/mint') return this.adbMint(request);
+    if (request.method === 'POST' && url.pathname === '/adb/redeem') return this.adbRedeem(request);
+    if (request.method === 'POST' && url.pathname === '/adb/validate') return this.adbValidate(request);
     return new Response('Not found', { status: 404 });
+  }
+
+  async adbMint(request) {
+    let body = {};
+    try { body = await request.json(); } catch (_) {}
+    const now = Date.now();
+    const token = randomToken();
+    const tokenHash = await sha256Hex(token);
+    const label = cleanAccessLabel(body.label);
+    const expiresAt = now + ADB_ACCESS_DEFAULTS.tokenTtlMs;
+    await this.state.storage.put(`adb:token:${tokenHash}`, {
+      createdAt: now,
+      expiresAt,
+      usedAt: null,
+      label,
+      sessionTtlMs: ADB_ACCESS_DEFAULTS.sessionTtlMs
+    });
+    return Response.json({ ok: true, token, expiresAt, sessionTtlMs: ADB_ACCESS_DEFAULTS.sessionTtlMs });
+  }
+
+  async adbRedeem(request) {
+    let body = {};
+    try { body = await request.json(); } catch (_) {}
+    const token = String(body.token || '').trim();
+    if (!/^[0-9a-f]{64}$/i.test(token)) return Response.json({ ok:false, error:'invalid_token' }, { status:401 });
+    const tokenHash = await sha256Hex(token);
+    const session = randomToken();
+    const sessionHash = await sha256Hex(session);
+    const now = Date.now();
+    let result = null;
+    await this.state.storage.transaction(async txn => {
+      const key = `adb:token:${tokenHash}`;
+      const record = await txn.get(key);
+      if (!record || record.usedAt || Number(record.expiresAt || 0) <= now) return;
+      record.usedAt = now;
+      await txn.put(key, record);
+      const sessionExpiresAt = now + Number(record.sessionTtlMs || ADB_ACCESS_DEFAULTS.sessionTtlMs);
+      await txn.put(`adb:session:${sessionHash}`, {
+        createdAt: now,
+        expiresAt: sessionExpiresAt,
+        label: cleanAccessLabel(record.label),
+        revokedAt: null
+      });
+      result = { session, expiresAt: sessionExpiresAt };
+    });
+    if (!result) return Response.json({ ok:false, error:'invalid_or_used_token' }, { status:401 });
+    return Response.json({ ok:true, ...result });
+  }
+
+  async adbValidate(request) {
+    let body = {};
+    try { body = await request.json(); } catch (_) {}
+    const session = String(body.session || '').trim();
+    if (!/^[0-9a-f]{64}$/i.test(session)) return Response.json({ ok:true, valid:false });
+    const sessionHash = await sha256Hex(session);
+    const key = `adb:session:${sessionHash}`;
+    const record = await this.state.storage.get(key);
+    const now = Date.now();
+    if (!record || record.revokedAt || Number(record.expiresAt || 0) <= now) {
+      if (record) await this.state.storage.delete(key);
+      return Response.json({ ok:true, valid:false });
+    }
+    return Response.json({ ok:true, valid:true, expiresAt:record.expiresAt, label:cleanAccessLabel(record.label) });
   }
 
   async record(request) {
@@ -805,11 +885,120 @@ async function analyticsSummary(request, env) {
   }, { headers: { 'Cache-Control': 'no-store' } });
 }
 
+async function adbStateCall(env, path, body) {
+  if (!env.HABRO_METRICS) throw new Error('HABRO_METRICS no está disponible.');
+  const response = await analyticsStub(env).fetch('https://habro.metrics' + path, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify(body || {})
+  });
+  return { response, data: await response.json() };
+}
+
+async function adbAdminAccess(request, env) {
+  if (request.method === 'GET') return adminAccessPage();
+  if (request.method !== 'POST') return new Response('Method not allowed', { status:405 });
+  const configured = String(env.HABRO_ANALYTICS_ADMIN_TOKEN || '');
+  if (!configured) return adminAccessPage({ message:'La administración de accesos no está configurada.' });
+  let form;
+  try { form = await request.formData(); } catch (_) { return adminAccessPage({ message:'Solicitud no válida.' }); }
+  if (String(form.get('password') || '') !== configured) return adminAccessPage({ message:'Contraseña incorrecta.' });
+  const { response, data } = await adbStateCall(env, '/adb/mint', { label: cleanAccessLabel(form.get('label')) });
+  if (!response.ok || !data?.token) return adminAccessPage({ message:'No se ha podido crear el token.' });
+  const origin = new URL(request.url).origin;
+  const link = `${origin}/adb/access?token=${encodeURIComponent(data.token)}`;
+  return adminAccessPage({ token:data.token, link });
+}
+
+async function redeemAdbAccess(request, env, token, next) {
+  const { response, data } = await adbStateCall(env, '/adb/redeem', { token });
+  if (!response.ok || !data?.session) return accessPage({ message:'El token no es válido, ya se ha utilizado o ha caducado.', next });
+  const headers = new Headers({
+    Location: safeNextPath(next),
+    'Cache-Control': 'no-store',
+    'Set-Cookie': sessionCookie(data.session, Math.max(0, Math.floor((Number(data.expiresAt) - Date.now()) / 1000))),
+    'Referrer-Policy': 'no-referrer',
+    'X-Robots-Tag': 'noindex, nofollow, noarchive'
+  });
+  return new Response(null, { status:303, headers });
+}
+
+async function adbAccess(request, env) {
+  const url = new URL(request.url);
+  if (request.method === 'GET') {
+    const token = String(url.searchParams.get('token') || '').trim();
+    if (token) return redeemAdbAccess(request, env, token, url.searchParams.get('next') || '/adb/');
+    return accessPage({ next:url.searchParams.get('next') || '/adb/' });
+  }
+  if (request.method !== 'POST') return new Response('Method not allowed', { status:405 });
+  let form;
+  try { form = await request.formData(); } catch (_) { return accessPage({ message:'Solicitud no válida.' }); }
+  return redeemAdbAccess(request, env, String(form.get('token') || '').trim(), form.get('next') || '/adb/');
+}
+
+async function adbSessionValid(request, env) {
+  const session = parseCookie(request);
+  if (!session) return false;
+  try {
+    const { response, data } = await adbStateCall(env, '/adb/validate', { session });
+    return response.ok && data?.valid === true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function adbNeedsHtmlRedirect(request) {
+  const url = new URL(request.url);
+  const accept = request.headers.get('Accept') || '';
+  return request.method === 'GET' && (accept.includes('text/html') || url.pathname.endsWith('/') || !/\.[a-z0-9]{1,8}$/i.test(url.pathname));
+}
+
+async function adbApi(request, env, kind) {
+  if (request.method !== 'POST') return Response.json({ ok:false, error:'method_not_allowed' }, { status:405, headers:{'Cache-Control':'no-store'} });
+  const origin = request.headers.get('Origin');
+  if (origin && origin !== new URL(request.url).origin) return Response.json({ ok:false, error:'forbidden' }, { status:403, headers:{'Cache-Control':'no-store'} });
+  let body;
+  try { body = await request.json(); } catch (_) { return Response.json({ ok:false, error:'invalid_json' }, { status:400, headers:{'Cache-Control':'no-store'} }); }
+  try {
+    if (kind === 'code') return Response.json({ ok:true, code:await generateAdbCode(body.vin, body.rand) }, { headers:{'Cache-Control':'no-store'} });
+    const result = calculateOtaServer(body.vin, body.date);
+    return Response.json({ ok:true, ...result }, { headers:{'Cache-Control':'no-store'} });
+  } catch (error) {
+    return Response.json({ ok:false, error:'invalid_input', field:error?.field || null, message:String(error?.message || 'Datos no válidos.') }, { status:400, headers:{'Cache-Control':'no-store'} });
+  }
+}
+
+async function adbGateway(request, env) {
+  const url = new URL(request.url);
+  if (url.protocol !== 'https:' || url.pathname === '/adb') {
+    url.protocol = 'https:';
+    if (url.pathname === '/adb') url.pathname = '/adb/';
+    return Response.redirect(url.toString(), 308);
+  }
+  if (url.pathname === '/adb/access') return adbAccess(request, env);
+  if (url.pathname === '/adb/logout') {
+    return new Response(null, { status:303, headers:{Location:'/adb/access','Set-Cookie':clearSessionCookie(),'Cache-Control':'no-store'} });
+  }
+  const valid = await adbSessionValid(request, env);
+  if (!valid) {
+    if (url.pathname.startsWith('/adb/api/')) return Response.json({ ok:false, error:'unauthorized' }, { status:401, headers:{'Cache-Control':'no-store'} });
+    if (adbNeedsHtmlRedirect(request)) {
+      const next = safeNextPath(url.pathname + url.search);
+      return Response.redirect('/adb/access?next=' + encodeURIComponent(next), 302);
+    }
+    return new Response('Unauthorized', { status:401, headers:{'Cache-Control':'no-store','X-Robots-Tag':'noindex, nofollow, noarchive'} });
+  }
+  if (url.pathname === '/adb/api/code') return adbApi(request, env, 'code');
+  if (url.pathname === '/adb/api/ota') return adbApi(request, env, 'ota');
+  return serveAdb(request, env);
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    if (url.pathname === '/adb' || url.pathname.startsWith('/adb/')) return serveAdb(request, env);
+    if (url.pathname === '/admin/adb-access') return adbAdminAccess(request, env);
+    if (url.pathname === '/adb' || url.pathname.startsWith('/adb/')) return adbGateway(request, env);
 
     if (url.pathname === '/linkedin') return brandedSocialRedirect(url, 'linkedin', '/');
     if (url.pathname === '/tiktok') return brandedSocialRedirect(url, 'tiktok', '/');
