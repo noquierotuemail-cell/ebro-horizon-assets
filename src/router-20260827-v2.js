@@ -905,9 +905,7 @@ async function adbAdminAccess(request, env) {
   if (String(form.get('password') || '') !== configured) return adminAccessPage({ message:'Contraseña incorrecta.' });
   const { response, data } = await adbStateCall(env, '/adb/mint', { label: cleanAccessLabel(form.get('label')) });
   if (!response.ok || !data?.token) return adminAccessPage({ message:'No se ha podido crear el token.' });
-  const origin = new URL(request.url).origin;
-  const link = `${origin}/adb/access?token=${encodeURIComponent(data.token)}`;
-  return adminAccessPage({ token:data.token, link });
+  return adminAccessPage({ token:data.token });
 }
 
 async function redeemAdbAccess(request, env, token, next) {
@@ -926,8 +924,6 @@ async function redeemAdbAccess(request, env, token, next) {
 async function adbAccess(request, env) {
   const url = new URL(request.url);
   if (request.method === 'GET') {
-    const token = String(url.searchParams.get('token') || '').trim();
-    if (token) return redeemAdbAccess(request, env, token, url.searchParams.get('next') || '/adb/');
     return accessPage({ next:url.searchParams.get('next') || '/adb/' });
   }
   if (request.method !== 'POST') return new Response('Method not allowed', { status:405 });
