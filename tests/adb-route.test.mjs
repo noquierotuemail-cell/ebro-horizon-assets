@@ -61,7 +61,7 @@ test('tokens in query strings are never redeemed', async () => {
 
 test('A valid session can load the protected installer resources', async () => {
   const assets = authEnv(async request => new Response(await readFile(new URL('..' + new URL(request.url).pathname, import.meta.url))));
-  for (const path of ['/adb/installer.css', '/adb/install-archive.mjs', '/adb/sessionwriter.mjs', '/adb/vendor/sop6-sessionwriter.dex']) {
+  for (const path of ['/adb/installer.css', '/adb/install-archive.mjs', '/adb/sessionwriter.mjs', '/adb/install-method.mjs', '/adb/desay-installer.mjs', '/adb/desay-helper.mjs', '/adb/vendor/sop6-sessionwriter.dex']) {
     const response = await app.fetch(new Request(origin+path,{headers:authed}), assets, {});
     assert.equal(response.status,200,path);
     const bytes = Buffer.from(await response.arrayBuffer());
@@ -72,6 +72,30 @@ test('A valid session can load the protected installer resources', async () => {
       assert.equal(bytes.length,22652);
       assert.equal(createHash('sha256').update(bytes).digest('hex'),'58303723aac47a91c8a31127a99d79c57ab435ccf21fcb28a8b772495ea2e9b8');
     }
+  }
+});
+
+test('private installer binary endpoint requires a session and never falls back to assets', async () => {
+  let assetsRead = false, bucketRead = false;
+  const env = authEnv(async () => { assetsRead = true; return new Response('public'); });
+  env.DESAY_HELPERS = { async get(key) { bucketRead = true; assert.equal(key, 'dex_shell_helper.dex'); return { size: 7, body: new Blob(['private']).stream() }; } };
+  const url = origin + '/adb/api/desay-helper';
+  assert.equal((await app.fetch(new Request(url), env, {})).status, 401);
+  assert.equal(bucketRead, false);
+  const response = await app.fetch(new Request(url, { headers: authed }), env, {});
+  assert.equal(response.status, 200); assert.equal(await response.text(), 'private');
+  assert.equal(response.headers.get('cache-control'), 'private, no-store');
+  assert.equal(assetsRead, false);
+  delete env.DESAY_HELPERS;
+  assert.equal((await app.fetch(new Request(url, { headers: authed }), env, {})).status, 503);
+  assert.equal((await app.fetch(new Request(url, { method: 'POST', headers: authed }), env, {})).status, 405);
+  assert.equal(assetsRead, false);
+});
+
+test('local private helper paths are not downloadable even with a session', async () => {
+  const env = authEnv(() => new Response('should not be served'));
+  for (const path of ['/adb/.private/dex_shell_helper.dex', '/adb/vendor/dex_shell_helper.dex', '/adb/dex_shell_helper.dex', '/adb/.private/policy.mjs']) {
+    assert.equal((await app.fetch(new Request(origin + path, { headers: authed }), env, {})).status, 404);
   }
 });
 
