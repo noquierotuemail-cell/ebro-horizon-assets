@@ -50,3 +50,18 @@ The user supplied the real DEX and expected SHA-256. Preserve Tasks 1–2.
   fallback or binary in Git. Supply a Node-only local development provider.
 - [x] Run both suite commands, syntax/ignore/diff checks, review the change,
   update documentation, commit and leave the result on the requested branch.
+
+### Task 4: physically validated platform preparation and R2 binding
+
+User correction: the external preparation validated on S700 SOP3 is
+`setprop persist.sys.sv.isl true`, immediately followed by
+`getprop persist.sys.sv.isl`; anything other than exactly true must abort.
+The property may be empty after reboot; never rely on a cached value.
+
+- [x] Add the two requested tests and observe both fail before implementation.
+- [x] Add set/read/strict comparison in desay-installer.mjs before onInvoking
+  and the DEX. Keep DEFAULT_FLAGS internal; no --flags argument.
+- [x] Configure DESAY_HELPERS → habro-desay-helpers in wrangler.jsonc.
+- [x] Document private bucket creation/binding/object upload, including the
+  exact dex_shell_helper.dex key and Wrangler --remote upload option.
+- [x] Run full verification, review, commit and push only the feature branch.

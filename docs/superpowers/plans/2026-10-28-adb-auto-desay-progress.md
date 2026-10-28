@@ -78,3 +78,26 @@ tested without a connected vehicle; documented in the delivery notes.
 Validation: expanded suite 100/100 with local DEX; clean public-copy suite
 95 passed and 5 explicitly optional private-binary tests skipped. Original
 test command also passes. Runtime module syntax and diff/ignore checks pass.
+
+## User correction: platform property and deployed binding
+
+The user supplied physical S700 SOP3 validation for the external platform
+preparation: setprop persist.sys.sv.isl true, immediately followed by getprop.
+The installer now requires exactly true before recording invocation or
+executing the DEX. No cached value is trusted after a reboot. No extra
+--flags argument is added; DEFAULT_FLAGS remains internal to the helper.
+
+RED: both requested platform-property tests failed before implementation.
+GREEN: empty initial value proceeds after set/read; empty, false, uppercase,
+extra or multi-line output and failed setprop all abort before DEX execution.
+Pre-invocation failure still cleans only this attempt's temporary directory.
+
+wrangler.jsonc now declares DESAY_HELPERS with bucket_name
+habro-desay-helpers. Delivery documentation gives exact Dashboard/CLI
+setup and object upload instructions. No Cloudflare resources were created,
+no upload/deployment was run and no private binary was added to Git/Assets.
+
+Independent review: no issues. Final suite with local private DEX: 102 passed,
+0 failed, 0 skipped. Original runner: 7 files passed. Public-copy suite:
+97 passed, 0 failed, 5 optional private-binary cases skipped. Wrangler JSON
+and binding target validated; runtime/test syntax and diff checks pass.

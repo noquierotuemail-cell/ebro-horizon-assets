@@ -63,6 +63,10 @@ export async function installWithDesay({ file, metadata, transport, signal, onSt
       return `${key}=${quote(environment[key])} `;
     }).join('');
     await checkVersion(); signal?.throwIfAborted();
+    await run('setprop persist.sys.sv.isl true');
+    const platformReady = await run('getprop persist.sys.sv.isl');
+    log('persist.sys.sv.isl: ' + platformReady.stdout + '\n');
+    if (platformReady.stdout !== 'true') throw new Error('No se ha podido confirmar la preparación del sistema. No se ha iniciado la instalación.');
     onStage('Instalando la aplicación. Mantén el cable conectado…');
     // The UI persists this intent before the command can reach Android.
     await onInvoking({ temporary });

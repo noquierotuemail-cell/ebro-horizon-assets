@@ -22,6 +22,7 @@ const properties = {
 };
 function vehicle(options = {}) {
   const calls = [], uploads = new Map(); let installed = false, connected = true;
+  let installAllowed = options.initialIsl ?? '';
   const transport = {
     current: () => connected,
     async push(blob, path) { calls.push(['push', path]); uploads.set(path, blob); },
@@ -30,7 +31,9 @@ function vehicle(options = {}) {
       const marker = /HABRO_EXIT_[a-f0-9]+/.exec(wrapped)?.[0];
       const script = wrapped.split('\nhabro_exit_status=$?')[0]; calls.push(['run', script, config]);
       let stdout = '', status = 0;
-      if (script.startsWith('getprop ')) stdout = ({ ...properties, ...options.properties })[script.slice(8)] ?? '';
+      if (script === 'setprop persist.sys.sv.isl true') { status = options.setpropFails ? 1 : 0; if (!status) installAllowed = options.islAfterSet ?? 'true'; }
+      else if (script === 'getprop persist.sys.sv.isl') stdout = installAllowed;
+      else if (script.startsWith('getprop ')) stdout = ({ ...properties, ...options.properties })[script.slice(8)] ?? '';
       else if (script === 'am get-current-user') stdout = String(options.user ?? 0);
       else if (script === 'id') stdout = options.identity ?? 'uid=2000(shell) gid=2000(shell)';
       else if (script.startsWith('test -d /system')) status = options.badEnvironment ? 1 : 0;
@@ -52,7 +55,7 @@ function vehicle(options = {}) {
       return { stdout: stdout + '\n' + (options.noMarker && script.includes('MonjiShellInstaller') ? '' : `${marker}:${status}\n`), stderr: '', exitCode: options.legacy ? null : status };
     },
   };
-  return { transport, calls, uploads, reconnect: () => { connected = true; } };
+  return { transport, calls, uploads, readIsl: () => installAllowed, reconnect: () => { connected = true; } };
 }
 const execute = (v, extra = {}) => kit.installWithDesay({ file, metadata, transport: v.transport, policy, helperProvider: async () => helper, ...extra });
 
@@ -87,6 +90,23 @@ test('Desay identity other than uid=2000(shell) is rejected', async () => { cons
 test('wrong helper hash aborts before uploading', async () => { const v = vehicle(); await assert.rejects(execute(v, { helperProvider: async () => new Blob(['x'.repeat(helper.size)]) }), /integridad/i); assert.equal(v.uploads.size, 0); });
 test('missing trusted helper policy aborts without changes', async () => { const v = vehicle(); await assert.rejects(execute(v, { policy: {} }), /auxiliar.*disponible/i); assert.equal(v.uploads.size, 0); });
 test('downgrade aborts without uploading', async () => { const v = vehicle({ existingVersion: '43' }); await assert.rejects(execute(v), /reciente|versión/i); assert.equal(v.uploads.size, 0); });
+test('empty Desay platform property is set to true and immediately verified before helper execution', async () => {
+  const v = vehicle({ initialIsl: '' }); assert.equal(v.readIsl(), '');
+  assert.equal((await execute(v)).status, 'success'); assert.equal(v.readIsl(), 'true');
+  const setIndex = v.calls.findIndex(c => c[1] === 'setprop persist.sys.sv.isl true');
+  assert(setIndex >= 0);
+  assert.equal(v.calls[setIndex + 1][1], 'getprop persist.sys.sv.isl');
+  assert(v.calls.findIndex(c => c[1]?.includes('MonjiShellInstaller')) > setIndex + 1);
+});
+test('Desay platform property must remain exactly true or helper execution is aborted', async () => {
+  for (const options of [{ islAfterSet: '' }, { islAfterSet: 'false' }, { islAfterSet: 'TRUE' }, { islAfterSet: 'true extra' }, { islAfterSet: 'true\nfalse' }, { setpropFails: true }]) {
+    const v = vehicle(options); let invoking = false;
+    await assert.rejects(execute(v, { onInvoking: () => { invoking = true; } }));
+    assert(!invoking);
+    assert(!v.calls.some(c => c[1]?.includes('MonjiShellInstaller')));
+    assert(v.calls.some(c => c[1]?.startsWith('rm -rf')));
+  }
+});
 for (const [name, opts] of [['incomplete transfer', { truncated: true }], ['corrupt remote transfer', { badRemoteHash: true }]]) test(name + ' aborts before invocation', async () => {
   const v = vehicle(opts); await assert.rejects(execute(v), /transferencia|integridad/i);
   assert(!v.calls.some(c => c[1]?.includes('MonjiShellInstaller')));

@@ -40,10 +40,16 @@ La preparación comprueba `/system`, `/data`, el ejecutable
 `<temporal>/runtime/dalvik-cache` con permisos 0700 y ejecuta con
 `ANDROID_ROOT=/system`, `ANDROID_DATA=<temporal>/runtime`, `CLASSPATH=<dex>`
 y umask 077. Las variables se aplican en el mismo shell de invocación.
-Se heredan BOOTCLASSPATH y las rutas de librerías de Android. No se cambian
-propiedades del fabricante, ajustes persistentes, usuarios ni permisos del
-sistema. El DEX revisado no contiene una preparación de propiedades Desay
-ni algoritmos OTA/VIN; no se ha inferido ninguna mutación adicional.
+Se heredan BOOTCLASSPATH y las rutas de librerías de Android. Antes de invocar
+el helper, HABRO ejecuta `setprop persist.sys.sv.isl true` e inmediatamente
+`getprop persist.sys.sv.isl`; la salida normalizada debe ser exactamente
+`true`. Si falla la orden o la lectura no coincide, aborta sin ejecutar el
+DEX ni guardar un intento de instalación incierto. Esta preparación externa
+al helper fue validada por el usuario en el S700 SOP3. Según esa validación,
+la propiedad aparece vacía tras reiniciar, por lo que se establece y comprueba
+en cada intento; no se presupone su valor ni se intenta restaurarla.
+No se cambian otros ajustes, usuarios ni permisos del sistema. No se incluyen
+algoritmos OTA/VIN en JavaScript público.
 
 El intento guarda su PID y terminación en su carpeta única. Si se pierde
 la conexión, se conserva el seguimiento mínimo en localStorage, asociado
@@ -90,11 +96,40 @@ clave fija `dex_shell_helper.dex` de un binding opcional `DESAY_HELPERS`.
 Sin binding, objeto válido o acceso al bucket devuelve 503. Otros métodos
 devuelven 405 y una sesión ausente devuelve 401. Nunca recurre a ASSETS.
 
-Configurar posteriormente `DESAY_HELPERS` como binding R2 a un bucket
-privado, sin dominio público ni r2.dev, y subir el objeto fuera de Git.
-No se crea un bucket ni se despliega nada con este cambio. La respuesta es
+`wrangler.jsonc` contiene el binding `DESAY_HELPERS` hacia el bucket
+`habro-desay-helpers`. Crear/conectar ese bucket privado y subir el objeto
+fuera de Git sigue siendo una operación de Cloudflare. No se crea un bucket
+ni se despliega nada con este cambio. La respuesta es
 `private, no-store`; el cliente usa credenciales de la sesión, mismo origen,
 sin redirecciones y vuelve a verificar el hash fijado. Límite: 16 MiB.
+
+Configuración exacta en la misma cuenta Cloudflare que el Worker
+`ebro-remoteapp-landing`:
+
+1. En R2 Object Storage, crear `habro-desay-helpers`. En Settings, mantener
+   Public Development URL (r2.dev) desactivada y no añadir Custom Domains.
+2. Subir el binario verificado a la raíz con la clave exacta
+   `dex_shell_helper.dex`, sin prefijo de carpeta.
+3. El binding de tipo R2 es `DESAY_HELPERS`, bucket `habro-desay-helpers`.
+   Se aplica al desplegar este `wrangler.jsonc`. Si se configura desde el
+   Dashboard: Workers & Pages → `ebro-remoteapp-landing` → Bindings → Add
+   binding → R2 bucket; usar esos mismos nombres y guardar/desplegar.
+4. No hacen falta API tokens R2 en el navegador ni URLs públicas/CORS del
+   bucket: el Worker accede por binding después de comprobar la sesión HABRO.
+
+Alternativa CLI, desde esta rama y con Wrangler autenticado en esa cuenta:
+
+```sh
+npx wrangler r2 bucket create habro-desay-helpers
+npx wrangler r2 object put habro-desay-helpers/dex_shell_helper.dex --file adb/.private/dex_shell_helper.dex --remote
+npx wrangler deploy --config wrangler.jsonc
+```
+
+Si el bucket ya existe, omitir su creación. `--remote` en la carga es
+necesario para subir a Cloudflare y no solo al emulador local de Wrangler.
+Estos comandos no se han ejecutado en esta sesión. Antes de cargar, verificar
+los 8568 bytes y el SHA-256 fijado arriba. El endpoint debe devolver 401 sin
+sesión; con sesión y objeto configurado debe entregar exactamente esos bytes.
 
 ## Validación reproducible
 
@@ -103,7 +138,7 @@ En este entorno Node 24, ejecutar además
 `node --test --test-isolation=none tests/*.test.mjs` para ver y ejecutar
 cada caso individual. Los tests adicionales usan un transporte Android
 simulado y ejecutan los handlers reales de UI sobre un DOM mínimo. Con la
-dependencia privada presente: **100 pruebas, 100 aprobadas, sin omitidas**.
-En una copia pública sin el DEX: **95 aprobadas y 5 omitidas expresamente**.
+dependencia privada presente: **102 pruebas, 102 aprobadas, sin omitidas**.
+En una copia pública sin el DEX: **97 aprobadas y 5 omitidas expresamente**.
 Una prueba adicional ejecuta el shell real con un sustituto local de
 app_process para comprobar variables, argumentos y archivos PID/estado.

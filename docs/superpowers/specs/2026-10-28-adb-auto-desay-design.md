@@ -38,7 +38,11 @@ y verificar tamaños y SHA-256 remotos. Revalidar versión antes de ejecutar.
 La revisión del DEX confirma MonjiShellInstaller con ruta APK y flags
 internos por defecto. Se prepara un runtime/caché propio en la carpeta del
 intento y se aplica ANDROID_ROOT/ANDROID_DATA/CLASSPATH en el mismo shell.
-No se añaden mutaciones persistentes de propiedades del fabricante.
+Antes de invocar el DEX se establece `persist.sys.sv.isl` en `true` y se
+verifica inmediatamente su lectura exacta, según la validación física del
+usuario en S700 SOP3. Si falla, se aborta antes de la invocación. Se repite
+en cada intento porque el usuario observa la propiedad vacía tras reiniciar.
+No se cambian otras propiedades del fabricante.
 Exigir terminación verificable del comando y verificar packageName,
 versionCode y pm path con `verifyInstallation`. Un texto Success no basta.
 Limpiar solo la carpeta creada por el intento cuando su estado esté
@@ -75,6 +79,7 @@ de dejar los cambios en la rama indicada.
 
 El DEX recibido coincide con 8568 bytes, formato 038 y SHA-256
 2adefeff7f1cce400996a82d651a3075fe414c4c4dc2db03609f2a87b4619b15.
-Se conserva solo como dependencia local ignorada. No se ha configurado ni
-subido a R2. No se dispone de un vehículo para validar físicamente esta
+Se conserva solo como dependencia local ignorada. El binding R2
+DESAY_HELPERS apunta en wrangler.jsonc a habro-desay-helpers; no se ha creado
+el bucket ni subido el objeto desde esta sesión. No hay un vehículo para validar esta
 integración; las pruebas usan el binario real con transporte simulado.
