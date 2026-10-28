@@ -1,0 +1,4 @@
+# Private development dependency; never commit the installation helper or policy.
+**/dex_shell_helper.dex
+**/.private/
+.superpowers/

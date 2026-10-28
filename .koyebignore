@@ -11,3 +11,9 @@ wrangler.jsonc
 # Documentation/config examples do not change the running backend.
 chatkit-backend/README.md
 chatkit-backend/.env.example
+
+# Never include local private installer dependencies in deployment contexts.
+**/dex_shell_helper.dex
+**/.private/
+docs/
+.superpowers/

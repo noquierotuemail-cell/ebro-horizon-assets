@@ -1,12 +1,15 @@
 import { quote, validPackage, devicePath, safeFileName, packagesFrom, packagePaths, normalizeShellCommand, parseStorage, formatBytes, runShell, collectBinary } from './core.mjs';
 import { inspectInstallArchive } from './install-archive.mjs';
 import { installWithSessionWriter, verifyInstallation, installationDiagnosis } from './sessionwriter.mjs';
+import { readDeviceProfile, selectInstallMethod } from './install-method.mjs';
+import { installWithDesay, verifyAndCleanDesay } from './desay-installer.mjs';
+import { loadPendingInstall, savePendingInstall, clearPendingInstall } from './pending-install.mjs';
 
 const L = window.HabroAdbLib;
 const $ = id => document.getElementById(id);
 const all = selector => [...document.querySelectorAll(selector)];
 const state = { adb: null, device: null, attempt: 0, connecting: false, apps: [], filter: 'all', selected: new Set(), user: null, currentApp: null, operation: null, command: null, screen: null, screenAttempt: 0, screenStarting: null, history: [], historyIndex: 0, filesPath: '/sdcard/Download', files: [] };
-const installer = { file: null, metadata: null, inspection: null, revision: 0, busy: false, pending: null, build: '' };
+const installer = { file: null, metadata: null, inspection: null, revision: 0, busy: false, pending: loadPendingInstall(globalThis.localStorage), build: '', profile: null };
 const SCRCPY_PATH = '/data/local/tmp/habro-scrcpy-3.3.3.jar';
 const SCRCPY_HASH = '7e70323ba7f259649dd4acce97ac4fefbae8102b2c6d91e2e7be613fd5354be0';
 const icon = name => `<i data-icon="${name}"></i>`;
@@ -121,6 +124,7 @@ async function disconnect(close = true) {
   ++state.attempt; const adb = state.adb, device = state.device;
   state.adb = null; state.device = null; state.connecting = false; state.user = null;
   installer.build = '';
+  installer.profile = null;
   state.operation?.controller.abort(new DOMException('Conexión cerrada', 'AbortError')); state.command?.abort();
   await stopScreen();
   if (close) { try { await adb?.close(); } catch {} try { await device?.raw?.close(); } catch {} }
@@ -131,16 +135,21 @@ async function disconnect(close = true) {
   activity('Conexión USB cerrada');
 }
 async function loadDeviceInfo(adb) {
-  const commands = ['getprop ro.product.model', 'getprop ro.build.version.release', 'getprop ro.build.version.sdk', 'df -h /data', 'am get-current-user', 'getprop ro.build.display.id'];
-  const values = await Promise.allSettled(commands.map(command => shell(command, adb)));
+  const values = await Promise.allSettled([readDeviceProfile(installerTransport(adb)), shell('df -h /data', adb)]);
   if (state.adb !== adb) return;
-  const get = index => values[index].status === 'fulfilled' ? values[index].value.stdout.trim() : '';
-  installer.build = get(5);
-  text('deviceName', get(0) || state.device?.name || 'Android conectado');
-  if (get(1)) text('statAndroid', 'Android ' + get(1)); if (get(2)) text('statSdk', 'API ' + get(2));
-  const storage = parseStorage(get(3)); if (storage) { text('statStorage', storage.free); text('statStorageDetail', storage.total + ' en total · ' + storage.percent + ' utilizado'); }
-  if (/^\d+$/.test(get(4))) { state.user = Number(get(4)); text('deviceMeta', `Dispositivo: ${adb.serial || 'sin número de serie'} · Usuario Android ${state.user}`); await refreshApps(); }
-  else { activity('No se ha podido identificar el usuario Android. La consola y los archivos siguen disponibles.', true); }
+  installer.profile = values[0].status === 'fulfilled' ? values[0].value : null;
+  const p = installer.profile?.properties || {};
+  installer.build = p['ro.build.display.id'] || '';
+  text('deviceName', p['ro.product.model'] || state.device?.name || 'Android conectado');
+  if (p['ro.build.version.release']) text('statAndroid', 'Android ' + p['ro.build.version.release']);
+  if (p['ro.build.version.sdk']) text('statSdk', 'API ' + p['ro.build.version.sdk']);
+  const storage = values[1].status === 'fulfilled' ? parseStorage(values[1].value.stdout) : null;
+  if (storage) { text('statStorage', storage.free); text('statStorageDetail', storage.total + ' en total · ' + storage.percent + ' utilizado'); }
+  // Detection failure blocks only automatic routing, not the existing tools.
+  const userText = installer.profile ? String(installer.profile.user) : (await shell('am get-current-user', adb).catch(() => ({ stdout: '' }))).stdout.trim();
+  if (state.adb !== adb) return;
+  if (/^\d+$/.test(userText)) { state.user = Number(userText); text('deviceMeta', `Dispositivo: ${adb.serial || 'sin número de serie'} · Usuario Android ${state.user}`); await refreshApps(); }
+  else activity('No se ha podido identificar el usuario Android. La consola y los archivos siguen disponibles.', true);
   syncControls();
 }
 async function withOperation(label, fn) {
@@ -231,16 +240,25 @@ function syncInstaller() {
   const busy = installer.busy || !!state.operation;
   $('installerConnect').innerHTML = icon(state.adb ? 'cable' : 'plug-zap') + '<span>' + (state.connecting ? 'Cancelar conexión' : state.adb ? 'Desconectar USB' : 'Conectar coche') + '</span>';
   text('installerConnection', state.adb ? 'Conexión USB autorizada' : state.connecting ? 'Selecciona el coche y acepta la autorización RSA…' : 'Sin conexión USB');
-  text('installerDeviceInfo', state.adb ? `${installer.build || 'Leyendo la versión del sistema…'}\nUsuario Android ${Number.isInteger(state.user) ? state.user : 'pendiente'}` : 'Al conectar aparecerán la versión del sistema y el usuario Android.');
+  const p = installer.profile?.properties;
+  text('installerDeviceInfo', state.adb ? `${p ? 'Android ' + p['ro.build.version.release'] + ' · API ' + p['ro.build.version.sdk'] : 'Sistema pendiente de identificar. Reconecta para volver a comprobarlo.'}\nUsuario Android ${Number.isInteger(state.user) ? state.user : 'pendiente'}` : 'Al conectar aparecerán la versión del sistema y el usuario Android.');
+  text('installerProfile', installer.profile ? JSON.stringify(installer.profile, null, 2) : 'Sin diagnóstico de sistema.');
   $('installerFile').disabled = busy; $('installerMethod').disabled = busy;
-  $('installerStart').disabled = !state.adb || !Number.isInteger(state.user) || busy || !installer.metadata || !!installer.pending;
+  $('installerStart').disabled = !state.adb || !Number.isInteger(state.user) || busy || !installer.metadata || !!installer.pending || ($('installerMethod').value === 'auto' && !installer.profile);
   $('installerPending').hidden = !installer.pending;
-  text('installerPendingText', installer.pending ? `${installer.pending.metadata.packageName} · versión ${installer.pending.metadata.versionCode}\nComprueba este intento antes de iniciar otro. Cerrar el seguimiento solo descarta este aviso; no detiene una instalación de Android.` : '');
+  text('installerPendingText', installer.pending ? `${installer.pending.metadata.packageName} · versión ${installer.pending.metadata.versionCode}\nComprueba este intento antes de iniciar otro.${installer.pending.method === 'desay' ? ' El seguimiento se conserva hasta verificar el estado y la terminación del intento anterior.' : ' Cerrar el seguimiento solo descarta este aviso; no detiene una instalación de Android.'}` : '');
   $('installerVerify').disabled = !state.adb || busy || !installer.pending;
-  $('installerDismiss').disabled = busy;
+  $('installerDismiss').disabled = busy || installer.pending?.method === 'desay';
   $('openEngineering').disabled = !state.adb || busy;
   $('engineeringCode').disabled = busy;
-  text('installerMethodHint', $('installerMethod').value === 'sessionwriter' ? 'Para ROM SOP6 / SOP7 y usuario Android 0. Comprueba el paquete, la versión y la transferencia antes de instalar; el resultado se verifica en el coche.' : 'Instalación Android habitual de un APK para el usuario activo. Si el coche devuelve «Restriction prevents installing», puedes elegir el método SOP6 / SOP7.');
+  const hints = { auto: 'HABRO elige el método compatible con el sistema y el archivo. El resultado se comprueba en el coche.', standard: 'Opción avanzada: instalación Android habitual de un APK para el usuario activo.', sessionwriter: 'Opción avanzada: SessionWriter actual para APK o XAPK en ROM SOP6 / SOP7 y usuario Android 0.', desay: 'Opción avanzada: auxiliar DesaySV/G7PH para APK y usuario Android 0. Requiere el binario privado validado.' };
+  text('installerMethodHint', hints[$('installerMethod').value]);
+}
+function clearInstallerResult() {
+  $('installerResult').hidden = true; $('installerResult').removeAttribute('data-status');
+  text('installerResultTitle', ''); text('installerResultText', ''); text('installerLog', '');
+  $('installerDiagnostics').hidden = true; $('installerDiagnostics').open = false;
+  // Pending verification belongs to the device attempt, not the selected method.
 }
 function installerResult(status, title, message, diagnostic = '') {
   $('installerResult').hidden = false; $('installerResult').dataset.status = status;
@@ -250,9 +268,8 @@ function installerResult(status, title, message, diagnostic = '') {
 async function inspectInstallerFile(file) {
   installer.inspection?.abort(); installer.inspection = new AbortController();
   const revision = ++installer.revision, signal = installer.inspection.signal;
-  installer.file = file || null; installer.metadata = null; $('installerResult').hidden = true;
+  installer.file = file || null; installer.metadata = null; clearInstallerResult();
   if (!file) { text('installerFileInfo', 'Selecciona un archivo APK o XAPK de tu equipo.'); syncControls(); return; }
-  if (/\.xapk$/i.test(file.name)) $('installerMethod').value = 'sessionwriter';
   text('installerFileInfo', 'Comprobando el archivo en tu equipo…'); syncControls();
   try {
     const metadata = await inspectInstallArchive(file, { signal });
@@ -273,12 +290,13 @@ async function withInstallerLock(adb, fn) {
 }
 async function startGuidedInstall() {
   const adb = requireAdb(), user = activeUser(), file = installer.file, metadata = installer.metadata;
-  const method = $('installerMethod').value;
+  const automatic = $('installerMethod').value === 'auto';
   if (installer.busy || state.operation) return;
+  installer.pending ||= loadPendingInstall(globalThis.localStorage);
   if (installer.pending) throw new Error('Comprueba el intento pendiente o cierra su seguimiento antes de iniciar otro.');
   if (state.command) throw new Error('Detén el comando de consola antes de iniciar la instalación.');
   if (!file || !metadata) throw new Error('Selecciona un archivo válido y espera a que termine su comprobación.');
-  if (method === 'standard' && metadata.format !== 'apk') throw new Error('Para un XAPK elige el método SOP6 / SOP7.');
+  const method = selectInstallMethod(metadata.format, installer.profile, $('installerMethod').value);
   installer.busy = true; syncControls();
   let transcript = '', started = false;
   try {
@@ -290,15 +308,22 @@ async function startGuidedInstall() {
         installer.pending = null;
         installerResult('success', 'Aplicación instalada y verificada', `${metadata.packageName}\nVersión ${metadata.versionCode} · Usuario Android ${user}`);
       } else {
-        const details = `${file.name} · ${formatBytes(file.size)}\n${metadata.packageName} · versión ${metadata.versionCode}\n\nMétodo SOP6 / SOP7 para usuario Android 0. La app existente podrá actualizarse.${metadata.obbCount ? ` El XAPK puede sustituir ${metadata.obbCount} ${metadata.obbCount === 1 ? 'archivo OBB' : 'archivos OBB'} de esta aplicación.` : ''}\nMantén el cable conectado hasta recibir el resultado.`;
+        const details = `${file.name} · ${formatBytes(file.size)}\n${metadata.packageName} · versión ${metadata.versionCode}\n\nSe instalará para el usuario Android 0. La app existente podrá actualizarse.${metadata.obbCount ? ` El XAPK puede sustituir ${metadata.obbCount} ${metadata.obbCount === 1 ? 'archivo OBB' : 'archivos OBB'} de esta aplicación.` : ''}\nMantén el cable conectado hasta recibir el resultado.`;
         if (!await confirmAction('Instalar esta aplicación', details, 'Instalar')) return;
         assertSession(adb); started = true;
         installerResult('progress', 'Preparando la instalación', 'Comprobando el sistema…');
-        const result = await withOperation('Preparando instalación SOP6 / SOP7', (session, signal) => installWithSessionWriter({
+        const install = method === 'desay' ? installWithDesay : installWithSessionWriter;
+        const result = await withOperation('Preparando instalación', (session, signal) => install({
           file, metadata, transport: installerTransport(session), signal,
-          onStage: label => { progress(label); text('installerResultText', label); },
+          onInvoking: ({ temporary }) => {
+            if (loadPendingInstall(globalThis.localStorage)) throw new Error('Hay una instalación anterior pendiente de comprobar.');
+            const pending = { metadata, user: 0, serial: adb.serial, method: 'desay', temporary };
+            savePendingInstall(pending, globalThis.localStorage); installer.pending = pending;
+          },
+          onStage: label => { const message = automatic ? label.replace(/SOP6 \/ SOP7|DesaySV|Desay|Monji|app_process/gi, 'del sistema') : label; progress(message); text('installerResultText', message); },
           onLog: chunk => { transcript = (transcript + chunk).slice(-64000); },
         }));
+        if (method === 'desay') { clearPendingInstall(globalThis.localStorage); installer.pending = null; }
         installerResult(result.status === 'partial' ? 'warning' : 'success', result.status === 'partial' ? 'App instalada; faltan datos OBB' : 'Aplicación instalada y verificada', `${result.packageName}\nVersión ${result.versionCode} · Usuario Android 0${result.obbSkipped.length ? '\nNo se pudieron copiar estos archivos:\n' + result.obbSkipped.join('\n') : ''}${result.cleanupPending ? '\nLa instalación está verificada, pero quedan archivos temporales por limpiar.' : ''}`, result.diagnostic);
         activity(`${result.status === 'partial' ? 'Instalación con OBB pendientes' : 'Instalación verificada'} · ${result.packageName} · versión ${result.versionCode}`);
         if (state.adb === adb) await refreshApps().catch(() => activity('La instalación está verificada. Actualiza la lista de aplicaciones cuando vuelva la conexión.', true));
@@ -307,9 +332,10 @@ async function startGuidedInstall() {
     });
   } catch (error) {
     const uncertain = error.uncertain || (method === 'standard' && started);
-    if (uncertain) installer.pending = { metadata, user: method === 'sessionwriter' ? 0 : user, serial: adb.serial };
+    if (uncertain) installer.pending = { metadata, user: method === 'standard' ? user : 0, serial: adb.serial, method, temporary: error.temporary };
     const cancelled = error.name === 'AbortError' && !uncertain;
-    const message = uncertain ? 'Android puede haber completado la instalación. Reconecta y pulsa «Comprobar instalación» antes de reintentar.\n' + error.message : (installationDiagnosis([error.message, error.stdout, error.stderr].join('\n')) || error.message);
+    const reason = automatic ? 'No se ha podido completar la instalación con el método compatible. Consulta el diagnóstico avanzado para ver el motivo.' : (installationDiagnosis([error.message, error.stdout, error.stderr].join('\n')) || error.message);
+    const message = uncertain ? 'Android puede haber completado la instalación. Reconecta y pulsa «Comprobar instalación» antes de reintentar.' : reason;
     installerResult(uncertain ? 'warning' : cancelled ? 'progress' : 'error', uncertain ? 'Resultado pendiente de comprobar' : cancelled ? 'Preparación cancelada' : 'No se ha completado la instalación', message, error.diagnostic || transcript || error.message);
     if (!cancelled) activity('Instalador · ' + message, true);
   } finally { installer.busy = false; syncControls(); }
@@ -319,9 +345,11 @@ async function verifyPendingInstall() {
   if (pending.serial && adb.serial !== pending.serial) throw new Error('Conecta el mismo dispositivo para comprobar esta instalación.');
   installer.busy = true; syncControls();
   try {
-    const result = await withOperation('Comprobando instalación', () => verifyInstallation(installerTransport(adb), pending.metadata, pending.user));
+    const result = await withOperation('Comprobando instalación', () => pending.method === 'desay' ? verifyAndCleanDesay(installerTransport(adb), pending.metadata, pending.temporary) : verifyInstallation(installerTransport(adb), pending.metadata, pending.user));
+    if (pending.method === 'desay') clearPendingInstall(globalThis.localStorage);
     installer.pending = null;
-    installerResult(pending.metadata.obbCount ? 'warning' : 'success', 'Versión confirmada en el coche', `${result.packageName}\nVersión ${result.versionCode} · Usuario Android ${pending.user}${pending.metadata.obbCount ? '\nLa aplicación y sus partes están presentes. Esta comprobación no verifica los archivos OBB.' : ''}`);
+    if (result.status === 'failed') installerResult('error', 'No se ha instalado la versión elegida', `El intento anterior ha terminado. ${result.actualVersion === null ? 'La aplicación no aparece instalada.' : 'Versión instalada: ' + result.actualVersion + '.'} Puedes revisar el diagnóstico y volver a intentarlo.${result.cleanupPending ? '\nQuedan temporales propios por limpiar.' : ''}`);
+    else installerResult(pending.metadata.obbCount ? 'warning' : 'success', pending.metadata.obbCount ? 'Versión confirmada en el coche' : 'Aplicación instalada y verificada', `${result.packageName}\nVersión ${result.versionCode} · Usuario Android ${pending.user}${pending.metadata.obbCount ? '\nLa aplicación y sus partes están presentes. Esta comprobación no verifica los archivos OBB.' : ''}${result.cleanupPending ? '\nLa instalación está verificada, pero quedan archivos temporales por limpiar.' : ''}`);
     await refreshApps().catch(() => {});
   } catch (error) { installerResult('warning', 'La instalación sigue sin confirmar', error.message + '\nRevisa el diagnóstico y la lista de aplicaciones antes de volver a instalar.', $('installerLog').textContent + '\nComprobación posterior: ' + error.message); }
   finally { installer.busy = false; syncControls(); }
@@ -336,12 +364,15 @@ async function openEngineering() {
   });
 }
 async function installFiles(files) {
+  installer.pending ||= loadPendingInstall(globalThis.localStorage);
+  if (installer.pending) throw new Error('Comprueba la instalación anterior pendiente antes de iniciar otra.');
   if (!files.length) return false; const adb = requireAdb(); const user = activeUser();
   if (files.some(file => !file.name.toLowerCase().endsWith('.apk'))) throw new Error('Selecciona archivos APK.');
   let split = false;
   if (files.length > 1) split = await confirmAction('¿Son partes de una misma aplicación?', 'Elige «Instalar juntas» si son base.apk y sus split APK. Elige «Por separado» si son aplicaciones distintas.', 'Instalar juntas', 'Por separado');
   if (!await confirmAction('Instalar aplicaciones en el coche', files.map(f => `${f.name} · ${formatBytes(f.size)}`).join('\n') + `\n\nSe instalarán para el usuario Android ${user}. Las aplicaciones existentes podrán actualizarse.`, 'Instalar')) return false;
   assertSession(adb);
+  if (installer.pending || loadPendingInstall(globalThis.localStorage)) throw new Error('Comprueba la instalación anterior pendiente antes de iniciar otra.');
   await withOperation('Instalando APK', async (session, signal) => {
     const temporary = '/data/local/tmp/habro-install-' + crypto.randomUUID(); const paths = []; let installSession = null, commandRunning = false, installationInvoked = false;
     try {
@@ -515,10 +546,10 @@ document.addEventListener('click', event => {
 $('connectButton').onclick = () => { toggleConnection().catch(report); }; $('heroConnect').onclick = $('connectButton').onclick;
 $('installerConnect').onclick = $('connectButton').onclick;
 $('installerFile').onchange = event => invoke(() => inspectInstallerFile(event.target.files?.[0]));
-$('installerMethod').onchange = syncControls;
+$('installerMethod').onchange = () => { clearInstallerResult(); syncControls(); };
 $('installerStart').onclick = () => invoke(startGuidedInstall);
 $('installerVerify').onclick = () => invoke(verifyPendingInstall);
-$('installerDismiss').onclick = () => { installer.pending = null; syncControls(); };
+$('installerDismiss').onclick = () => { if (installer.pending?.method === 'desay') return; installer.pending = null; syncControls(); };
 $('installerSaveLog').onclick = () => downloadBlob(new Blob([$('installerLog').textContent], { type: 'text/plain;charset=utf-8' }), 'HABRO-instalacion-registro.txt');
 $('openEngineering').onclick = () => invoke(openEngineering);
 $('engineeringCode').oninput = () => $('engineeringCode').setCustomValidity('');
@@ -550,7 +581,7 @@ $('fullscreenButton').onclick = () => invoke(async () => { if (document.fullscre
 $('remoteTextForm').onsubmit = event => { event.preventDefault(); invoke(async () => { const adb = requireAdb(); const value = $('remoteText').value; if (!value) return; if (state.screen?.client.controller) await state.screen.client.controller.injectText(value); else { if (/[^\x20-\x7e]/.test(value) || value.includes('%s')) throw new Error('El teclado ADB de este modo admite texto latino sin acentos.'); await shell('input text ' + quote(value.replaceAll(' ', '%s')), adb); } $('remoteText').value = ''; }); };
 window.addEventListener('hashchange', () => showView(location.hash.slice(1)));
 window.addEventListener('pagehide', () => { state.operation?.controller.abort(); state.command?.abort(); void state.screen?.client.close().catch(() => {}); void state.adb?.close().catch(() => {}); });
-window.addEventListener('pagehide', () => { installer.inspection?.abort(); ++installer.revision; installer.file = installer.metadata = installer.pending = null; $('installerFile').value = ''; $('engineeringCode').value = ''; });
+window.addEventListener('pagehide', () => { installer.inspection?.abort(); ++installer.revision; installer.file = installer.metadata = null; $('installerFile').value = ''; $('engineeringCode').value = ''; });
 document.addEventListener('visibilitychange', () => { if (document.hidden && (state.screen || state.screenStarting !== null)) invoke(stopScreen); });
 let theme = 'light'; try { theme = localStorage.getItem('habro-adb-theme') || 'light'; } catch {} setTheme(theme === 'dark' ? 'dark' : 'light');
 compatibility(); syncControls(); showView(location.hash.slice(1));

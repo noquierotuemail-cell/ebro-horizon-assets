@@ -13,7 +13,7 @@ function failure(message, fields = {}) { return Object.assign(new Error(message)
 
 // The nonce also gives legacy ADB a real shell completion status. A closed
 // socket, a partial success line, or `exitCode: null` is never completion proof.
-async function command(transport, script, options = {}) {
+export async function command(transport, script, options = {}) {
   if (!transport.current()) throw failure('La conexión USB ha cambiado. Vuelve a conectar el coche.');
   options.signal?.throwIfAborted();
   const marker = 'HABRO_EXIT_' + nonce();
