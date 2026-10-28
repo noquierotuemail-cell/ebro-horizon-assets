@@ -1,5 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile, mkdtemp, writeFile, rm, stat } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { quote } from '../adb/core.mjs';
 const methods = await import('../adb/install-method.mjs').catch(e => { if (e.code !== 'ERR_MODULE_NOT_FOUND') throw e; return {}; });
 const kit = await import('../adb/desay-installer.mjs').catch(e => { if (e.code !== 'ERR_MODULE_NOT_FOUND') throw e; return {}; });
 const providers = await import('../adb/desay-helper.mjs').catch(e => { if (e.code !== 'ERR_MODULE_NOT_FOUND') throw e; return {}; });
@@ -27,6 +33,8 @@ function vehicle(options = {}) {
       if (script.startsWith('getprop ')) stdout = ({ ...properties, ...options.properties })[script.slice(8)] ?? '';
       else if (script === 'am get-current-user') stdout = String(options.user ?? 0);
       else if (script === 'id') stdout = options.identity ?? 'uid=2000(shell) gid=2000(shell)';
+      else if (script.startsWith('test -d /system')) status = options.badEnvironment ? 1 : 0;
+      else if (script.startsWith('mkdir -m 700') && script.includes('/runtime')) status = options.badRuntime ? 1 : 0;
       else if (script.startsWith('if [ -f ')) stdout = options.running ? 'running' : options.unknownProcess ? 'unknown' : 'stopped';
       else if (script.startsWith('pm list packages')) {
         const version = installed ? (options.finalVersion ?? '42') : options.existingVersion;
@@ -77,7 +85,7 @@ test('missing properties on unknown Android block automatic routing', async () =
 test('Desay user other than zero is rejected', async () => { const v = vehicle({ user: 10 }); await assert.rejects(execute(v), /usuario Android 0/i); assert.equal(v.uploads.size, 0); });
 test('Desay identity other than uid=2000(shell) is rejected', async () => { const v = vehicle({ identity: 'uid=0(root)' }); await assert.rejects(execute(v), /shell/i); assert.equal(v.uploads.size, 0); });
 test('wrong helper hash aborts before uploading', async () => { const v = vehicle(); await assert.rejects(execute(v, { helperProvider: async () => new Blob(['x'.repeat(helper.size)]) }), /integridad/i); assert.equal(v.uploads.size, 0); });
-test('missing trusted helper policy aborts without changes', async () => { const v = vehicle(); await assert.rejects(execute(v, { policy: undefined }), /auxiliar.*disponible/i); assert.equal(v.uploads.size, 0); });
+test('missing trusted helper policy aborts without changes', async () => { const v = vehicle(); await assert.rejects(execute(v, { policy: {} }), /auxiliar.*disponible/i); assert.equal(v.uploads.size, 0); });
 test('downgrade aborts without uploading', async () => { const v = vehicle({ existingVersion: '43' }); await assert.rejects(execute(v), /reciente|versión/i); assert.equal(v.uploads.size, 0); });
 for (const [name, opts] of [['incomplete transfer', { truncated: true }], ['corrupt remote transfer', { badRemoteHash: true }]]) test(name + ' aborts before invocation', async () => {
   const v = vehicle(opts); await assert.rejects(execute(v), /transferencia|integridad/i);
@@ -138,5 +146,74 @@ test('helper provider is authenticated and refuses redirects', async () => {
 });
 test('helper provider rejects corrupt bytes and unavailable policy', async () => {
   await assert.rejects(providers.loadDesayHelper({ policy, fetchImpl: async () => new Response(new Uint8Array(helper.size)) }), /integridad/i);
-  let fetched = false; await assert.rejects(providers.loadDesayHelper({ fetchImpl: async () => { fetched = true; } }), /disponible/i); assert.equal(fetched, false);
+  let fetched = false; await assert.rejects(providers.loadDesayHelper({ policy: {}, fetchImpl: async () => { fetched = true; } }), /disponible/i); assert.equal(fetched, false);
+});
+
+test('production policy rejects a same-size counterfeit before uploads', async () => {
+  const v = vehicle();
+  await assert.rejects(kit.installWithDesay({ file, metadata, transport: v.transport, helperProvider: async () => new Blob([new Uint8Array(8568)]) }), /integridad/i);
+  assert.equal(v.uploads.size, 0);
+});
+test('production provider fails closed for unavailable private delivery', async () => {
+  let fetched = false;
+  await assert.rejects(providers.loadDesayHelper({ fetchImpl: async () => { fetched = true; return new Response(null, { status: 503 }); } }), /sesión protegida/i);
+  assert.equal(fetched, true);
+});
+test('invocation shell applies runtime variables and writes numeric process evidence', async () => {
+  const v = vehicle();
+  const result = await execute(v, { policy: { ...policy, prepare: providers.DESAY_HELPER_POLICY.prepare } });
+  const invocation = v.calls.find(c => c[1]?.includes('MonjiShellInstaller'))[1];
+  const local = await mkdtemp(join(tmpdir(), 'habro runtime '));
+  try {
+    const runner = join(local, 'fake app_process');
+    await writeFile(runner, `#!/bin/sh\nprintf '%s\\n' "$ANDROID_ROOT" "$ANDROID_DATA" "$CLASSPATH" "$BOOTCLASSPATH" "$LD_LIBRARY_PATH" "$@" > ${quote(join(local, 'observed'))}\nprintf 'Success\\n'\n`, { mode: 0o700 });
+    // Replace only the external Android executable and remote filesystem root.
+    // Execute HABRO's real generated shell rather than mocking printf/wait/env.
+    const script = invocation.replace('/system/bin/app_process', quote(runner)).replaceAll(result.temporary, local);
+    await promisify(execFile)('sh', ['-c', script], { env: { ...process.env, BOOTCLASSPATH: 'inherited-boot', LD_LIBRARY_PATH: 'inherited-libraries' } });
+    assert.match(await readFile(join(local, 'helper.pid'), 'utf8'), /^\d+\n$/);
+    assert.equal(await readFile(join(local, 'helper.exit'), 'utf8'), '0\n');
+    assert.equal((await stat(join(local, 'helper.pid'))).mode & 0o777, 0o600);
+    assert.deepEqual((await readFile(join(local, 'observed'), 'utf8')).trim().split('\n'), [
+      '/system', local + '/runtime', local + '/dex_shell_helper.dex', 'inherited-boot', 'inherited-libraries', '/data/local/tmp', 'MonjiShellInstaller', local + '/application.apk',
+    ]);
+  } finally { await rm(local, { recursive: true, force: true }); }
+});
+
+let privateDex;
+try { privateDex = await readFile(process.env.HABRO_DESAY_HELPER_PATH || new URL('../adb/.private/dex_shell_helper.dex', import.meta.url)); }
+catch (error) { if (error.code !== 'ENOENT' || process.env.HABRO_DESAY_HELPER_PATH) throw error; }
+
+test('local private DEX passes the production policy and authenticated provider', { skip: !privateDex && 'Private DEX is intentionally not committed' }, async () => {
+  const blob = await providers.loadDesayHelper({ fetchImpl: async () => new Response(privateDex) });
+  assert.equal(blob.size, 8568);
+  assert.equal(await hash(blob), '2adefeff7f1cce400996a82d651a3075fe414c4c4dc2db03609f2a87b4619b15');
+  assert.equal(new TextDecoder().decode((await blob.arrayBuffer()).slice(0, 8)), 'dex\n038\0');
+});
+test('default production installer prepares private runtime and verifies the real helper installation', { skip: !privateDex && 'Private DEX is intentionally not committed' }, async () => {
+  const v = vehicle({ output: 'monji: session=123 flags=0x116\nmonji: wrote 11 bytes\nSuccess\n' });
+  const result = await kit.installWithDesay({ file, metadata, transport: v.transport, helperProvider: async () => new Blob([privateDex]) });
+  assert.equal(result.status, 'success');
+  const checkIndex = v.calls.findIndex(c => c[1]?.startsWith('test -d /system'));
+  const prepareIndex = v.calls.findIndex(c => c[1]?.startsWith('mkdir -m 700') && c[1].includes('/runtime'));
+  const invokeIndex = v.calls.findIndex(c => c[1]?.includes('MonjiShellInstaller'));
+  assert(checkIndex >= 0 && prepareIndex > checkIndex && invokeIndex > prepareIndex);
+  const invocation = v.calls[invokeIndex][1];
+  assert.match(invocation, /ANDROID_ROOT='\/system'/);
+  assert.match(invocation, /ANDROID_DATA='\/data\/local\/tmp\/habro-desay-[a-f0-9-]+\/runtime'/);
+  assert.match(invocation, /CLASSPATH='[^']+\/dex_shell_helper\.dex' \/system\/bin\/app_process \/data\/local\/tmp MonjiShellInstaller '[^']+\/application\.apk'/);
+  assert(!invocation.includes('--flags')); // Use the reviewed helper defaults, never enable downgrade.
+  assert(!invocation.includes('BOOTCLASSPATH='));
+  assert(v.calls.some(c => c[1]?.startsWith('pm path --user 0')));
+});
+for (const options of [{ badEnvironment: true }, { badRuntime: true }]) test('runtime preparation failure prevents helper invocation: ' + Object.keys(options)[0], { skip: !privateDex && 'Private DEX is intentionally not committed' }, async () => {
+  const v = vehicle(options);
+  await assert.rejects(kit.installWithDesay({ file, metadata, transport: v.transport, helperProvider: async () => new Blob([privateDex]) }));
+  assert(!v.calls.some(c => c[1]?.includes('MonjiShellInstaller')));
+  assert(v.calls.some(c => c[1]?.startsWith('rm -rf')));
+});
+test('Node-only local development provider validates the private dependency', { skip: !privateDex && 'Private DEX is intentionally not committed' }, async () => {
+  const { loadLocalDesayHelper } = await import('../tools/desay-helper-local.mjs');
+  const blob = await loadLocalDesayHelper({ path: process.env.HABRO_DESAY_HELPER_PATH });
+  assert.equal(await hash(blob), '2adefeff7f1cce400996a82d651a3075fe414c4c4dc2db03609f2a87b4619b15');
 });

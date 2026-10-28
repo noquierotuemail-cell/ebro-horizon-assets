@@ -1,8 +1,19 @@
-import { collectBinary } from './core.mjs';
+import { collectBinary, quote } from './core.mjs';
 
-// Deployment trust anchor. Deliberately unavailable until the actual private DEX
-// and its preparation contract are reviewed. Never trust a hash from the download.
-export const DESAY_HELPER_POLICY = Object.freeze({ sha256: null, size: null, prepare: null });
+// Verified user-supplied DEX 038. Pin independently of the delivery endpoint;
+// the binary remains a private dependency, never a bundled/static asset.
+export const DESAY_HELPER_POLICY = Object.freeze({
+  sha256: '2adefeff7f1cce400996a82d651a3075fe414c4c4dc2db03609f2a87b4619b15',
+  size: 8568,
+  async prepare({ run, temporary, apkPath, dexPath }) {
+    await run(`test -d /system && test -d /data && test -x /system/bin/app_process && test -r ${quote(apkPath)} && test -r ${quote(dexPath)}`);
+    // app_process/ART gets its own writable data/cache, scoped to this attempt.
+    // Keep the vehicle's inherited boot classpath and native library settings.
+    const runtime = temporary + '/runtime';
+    await run(`mkdir -m 700 ${quote(runtime)} ${quote(runtime + '/dalvik-cache')}`);
+    return { ANDROID_ROOT: '/system', ANDROID_DATA: runtime };
+  },
+});
 
 export function requireHelperPolicy(policy) {
   if (!policy || !/^[a-f0-9]{64}$/.test(policy.sha256 || '') || !Number.isSafeInteger(policy.size) || policy.size <= 0 || policy.size > 16 * 1024 * 1024 || typeof policy.prepare !== 'function') {

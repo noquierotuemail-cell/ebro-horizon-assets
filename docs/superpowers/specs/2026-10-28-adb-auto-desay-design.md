@@ -1,6 +1,7 @@
 # Instalación automática HABRO ADB
 
-Estado: diseño aprobado por el usuario; ejecución real pendiente del binario privado.
+Estado: diseño aprobado. Binario privado recibido y verificado; integración
+completada con dependencia local y suministro autenticado posterior.
 
 ## Objetivo y alcance
 
@@ -34,8 +35,10 @@ un SHA-256 fijado a partir del adjunto de confianza. Crear con mkdir una
 carpeta única bajo /data/local/tmp, transferir ambos archivos mediante Sync
 y verificar tamaños y SHA-256 remotos. Revalidar versión antes de ejecutar.
 
-La preparación exacta del entorno y los argumentos de MonjiShellInstaller
-se determinarán con el DEX y su contrato validado; no se inventarán.
+La revisión del DEX confirma MonjiShellInstaller con ruta APK y flags
+internos por defecto. Se prepara un runtime/caché propio en la carpeta del
+intento y se aplica ANDROID_ROOT/ANDROID_DATA/CLASSPATH en el mismo shell.
+No se añaden mutaciones persistentes de propiedades del fabricante.
 Exigir terminación verificable del comando y verificar packageName,
 versionCode y pm path con `verifyInstallation`. Un texto Success no basta.
 Limpiar solo la carpeta creada por el intento cuando su estado esté
@@ -70,5 +73,8 @@ de dejar los cambios en la rama indicada.
 
 ## Pendiente
 
-No hay adjunto DEX accesible en esta conversación ni en el workspace.
-Hace falta para fijar su hash y revisar su contrato de ejecución.
+El DEX recibido coincide con 8568 bytes, formato 038 y SHA-256
+2adefeff7f1cce400996a82d651a3075fe414c4c4dc2db03609f2a87b4619b15.
+Se conserva solo como dependencia local ignorada. No se ha configurado ni
+subido a R2. No se dispone de un vehículo para validar físicamente esta
+integración; las pruebas usan el binario real con transporte simulado.

@@ -56,16 +56,20 @@ export async function installWithDesay({ file, metadata, transport, signal, onSt
       if (remote.stdout.trim().split(/\s+/)[0] !== expectedHash) throw new Error('La integridad de la transferencia no coincide.');
     }
     onStage('Preparando la instalación…');
-    // A trusted deployment supplies this hook only after reviewing the real DEX.
-    // No device-specific settings or unvalidated preparation are guessed here.
-    await policy.prepare({ run, temporary, apkPath, dexPath, signal });
+    const environment = await policy.prepare({ run, temporary, apkPath, dexPath, signal });
+    // Apply assignments in the invocation shell, not a previous short-lived one.
+    const environmentPrefix = ['ANDROID_ROOT', 'ANDROID_DATA'].filter(key => environment?.[key] !== undefined).map(key => {
+      if (typeof environment[key] !== 'string') throw new Error('El entorno del auxiliar no es válido.');
+      return `${key}=${quote(environment[key])} `;
+    }).join('');
     await checkVersion(); signal?.throwIfAborted();
     onStage('Instalando la aplicación. Mantén el cable conectado…');
     // The UI persists this intent before the command can reach Android.
     await onInvoking({ temporary });
     invoked = true;
     // Cancellation/closing a shell is not rollback. Always verify after execution.
-    const execution = await command(transport, `CLASSPATH=${quote(dexPath)} app_process /data/local/tmp MonjiShellInstaller ${quote(apkPath)} &
+    const execution = await command(transport, `umask 077
+${environmentPrefix}CLASSPATH=${quote(dexPath)} /system/bin/app_process /data/local/tmp MonjiShellInstaller ${quote(apkPath)} &
 habro_install_pid=$!
 printf '%s\\n' "$habro_install_pid" > ${quote(temporary + '/helper.pid')}
 wait "$habro_install_pid"

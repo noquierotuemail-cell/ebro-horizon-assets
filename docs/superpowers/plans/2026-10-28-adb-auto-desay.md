@@ -30,3 +30,23 @@ Missing detection properties must not silently select standard. Disconnect must 
 - [x] Ignore private development helpers in Git, asset and deployment config; reserve authenticated API delivery, with no public static fallback.
 - [x] Document local helper provisioning and its blocked production status.
 - [x] Run full suite, syntax checks, diff checks and DEX exclusion checks. Review whole diff and commit on the requested branch.
+
+### Task 3: finish the verified private helper integration
+
+The user supplied the real DEX and expected SHA-256. Preserve Tasks 1–2.
+
+- [x] Verify attached bytes before analysis: 8568 bytes, DEX 038,
+  SHA-256 2adefeff7f1cce400996a82d651a3075fe414c4c4dc2db03609f2a87b4619b15.
+- [x] Store bytes only in ignored adb/.private/dex_shell_helper.dex; review
+  bytecode privately to confirm MonjiShellInstaller <apk> and default flags.
+- [x] Add failing tests for production trust policy with actual private bytes,
+  corrupt/missing delivery, preparation/environment failure and real helper
+  output; keep the existing simulated regression tests.
+- [x] Replace the null policy with the verified size/hash and Android runtime
+  preparation. The DEX does not reference vendor properties or OTA/VIN codes;
+  do not invent persistent vendor mutations. Use per-attempt writable runtime
+  storage and preserve Android's inherited boot classpath/library configuration.
+- [x] Keep the provider on the authenticated private endpoint, with no static
+  fallback or binary in Git. Supply a Node-only local development provider.
+- [x] Run both suite commands, syntax/ignore/diff checks, review the change,
+  update documentation, commit and leave the result on the requested branch.

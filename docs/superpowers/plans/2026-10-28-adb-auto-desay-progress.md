@@ -44,3 +44,37 @@ or added. No physical vehicle validation possible without the actual helper.
 Final original runner: 7 test files passed. Syntax checks: 9 modified/new
 runtime modules passed. git diff --check passed. Private helper ignore rules
 verified with git check-ignore; git ls-files found no dex_shell_helper.dex.
+
+## Continuation with the verified attachment
+
+Task 3: complete. User supplied 8568-byte Dalvik DEX 038 with expected
+SHA-256 2adefeff7f1cce400996a82d651a3075fe414c4c4dc2db03609f2a87b4619b15.
+Verified exact size/hash/magic plus internal Adler-32 checksum and SHA-1
+signature before private bytecode inspection or local provisioning.
+
+Replaced the unavailable policy with the independently pinned size/hash.
+The reviewed helper accepts the APK path and uses PackageInstaller;
+no vendor-property preparation or OTA/VIN algorithms occur in the DEX.
+Preparation checks the Android runtime/files, creates a private per-attempt
+runtime/dalvik-cache, and returns ANDROID_ROOT/ANDROID_DATA for the invocation
+shell. Boot classpath and native library environment remain inherited.
+
+The DEX is stored only at ignored adb/.private/dex_shell_helper.dex (0600).
+The Node-only local adapter validates against the same pinned production
+policy. Tools are excluded from assets/deployments. No private bytecode,
+decompiled source or binary encoding is committed. No R2 upload/deploy.
+
+RED: seven production-policy/preparation/local-provider tests failed against
+the provisional implementation. GREEN: those cases pass with the actual
+private dependency. Existing synthetic security/regression cases still pass.
+An additional integration test executes the real generated shell with a
+local external-executable substitute; verifies runtime assignments,
+inherited variables, positional arguments, numeric PID/exit and umask.
+
+Independent review: no critical/important findings. Minor checklist status
+was updated. Physical ART startup with the private data directory is not
+tested without a connected vehicle; documented in the delivery notes.
+
+Validation: expanded suite 100/100 with local DEX; clean public-copy suite
+95 passed and 5 explicitly optional private-binary tests skipped. Original
+test command also passes. Runtime module syntax and diff/ignore checks pass.
