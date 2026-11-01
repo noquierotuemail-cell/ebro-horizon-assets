@@ -2,6 +2,10 @@
 const paths = new Set([
   "/adb/app.js",
   "/adb/assets/habro-logo.svg",
+  "/adb/assets/ota-10-toques.mp4",
+  "/adb/assets/ota-9-toques-adb.mp4",
+  "/adb/assets/ota-10-toques.jpg",
+  "/adb/assets/ota-9-toques-adb.jpg",
   "/adb/ayuda.css",
   "/adb/ayuda.html",
   "/adb/codigo.css",
@@ -50,6 +54,8 @@ export async function serveAdb(request, env) {
   headers.set('Content-Security-Policy', csp);
   headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
   if (original.ok && /\.(?:mjs|js)$/.test(url.pathname)) headers.set('Content-Type', 'application/javascript; charset=utf-8');
+  if (original.ok && url.pathname.endsWith('.mp4')) headers.set('Content-Type', 'video/mp4');
+  if (original.ok && url.pathname.endsWith('.jpg')) headers.set('Content-Type', 'image/jpeg');
   headers.set('Cache-Control', 'private, no-store');
   return new Response(original.body, { status: original.status, statusText: original.statusText, headers });
 }

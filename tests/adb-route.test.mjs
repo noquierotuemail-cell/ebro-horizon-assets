@@ -99,6 +99,46 @@ test('local private helper paths are not downloadable even with a session', asyn
   }
 });
 
+test('instructional videos and posters require a session and retain media types', async () => {
+  let reads = 0;
+  const env = authEnv(async request => {
+    reads++;
+    return new Response(await readFile(new URL('..' + new URL(request.url).pathname, import.meta.url)));
+  });
+  for (const [path, type] of [
+    ['/adb/assets/ota-10-toques.mp4', 'video/mp4'],
+    ['/adb/assets/ota-9-toques-adb.mp4', 'video/mp4'],
+    ['/adb/assets/ota-10-toques.jpg', 'image/jpeg'],
+    ['/adb/assets/ota-9-toques-adb.jpg', 'image/jpeg'],
+  ]) {
+    const previous = reads;
+    assert.equal((await app.fetch(new Request(origin + path), env, {})).status, 401);
+    assert.equal(reads, previous);
+    const response = await app.fetch(new Request(origin + path, { headers: authed }), env, {});
+    assert.equal(response.status, 200, path);
+    assert.equal(response.headers.get('content-type'), type);
+    assert.equal(response.headers.get('cache-control'), 'private, no-store');
+    const bytes = Buffer.from(await response.arrayBuffer());
+    assert.deepEqual(bytes, await readFile(new URL('..' + path, import.meta.url)));
+    if (type === 'video/mp4') assert.equal(bytes.subarray(4, 8).toString(), 'ftyp');
+    else assert.deepEqual([...bytes.subarray(0, 2)], [255, 216]);
+  }
+});
+
+test('instructional video byte ranges pass through for playback and seeking', async () => {
+  const bytes = Buffer.from('0123456789');
+  const env = authEnv(async request => {
+    assert.equal(request.headers.get('range'), 'bytes=0-9');
+    return new Response(bytes, { status: 206, headers: { 'Content-Range': 'bytes 0-9/100', 'Accept-Ranges': 'bytes', 'Content-Length': '10' } });
+  });
+  const response = await app.fetch(new Request(origin + '/adb/assets/ota-10-toques.mp4', { headers: { ...authed, Range: 'bytes=0-9' } }), env, {});
+  assert.equal(response.status, 206);
+  assert.equal(response.headers.get('content-range'), 'bytes 0-9/100');
+  assert.equal(response.headers.get('accept-ranges'), 'bytes');
+  assert.equal(response.headers.get('content-type'), 'video/mp4');
+  assert.deepEqual(Buffer.from(await response.arrayBuffer()), bytes);
+});
+
 test('sensitive downloadable bundle and integration notice are no longer web routes', async () => {
   const env = authEnv(async request => new Response('should not be served'));
   for (const path of ['/adb/HABRO-ADB-recursos.zip','/adb/vendor/SESSIONWRITER-NOTICE.txt','/adb/code-generator.mjs','/adb/ota-generator.mjs']) {

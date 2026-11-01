@@ -26,6 +26,23 @@ sin generalizar la secuencia a todas las versiones del sistema. Este flujo no ac
 alternativa de pendrive/SVEngMode. El DEX requiere una conexión ADB previa:
 no activa por sí solo una conexión que aún esté deshabilitada.
 
+La ayuda incluye dos vídeos facilitados por el usuario, enlazados desde
+«Prepara el coche»: `adb/assets/ota-10-toques.mp4` y
+`adb/assets/ota-9-toques-adb.mp4`, con miniaturas JPG. Son copias H.264
+optimizadas sin audio ni metadatos originales, conservando resolución y
+secuencia visual. El primero termina en la petición de contraseña tras los 10
+toques; el segundo muestra la aparición de Open ADB tras los 9 toques.
+No muestran la transferencia ni la ejecución del DEX. La guía documenta
+la clave intermedia cuando el sistema la pide y diferencia mostrar el
+botón de pulsarlo para activar ADB.
+
+Los controles son nativos, con reproducción manual, `playsinline` y
+`preload="none"`. Los textos contiguos describen lo mostrado sin depender
+del audio. El Worker sirve vídeos y miniaturas solo con sesión HABRO válida,
+manteniendo Content-Type y las respuestas parciales de Assets para buscar
+en el vídeo. Estos vídeos explicativos sí forman parte de los assets del
+repositorio público; el DEX sigue excluido y separado en su entrega privada.
+
 `install-method.mjs` recoge las siete propiedades solicitadas, usuario e
 identidad. APK compatible por DesaySV en fabricante/modelo/fingerprint o
 prefijo G7PH_CHERY usa `desay-installer.mjs`, sin restricciones por SOP.
@@ -147,7 +164,7 @@ En este entorno Node 24, ejecutar además
 `node --test --test-isolation=none tests/*.test.mjs` para ver y ejecutar
 cada caso individual. Los tests adicionales usan un transporte Android
 simulado y ejecutan los handlers reales de UI sobre un DOM mínimo. Con la
-dependencia privada presente: **102 pruebas, 102 aprobadas, sin omitidas**.
-En una copia pública sin el DEX: **97 aprobadas y 5 omitidas expresamente**.
+dependencia privada presente: **104 pruebas, 104 aprobadas, sin omitidas**.
+En una copia pública sin el DEX se omiten expresamente los cinco casos privados.
 Una prueba adicional ejecuta el shell real con un sustituto local de
 app_process para comprobar variables, argumentos y archivos PID/estado.
