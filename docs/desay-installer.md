@@ -17,6 +17,15 @@ física en el S700/S800.
 
 ## Flujo y límites
 
+El usuario confirma este orden de uso: acceder al menú oculto mediante
+10 toques y después 9 toques, activar ADB en ese menú, conectar el ordenador
+y autorizar USB, y solo después instalar el APK mediante el helper.
+Los puntos concretos de pulsación no se han especificado todavía; la guía
+no inventa una pantalla ni un elemento para esos toques y no generaliza la
+secuencia a todas las versiones del sistema. Este flujo no acredita la vía
+alternativa de pendrive/SVEngMode. El DEX requiere una conexión ADB previa:
+no activa por sí solo una conexión que aún esté deshabilitada.
+
 `install-method.mjs` recoge las siete propiedades solicitadas, usuario e
 identidad. APK compatible por DesaySV en fabricante/modelo/fingerprint o
 prefijo G7PH_CHERY usa `desay-installer.mjs`, sin restricciones por SOP.
