@@ -1,5 +1,6 @@
 import app from './index.js';
 import { serveAdb } from './adb-assets.js';
+import { serveDesayHelper } from './adb-desay-helper.js';
 import {
   ADB_ACCESS_DEFAULTS,
   accessPage,
@@ -1047,6 +1048,7 @@ async function adbGateway(request, env) {
   }
   if (url.pathname === '/adb/api/code') return adbApi(request, env, 'code');
   if (url.pathname === '/adb/api/ota') return adbApi(request, env, 'ota');
+  if (url.pathname === '/adb/api/desay-helper') return serveDesayHelper(request, env);
   return serveAdb(request, env);
 }
 

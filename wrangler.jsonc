@@ -24,6 +24,12 @@
       "new_sqlite_classes": ["HabroMetrics"]
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "DESAY_HELPERS",
+      "bucket_name": "habro-desay-helpers"
+    }
+  ],
   "assets": {
     "directory": ".",
     "binding": "ASSETS",

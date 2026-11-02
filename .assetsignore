@@ -12,3 +12,17 @@ chatkit-backend/**
 # Local route checks are not public assets
 tests
 tests/**
+
+# Private development files and internal documentation are never static assets.
+**/dex_shell_helper.dex
+**/.private
+**/.private/**
+adb/.private
+adb/.private/**
+docs
+docs/**
+.superpowers
+.superpowers/**
+.gitignore
+tools
+tools/**

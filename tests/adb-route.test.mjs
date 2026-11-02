@@ -61,7 +61,7 @@ test('tokens in query strings are never redeemed', async () => {
 
 test('A valid session can load the protected installer resources', async () => {
   const assets = authEnv(async request => new Response(await readFile(new URL('..' + new URL(request.url).pathname, import.meta.url))));
-  for (const path of ['/adb/installer.css', '/adb/install-archive.mjs', '/adb/sessionwriter.mjs', '/adb/vendor/sop6-sessionwriter.dex']) {
+  for (const path of ['/adb/installer.css', '/adb/install-archive.mjs', '/adb/sessionwriter.mjs', '/adb/install-method.mjs', '/adb/desay-installer.mjs', '/adb/desay-helper.mjs', '/adb/vendor/sop6-sessionwriter.dex']) {
     const response = await app.fetch(new Request(origin+path,{headers:authed}), assets, {});
     assert.equal(response.status,200,path);
     const bytes = Buffer.from(await response.arrayBuffer());
@@ -73,6 +73,70 @@ test('A valid session can load the protected installer resources', async () => {
       assert.equal(createHash('sha256').update(bytes).digest('hex'),'58303723aac47a91c8a31127a99d79c57ab435ccf21fcb28a8b772495ea2e9b8');
     }
   }
+});
+
+test('private installer binary endpoint requires a session and never falls back to assets', async () => {
+  let assetsRead = false, bucketRead = false;
+  const env = authEnv(async () => { assetsRead = true; return new Response('public'); });
+  env.DESAY_HELPERS = { async get(key) { bucketRead = true; assert.equal(key, 'dex_shell_helper.dex'); return { size: 7, body: new Blob(['private']).stream() }; } };
+  const url = origin + '/adb/api/desay-helper';
+  assert.equal((await app.fetch(new Request(url), env, {})).status, 401);
+  assert.equal(bucketRead, false);
+  const response = await app.fetch(new Request(url, { headers: authed }), env, {});
+  assert.equal(response.status, 200); assert.equal(await response.text(), 'private');
+  assert.equal(response.headers.get('cache-control'), 'private, no-store');
+  assert.equal(assetsRead, false);
+  delete env.DESAY_HELPERS;
+  assert.equal((await app.fetch(new Request(url, { headers: authed }), env, {})).status, 503);
+  assert.equal((await app.fetch(new Request(url, { method: 'POST', headers: authed }), env, {})).status, 405);
+  assert.equal(assetsRead, false);
+});
+
+test('local private helper paths are not downloadable even with a session', async () => {
+  const env = authEnv(() => new Response('should not be served'));
+  for (const path of ['/adb/.private/dex_shell_helper.dex', '/adb/vendor/dex_shell_helper.dex', '/adb/dex_shell_helper.dex', '/adb/.private/policy.mjs']) {
+    assert.equal((await app.fetch(new Request(origin + path, { headers: authed }), env, {})).status, 404);
+  }
+});
+
+test('instructional videos and posters require a session and retain media types', async () => {
+  let reads = 0;
+  const env = authEnv(async request => {
+    reads++;
+    return new Response(await readFile(new URL('..' + new URL(request.url).pathname, import.meta.url)));
+  });
+  for (const [path, type] of [
+    ['/adb/assets/ota-10-toques.mp4', 'video/mp4'],
+    ['/adb/assets/ota-9-toques-adb.mp4', 'video/mp4'],
+    ['/adb/assets/ota-10-toques.jpg', 'image/jpeg'],
+    ['/adb/assets/ota-9-toques-adb.jpg', 'image/jpeg'],
+  ]) {
+    const previous = reads;
+    assert.equal((await app.fetch(new Request(origin + path), env, {})).status, 401);
+    assert.equal(reads, previous);
+    const response = await app.fetch(new Request(origin + path, { headers: authed }), env, {});
+    assert.equal(response.status, 200, path);
+    assert.equal(response.headers.get('content-type'), type);
+    assert.equal(response.headers.get('cache-control'), 'private, no-store');
+    const bytes = Buffer.from(await response.arrayBuffer());
+    assert.deepEqual(bytes, await readFile(new URL('..' + path, import.meta.url)));
+    if (type === 'video/mp4') assert.equal(bytes.subarray(4, 8).toString(), 'ftyp');
+    else assert.deepEqual([...bytes.subarray(0, 2)], [255, 216]);
+  }
+});
+
+test('instructional video byte ranges pass through for playback and seeking', async () => {
+  const bytes = Buffer.from('0123456789');
+  const env = authEnv(async request => {
+    assert.equal(request.headers.get('range'), 'bytes=0-9');
+    return new Response(bytes, { status: 206, headers: { 'Content-Range': 'bytes 0-9/100', 'Accept-Ranges': 'bytes', 'Content-Length': '10' } });
+  });
+  const response = await app.fetch(new Request(origin + '/adb/assets/ota-10-toques.mp4', { headers: { ...authed, Range: 'bytes=0-9' } }), env, {});
+  assert.equal(response.status, 206);
+  assert.equal(response.headers.get('content-range'), 'bytes 0-9/100');
+  assert.equal(response.headers.get('accept-ranges'), 'bytes');
+  assert.equal(response.headers.get('content-type'), 'video/mp4');
+  assert.deepEqual(Buffer.from(await response.arrayBuffer()), bytes);
 });
 
 test('sensitive downloadable bundle and integration notice are no longer web routes', async () => {
