@@ -24,10 +24,9 @@ function render() {
     label.textContent = 'Paso ' + (step+1) + ' de 4 · ' + stepNames[step];
     progress.value = step + 1;
     back.disabled = step === 0;
-    next.hidden = step === 3;
-    next.textContent = step === 2 ? 'Ver resultado' : 'Siguiente paso';
+    next.hidden = step >= 2;
+    next.textContent = 'Siguiente paso';
     next.disabled = step === 1 && !hasConnection();
-    if (step === 2) next.disabled = !hasFile() || !hasConnection();
     result.hidden = step !== 3 || !result.dataset.guidedHasResult;
     pending.hidden = step !== 3 || !pending.dataset.guidedHasPending;
   }
@@ -63,7 +62,6 @@ new MutationObserver(()=> {
   if (!pending.hidden) pending.dataset.guidedHasPending='1';
 }).observe(pending,{attributes:true,attributeFilter:['hidden']});
 new MutationObserver(render).observe(document.getElementById('connectionState'),{attributes:true,attributeFilter:['class']});
-const originalInstall = install.onclick;
 install.addEventListener('click',()=>{
   if (mode === 'guided') {
     result.dataset.guidedHasResult = '';
