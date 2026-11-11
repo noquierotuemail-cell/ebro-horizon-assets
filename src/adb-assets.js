@@ -1,6 +1,8 @@
 // HABRO ADB assets. Authentication is enforced by the Worker before this function.
 const paths = new Set([
   "/adb/app.js",
+  "/adb/guided.mjs",
+  "/adb/guided.css",
   "/adb/assets/habro-logo.svg",
   "/adb/assets/ota-10-toques.mp4",
   "/adb/assets/ota-9-toques-adb.mp4",
