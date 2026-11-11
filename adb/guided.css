@@ -1,0 +1,30 @@
+/* Progressive wizard; original pro installer remains unchanged. */
+.installer-mode-chooser{max-width:880px;margin:0 auto 24px;text-align:center;padding:28px 12px}
+.installer-mode-chooser h2{font-size:clamp(1.6rem,3vw,2.3rem);margin:0 0 12px}
+.installer-mode-chooser>p{color:var(--muted,#68717e);margin:0 auto 26px;max-width:620px}
+.installer-mode-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.installer-mode-button{min-height:190px;padding:28px;text-align:left;border:2px solid #cbd5e1;border-radius:20px;background:var(--card,#fff);color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:14px;transition:border-color .15s,transform .15s}
+.installer-mode-button:hover,.installer-mode-button:focus-visible{border-color:#1677ff;transform:translateY(-2px)}
+.installer-mode-button strong{font-size:1.35rem}
+.installer-mode-button span{line-height:1.5;color:var(--muted,#68717e)}
+.guided-navigation{max-width:900px;margin:0 auto 20px}
+.guided-navigation-head,.guided-navigation-actions{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.guided-navigation-head{margin-bottom:10px}
+.guided-navigation progress{display:block;width:100%;height:9px;accent-color:#1677ff;margin-bottom:20px}
+.guided-navigation-actions{justify-content:flex-end}
+#view-installer[data-install-mode="choice"] .installer-grid,
+#view-installer[data-install-mode="choice"] .installer-intro,
+#view-installer[data-install-mode="choice"] .installer-privacy,
+#view-installer[data-install-mode="choice"] #installerPending,
+#view-installer[data-install-mode="choice"] #installerResult{display:none!important}
+#view-installer[data-install-mode="guided"] .installer-grid{display:block;max-width:900px;margin:0 auto}
+#view-installer[data-install-mode="guided"] .installer-grid>.installer-step[hidden]{display:none!important}
+#view-installer[data-install-mode="guided"] .installer-grid>.installer-step:not([hidden]){width:100%;max-width:none}
+#view-installer[data-install-mode="guided"] .installer-intro{display:none}
+#view-installer[data-install-mode="guided"] #installerResult,
+#view-installer[data-install-mode="guided"] #installerPending{max-width:900px;margin:20px auto}
+.horizon-download{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:18px;padding:20px}
+.horizon-download h3{margin:5px 0 8px}
+.horizon-download p{margin:0;line-height:1.5}
+.horizon-download a{flex-shrink:0}
+@media(max-width:700px){.installer-mode-options{grid-template-columns:1fr}.installer-mode-button{min-height:130px}.horizon-download{flex-direction:column;align-items:stretch}.horizon-download a{text-align:center}}
