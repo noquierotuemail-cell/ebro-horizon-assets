@@ -1,3 +1,4 @@
+import { vinStateRequest, vinSessionAllowed } from './adb-vin-access.js';
 import app from './index.js';
 import { serveAdb } from './adb-assets.js';
 import { serveDesayHelper } from './adb-desay-helper.js';
@@ -242,6 +243,7 @@ export class HabroMetrics {
     if (request.method === 'POST' && url.pathname === '/adb/redeem') return this.adbRedeem(request);
     if (request.method === 'POST' && url.pathname === '/adb/validate') return this.adbValidate(request);
     if (request.method === 'POST' && url.pathname === '/adb/registry') return this.adbRegistry(request);
+    if (request.method === 'POST' && url.pathname.startsWith('/vin/')) return vinStateRequest(this.state.storage,request);
     return new Response('Not found', { status: 404 });
   }
 
@@ -287,7 +289,7 @@ export class HabroMetrics {
       const record = await txn.get(key);
       const persistent = record?.persistent === true;
       const twelveHours = record?.twelveHours === true;
-      if (!record || (!persistent && record.usedAt) || (!persistent && Number(record.expiresAt || 0) <= now)) return;
+      if (!record || (!persistent && record.usedAt) || (!persistent && Number(record.expiresAt || 0) <= now) || !(await vinSessionAllowed(txn,record))) return;
       record.redemptionCount = Number(record.redemptionCount || 0) + 1;
       record.lastUsedAt = now;
       if (!persistent) record.usedAt = now;
@@ -298,6 +300,8 @@ export class HabroMetrics {
         expiresAt: sessionExpiresAt,
         label: cleanAccessLabel(record.label),
         tokenId: tokenHash.slice(0, 10),
+        vin:record.vin||null,
+        generation:record.generation||0,
         revokedAt: null
       });
       result = { session, expiresAt:sessionExpiresAt, persistent, twelveHours };
@@ -315,7 +319,7 @@ export class HabroMetrics {
     const key = `adb:session:${sessionHash}`;
     const record = await this.state.storage.get(key);
     const now = Date.now();
-    if (!record || record.revokedAt || Number(record.expiresAt || 0) <= now) {
+    if (!record || record.revokedAt || Number(record.expiresAt || 0) <= now || !(await vinSessionAllowed(this.state.storage,record))) {
       if (record) await this.state.storage.delete(key);
       return Response.json({ ok:true, valid:false });
     }
