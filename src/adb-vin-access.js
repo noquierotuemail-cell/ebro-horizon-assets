@@ -33,6 +33,7 @@ export async function vinStateRequest(storage,request){
   if(path==='/vin/status'){
     const record=await storage.get(key(vin));
     if(!record)return reply({ok:false,error:'not_registered'},404);
+    if (b.enabled !== true && record.enabled) record.generation=(record.generation||0)+1;
     record.enabled=b.enabled===true;record.updatedAt=now;
     if(!record.enabled)record.generation=(record.generation||0)+1;
     await storage.put(key(vin),record);
