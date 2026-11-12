@@ -28,3 +28,13 @@
 .horizon-download p{margin:0;line-height:1.5}
 .horizon-download a{flex-shrink:0}
 @media(max-width:700px){.installer-mode-options{grid-template-columns:1fr}.installer-mode-button{min-height:130px}.horizon-download{flex-direction:column;align-items:stretch}.horizon-download a{text-align:center}}
+
+.guided-ota-integrated,.guided-ota-videos{margin:22px 0;padding:20px;border:1px solid #d7dce4;border-radius:16px}
+.guided-ota-integrated h3,.guided-ota-videos h3{font-size:1.1rem;margin:0 0 8px}
+.guided-ota-integrated>p,.guided-ota-videos>p{line-height:1.5;margin:0 0 14px}
+.guided-ota-integrated iframe{display:block;width:100%;min-height:720px;border:0;border-radius:12px;background:transparent}
+.guided-video-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.guided-video-grid figure{margin:0}
+.guided-video-grid video{width:100%;display:block;aspect-ratio:16/9;object-fit:contain;background:#12151c;border-radius:12px}
+.guided-video-grid figcaption{font-size:.88rem;line-height:1.45;margin-top:9px}
+@media(max-width:700px){.guided-video-grid{grid-template-columns:1fr}.guided-ota-integrated,.guided-ota-videos{padding:12px}}
