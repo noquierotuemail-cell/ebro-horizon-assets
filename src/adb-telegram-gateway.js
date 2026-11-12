@@ -65,11 +65,20 @@ export async function telegramWebhookSetup(request,env){
   const render=message=>new Response('<!doctype html><html lang="es"><meta name="viewport" content="width=device-width,initial-scale=1"><meta charset="utf-8"><title>HABRO · Activar webhook Telegram</title><main style="max-width:550px;margin:50px auto;padding:24px;font:16px system-ui"><h1>Activar Telegram HABRO</h1><p>Registra el webhook del bot sin mostrar su token secreto. Solo el propietario puede hacerlo.</p><form method="post"><label>Clave de administrador HABRO ADB<br><input type="password" name="password" required autocomplete="off" style="width:100%;padding:12px;margin:12px 0"></label><button style="padding:14px;background:#087dff;color:white;border:0;border-radius:8px">Registrar webhook</button></form><p role="status">'+String(message||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</p></main></html>',{headers});
   if(request.method==='GET')return render('');
   if(request.method!=='POST')return new Response('Method not allowed',{status:405});
+  // Require a valid owner password below. Some iOS browsers and Cloudflare
+  // intermediaries send Origin / Sec-Fetch-Site inconsistently for form posts.
+  // Reject explicit cross-site requests but permit absent or "none" metadata.
   const origin=request.headers.get('Origin');
+  const referer=request.headers.get('Referer');
   const fetchSite=request.headers.get('Sec-Fetch-Site');
-  const sameOrigin=new URL(request.url).origin;
-  if((origin&&origin!==sameOrigin)||(fetchSite&&fetchSite!=='same-origin'))return new Response('Forbidden',{status:403});
-  // Safari can omit Origin for a same-origin form POST. The independent owner password remains mandatory.
+  const expected=new URL(request.url);
+  const sameHost=value=>{
+    try { const u=new URL(value);return u.protocol==='https:'&&u.hostname===expected.hostname; }
+    catch { return false; }
+  };
+  if(origin && origin!=='null' && !sameHost(origin))return render('Solicitud de otro sitio bloqueada.');
+  if(!origin && referer && !sameHost(referer))return render('Solicitud de otro sitio bloqueada.');
+  if(fetchSite==='cross-site')return render('Solicitud de otro sitio bloqueada.');
   if(!env.HABRO_ADB_OWNER_TOKEN||!env.HABRO_TELEGRAM_BOT_TOKEN||!env.HABRO_TELEGRAM_WEBHOOK_SECRET)return render('Faltan secretos de Cloudflare. Configura la clave de propietario y los secretos del bot.');
   let form;try{form=await request.formData();}catch{return render('Formulario no válido.');}
   if(String(form.get('password')||'')!==env.HABRO_ADB_OWNER_TOKEN)return render('Clave incorrecta.');
