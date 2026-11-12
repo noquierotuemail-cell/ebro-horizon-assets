@@ -1,3 +1,4 @@
+import { vinPanel } from './adb-vin-pages.js';
 import { vinStateRequest, vinSessionAllowed } from './adb-vin-access.js';
 import app from './index.js';
 import { serveAdb } from './adb-assets.js';
@@ -1060,6 +1061,11 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    if (url.pathname === '/admin/adb-vin' || url.pathname === '/adb/solicitar') {
+      const outcome = await vinPanel(request,env,adbStateCall);
+      if (outcome?.token) return redeemAdbAccess(request,env,outcome.token,'/adb/');
+      return outcome;
+    }
     if (url.pathname === '/admin/adb-access') return adbAdminAccess(request, env);
     if (url.pathname === '/adb' || url.pathname.startsWith('/adb/')) return adbGateway(request, env);
 
