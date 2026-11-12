@@ -1,5 +1,5 @@
 import { telegramState } from './adb-telegram-state.js';
-import { telegramWebhook } from './adb-telegram-gateway.js';
+import { telegramWebhook, telegramWebhookSetup } from './adb-telegram-gateway.js';
 import { vinPanel } from './adb-vin-pages.js';
 import { vinStateRequest, vinSessionAllowed } from './adb-vin-access.js';
 import app from './index.js';
@@ -1067,6 +1067,7 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === '/adb/telegram/webhook') return telegramWebhook(request,env,adbStateCall);
+    if (url.pathname === '/admin/adb-telegram-setup') return telegramWebhookSetup(request,env);
     if (url.pathname === '/admin/adb-vin' || url.pathname === '/adb/solicitar') {
       const outcome = await vinPanel(request,env,adbStateCall);
       if (outcome?.token) return redeemAdbAccess(request,env,outcome.token,'/adb/');
