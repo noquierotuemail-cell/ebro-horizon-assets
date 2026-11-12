@@ -45,7 +45,7 @@ function syncControls() {
   icons();
 }
 function showView(name) {
-  if (!['dashboard', 'installer', 'apps', 'console', 'screen', 'files'].includes(name)) name = 'dashboard';
+  if (!['installer', 'apps', 'console', 'screen', 'files'].includes(name)) name = 'installer';
   all('.view').forEach(el => { const active = el.id === 'view-' + name; el.hidden = !active; el.classList.toggle('active', active); });
   all('[data-view]').forEach(el => { const active = el.dataset.view === name; el.classList.toggle('active', active); if (active) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current'); });
   if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
