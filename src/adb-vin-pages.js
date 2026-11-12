@@ -1,7 +1,20 @@
 // Private management and self-service forms. No credentials stored in the browser.
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const page=(title,body)=>new Response('<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>'+escape(title)+' · HABRO</title><style>body{font:16px system-ui;max-width:850px;margin:30px auto;padding:18px;background:#f6f7f9;color:#151515}main,section{background:white;border:1px solid #d8dce2;border-radius:16px;padding:22px;margin:16px 0}input,button,select{font:inherit;padding:12px;margin:6px 0;max-width:100%;box-sizing:border-box}input{width:100%;border:1px solid #aab2bd;border-radius:9px}button{background:#087dff;color:white;border:0;border-radius:9px;cursor:pointer}table{width:100%;border-collapse:collapse;overflow-wrap:anywhere}td,th{padding:8px;border-bottom:1px solid #ddd;text-align:left}label{display:block;margin-top:12px}code{overflow-wrap:anywhere}a{color:#076fe2}</style><main><h1>'+escape(title)+'</h1>'+body+'</main></html>',{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Frame-Options':'DENY','Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"}});
-const validOrigin=req=>{const origin=req.headers.get('Origin');return origin===new URL(req.url).origin;};
+const validOrigin=req=>{
+  const expected=new URL(req.url);
+  const origin=req.headers.get('Origin');
+  const referer=req.headers.get('Referer');
+  const site=req.headers.get('Sec-Fetch-Site');
+  const matches=value=>{
+    try {const u=new URL(value);return u.protocol===expected.protocol&&u.host===expected.host;}
+    catch{return false;}
+  };
+  if(origin&&origin!=='null'&&!matches(origin))return false;
+  if(!origin&&referer&&!matches(referer))return false;
+  if(site==='cross-site')return false;
+  return true;
+};
 const validVin=v=>/^[A-HJ-NPR-Z0-9]{17}$/.test(String(v||'').trim().toUpperCase());
 export async function vinPanel(request,env,call){
   const url=new URL(request.url),admin=url.pathname==='/admin/adb-vin';
