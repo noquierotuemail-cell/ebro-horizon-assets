@@ -1,81 +1,77 @@
-// Presentational wizard: reuses the existing WebADB connection and installer.
-const root = document.getElementById('view-installer');
-const chooser = document.getElementById('installerModeChooser');
-const guided = document.getElementById('guidedNavigation');
-const cards = [...root.querySelectorAll('.installer-grid > .installer-step')];
-const result = document.getElementById('installerResult');
-const pending = document.getElementById('installerPending');
-const label = document.getElementById('guidedStepLabel');
-const next = document.getElementById('guidedNext');
-const back = document.getElementById('guidedBack');
-const progress = document.getElementById('guidedProgress');
-const install = document.getElementById('installerStart');
-const stepNames = ['Activar ADB en el coche','Conectar por USB','Elegir e instalar la aplicación','Comprobar el resultado'];
-let mode = 'choice';
-let step = 0;
-const hasConnection = () => document.getElementById('connectionState')?.classList.contains('connected');
-const hasFile = () => !!document.getElementById('installerFile')?.files?.length;
-function render() {
-  root.dataset.installMode = mode;
-  chooser.hidden = mode !== 'choice';
-  guided.hidden = mode !== 'guided';
-  cards.forEach((card,i) => { card.hidden = mode === 'choice' || (mode === 'guided' && i !== step); });
-  if (mode === 'guided') {
-    label.textContent = 'Paso ' + (step+1) + ' de 4 · ' + stepNames[step];
-    progress.value = step + 1;
-    back.disabled = step === 0;
-    next.hidden = step >= 2;
-    next.textContent = 'Siguiente paso';
-    next.disabled = step === 1 && !hasConnection();
-    result.hidden = step !== 3 || !result.dataset.guidedHasResult;
-    pending.hidden = step !== 3 || !pending.dataset.guidedHasPending;
-  }
-  if (mode === 'pro') {
-    if (result.dataset.guidedHasResult) result.hidden = false;
-    if (pending.dataset.guidedHasPending) pending.hidden = false;
+// The guided path is deliberately linear; the original installer remains unchanged in Pro.
+const $ = id => document.getElementById(id);
+const root=$('view-installer'), chooser=$('installerModeChooser'), nav=$('guidedNavigation');
+const cards=[...root.querySelectorAll('.installer-grid > .installer-step')];
+const result=$('installerResult'), pending=$('installerPending');
+const names=['Abre el menú OTA','Calcula la clave','Activa ADB','Conecta el coche','Instala EBRO Horizon','Comprueba el resultado'];
+let mode='choice',step=0,otaReady=false;
+const connected=()=> $('connectionState')?.classList.contains('connected');
+function render(){
+  root.dataset.installMode=mode;
+  chooser.hidden=mode!=='choice';
+  nav.hidden=mode!=='guided';
+  cards.forEach((card,i)=>{card.hidden=mode==='choice'||(mode==='guided'&&i!==step);});
+  if(mode==='guided'){
+    $('guidedStepLabel').textContent='Paso '+(step+1)+' de 6 · '+names[step];
+    $('guidedProgress').max=6;$('guidedProgress').value=step+1;
+    $('guidedBack').disabled=step===0;
+    $('guidedNext').hidden=step>=4;
+    $('guidedNext').disabled=(step===1&&!otaReady)||(step===3&&!connected());
+    result.hidden=step!==5||!result.dataset.guidedHasResult;
+    pending.hidden=step!==5||!pending.dataset.guidedHasPending;
+  }else if(mode==='pro'){
+    if(result.dataset.guidedHasResult)result.hidden=false;
+    if(pending.dataset.guidedHasPending)pending.hidden=false;
   }
 }
-function selectMode(value) {
-  mode = value;
-  step = 0;
-  render();
-}
-document.getElementById('guidedModeButton').addEventListener('click',()=>selectMode('guided'));
-document.getElementById('proModeButton').addEventListener('click',()=>selectMode('pro'));
-document.getElementById('installerChangeMode').addEventListener('click',()=>selectMode('choice'));
-next.addEventListener('click',()=>{
-  if (step === 1 && !hasConnection()) return;
-  if (step === 2 && (!hasFile() || !hasConnection())) return;
-  step = Math.min(3,step+1); render();
-});
-back.addEventListener('click',()=>{step=Math.max(0,step-1);render();});
-document.getElementById('installerFile').addEventListener('change',()=>queueMicrotask(render));
-document.getElementById('installerConnect').addEventListener('click',()=>setTimeout(render,200));
-document.getElementById('connectButton').addEventListener('click',()=>setTimeout(render,200));
-new MutationObserver(()=> {
-  if (mode !== 'guided') return;
-  if (result && !result.hidden && step !== 3) {
-    result.dataset.guidedHasResult = '1'; step = 3; render();
-  }
+function move(to){step=Math.max(0,Math.min(5,to));render();window.scrollTo({top:0,behavior:'instant'});}
+function selectMode(m){mode=m;move(0);}
+$('guidedModeButton').addEventListener('click',()=>selectMode('guided'));
+$('proModeButton').addEventListener('click',()=>selectMode('pro'));
+$('installerChangeMode').addEventListener('click',()=>selectMode('choice'));
+$('guidedNext').addEventListener('click',()=>{if(step===1&&!otaReady)return;if(step===3&&!connected())return;move(step+1);});
+$('guidedBack').addEventListener('click',()=>move(step-1));
+new MutationObserver(render).observe($('connectionState'),{attributes:true,attributeFilter:['class']});
+new MutationObserver(()=>{
+  if(!result.hidden){result.dataset.guidedHasResult='1';if(mode==='guided')move(5);}
 }).observe(result,{attributes:true,attributeFilter:['hidden']});
-new MutationObserver(()=> {
-  if (!pending.hidden) pending.dataset.guidedHasPending='1';
-}).observe(pending,{attributes:true,attributeFilter:['hidden']});
-new MutationObserver(render).observe(document.getElementById('connectionState'),{attributes:true,attributeFilter:['class']});
-install.addEventListener('click',()=>{
-  if (mode === 'guided') {
-    result.dataset.guidedHasResult = '';
-    step = 3;
-    // Existing installer confirmation and progress remain fully managed by app.js.
-    render();
+new MutationObserver(()=>{if(!pending.hidden)pending.dataset.guidedHasPending='1';}).observe(pending,{attributes:true,attributeFilter:['hidden']});
+$('installerStart').addEventListener('click',()=>{
+  if(mode==='guided'){result.dataset.guidedHasResult='';move(5);}
+});
+// Native, protected OTA calculator: no iframe, no secondary page, no local VIN storage.
+const form=$('guidedOtaForm'),vin=$('guidedOtaVin'),date=$('guidedOtaDate');
+const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');};
+date.value=today();
+let revision=0;
+function resetOta(){
+  revision++;otaReady=false;$('guidedOtaOutput').hidden=true;$('guidedOtaCode').textContent='';
+  $('guidedOtaMessage').textContent='';render();
+}
+vin.addEventListener('input',resetOta);
+date.addEventListener('input',resetOta);
+form.addEventListener('submit',async e=>{
+  e.preventDefault();resetOta();
+  const value=vin.value.trim().toUpperCase(),d=date.value,request=revision;
+  if(!(/^[A-HJ-NPR-Z0-9]{6}$/.test(value)||/^[A-HJ-NPR-Z0-9]{17}$/.test(value))){
+    $('guidedOtaMessage').textContent='Revisa el VIN: escribe los 17 caracteres o los últimos 6.';return;
   }
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){$('guidedOtaMessage').textContent='Selecciona la fecha del coche.';return;}
+  const button=$('guidedOtaSubmit');button.disabled=true;button.textContent='Calculando…';
+  try{
+    const response=await fetch('/adb/api/ota',{method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',body:JSON.stringify({vin:value,date:d})});
+    if(response.status===401){$('guidedOtaMessage').textContent='Tu sesión ha caducado. Vuelve a acceder a HABRO ADB para calcular la clave.';return;}
+    const data=await response.json();
+    if(!response.ok||!/^\d{6}$/.test(String(data.code||'')))throw new Error(data.message||'No se pudo calcular la clave.');
+    if(request!==revision)return;
+    $('guidedOtaCode').textContent=data.code;
+    $('guidedOtaOutput').hidden=false;otaReady=true;render();
+  }catch(err){if(request===revision)$('guidedOtaMessage').textContent=err.message||'Error de conexión. Vuelve a intentarlo.';}
+  finally{button.disabled=false;button.textContent='Calcular clave OTA';}
 });
+$('guidedOtaCopy').addEventListener('click',async()=>{
+  try{await navigator.clipboard.writeText($('guidedOtaCode').textContent);$('guidedOtaMessage').textContent='Clave copiada.';}
+  catch{$('guidedOtaMessage').textContent='Selecciona los seis números para copiarlos.';}
+});
+window.addEventListener('pageshow',()=>{if(date.value===today())return;resetOta();});
 render();
-
-const otaFrame = document.getElementById('guidedOtaFrame');
-window.addEventListener('message', event => {
-  if (event.origin !== location.origin || event.source !== otaFrame?.contentWindow) return;
-  if (event.data?.type !== 'habro-ota-height') return;
-  const height = Number(event.data.height);
-  if (Number.isFinite(height) && height > 100 && height < 4000) otaFrame.style.height = height + 'px';
-});
