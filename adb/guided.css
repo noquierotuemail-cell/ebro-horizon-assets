@@ -29,12 +29,22 @@
 .horizon-download a{flex-shrink:0}
 @media(max-width:700px){.installer-mode-options{grid-template-columns:1fr}.installer-mode-button{min-height:130px}.horizon-download{flex-direction:column;align-items:stretch}.horizon-download a{text-align:center}}
 
-.guided-ota-integrated,.guided-ota-videos{margin:22px 0;padding:20px;border:1px solid #d7dce4;border-radius:16px}
-.guided-ota-integrated h3,.guided-ota-videos h3{font-size:1.1rem;margin:0 0 8px}
-.guided-ota-integrated>p,.guided-ota-videos>p{line-height:1.5;margin:0 0 14px}
-.guided-ota-integrated iframe{display:block;width:100%;min-height:720px;border:0;border-radius:12px;background:transparent}
-.guided-video-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.guided-video-grid figure{margin:0}
-.guided-video-grid video{width:100%;display:block;aspect-ratio:16/9;object-fit:contain;background:#12151c;border-radius:12px}
-.guided-video-grid figcaption{font-size:.88rem;line-height:1.45;margin-top:9px}
-@media(max-width:700px){.guided-video-grid{grid-template-columns:1fr}.guided-ota-integrated,.guided-ota-videos{padding:12px}}
+
+/* One clear task per screen, mobile first. */
+#view-installer[data-install-mode="guided"] .installer-step{padding:clamp(18px,4vw,32px)}
+#view-installer[data-install-mode="guided"] .installer-step-heading{margin-bottom:18px}
+.guided-instruction{font-size:clamp(1rem,2.3vw,1.13rem)!important;line-height:1.65!important;color:inherit!important;margin:14px 0!important}
+.guided-feature-video{margin:22px 0}
+.guided-feature-video video{width:100%;max-height:440px;aspect-ratio:16/9;object-fit:contain;display:block;background:#141922;border-radius:12px}
+.guided-feature-video figcaption{font-size:.92rem;line-height:1.5;margin-top:10px}
+.guided-native-ota{display:flex;flex-direction:column;gap:12px;margin:22px 0;padding:0}
+.guided-native-ota label{font-weight:650;margin-top:8px}
+.guided-native-ota input{width:100%;min-height:50px;padding:12px 14px;border:1px solid #aeb8c7;border-radius:10px;font-size:1rem;background:var(--card,#fff);color:inherit}
+.guided-native-ota button{min-height:48px}
+.guided-ota-output{margin-top:8px;border:2px solid #1677ff;border-radius:16px;padding:20px;text-align:center}
+.guided-ota-output output{display:block;font-size:clamp(2rem,7vw,3rem);letter-spacing:.14em;font-weight:800;font-variant-numeric:tabular-nums;margin:12px 0;overflow-wrap:anywhere}
+.guided-ota-output p{line-height:1.5}
+.guided-navigation-actions{margin:16px 0 26px;position:relative}
+#view-installer[data-install-mode="guided"] .installer-engineering{display:none}
+#view-installer[data-install-mode="pro"] .guided-native-ota{max-width:550px}
+@media(max-width:700px){.guided-navigation-actions .button{flex:1}.guided-navigation-actions{gap:10px}}
