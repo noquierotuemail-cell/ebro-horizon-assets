@@ -9,7 +9,7 @@ Si pertenece, el VIN queda vinculado al ID de Telegram. La web comprueba el desa
 ## Variables y secretos de Cloudflare Worker
 Crear en `ebro-remoteapp-landing`:
 - `HABRO_TELEGRAM_BOT_TOKEN` (secreto): token del bot obtenido de BotFather.
-- `HABRO_TELEGRAM_BOT_USERNAME` (variable): `HABRO_bot` (bot de verificación de accesos).
+- `HABRO_TELEGRAM_BOT_USERNAME` (variable): `habroremote_bot` (bot de verificación de accesos).
 - `HABRO_TELEGRAM_GROUP_ID` (variable): ID del canal público @HABRO_Remote (puede configurarse como @HABRO_Remote; no es necesario conocer el ID numérico).
 - `HABRO_TELEGRAM_WEBHOOK_SECRET` (secreto): cadena aleatoria para validar la cabecera de Telegram.
 - `HABRO_ADB_OWNER_TOKEN` (secreto): clave independiente del propietario del panel.
@@ -18,7 +18,7 @@ Crear en `ebro-remoteapp-landing`:
 No compartir los secretos en el chat ni subirlos a GitHub.
 
 ## Telegram
-1. Canal de suscripción: https://t.me/HABRO_Remote. Añadir un bot nuevo y exclusivo para ADB como **administrador** del canal para consultar suscriptores con `getChatMember`. Usar @HABRO_bot; no reutilizar @HORIZON_upbot.
+1. Canal de suscripción: https://t.me/HABRO_Remote. Añadir un bot nuevo y exclusivo para ADB como **administrador** del canal para consultar suscriptores con `getChatMember`. Usar @habroremote_bot; no reutilizar @HORIZON_upbot.
 2. Registrar el webhook del bot mediante Bot API `setWebhook`, URL `https://habroremote.com/adb/telegram/webhook`, con `secret_token` igual a `HABRO_TELEGRAM_WEBHOOK_SECRET`.
 3. Si el bot ya tiene un webhook activo, cambiarlo interrumpirá sus eventos anteriores. **No reutilizar un bot de producción sin revisar sus flujos actuales**.
 4. Comprobar `getWebhookInfo` y una solicitud de prueba.
@@ -37,7 +37,7 @@ El primer usuario de Telegram que verifica un VIN lo vincula a su cuenta. Los si
 - Los miembros que abandonen el canal conservarían una sesión ya emitida hasta su caducidad (máximo 30 minutos), salvo revocación administrativa.
 
 ## Separación de bots
-@HORIZON_upbot se reserva para las notificaciones privadas del propietario. El bot de acceso ADB es @HABRO_bot y tendrá sus propias credenciales y webhook.
+@HORIZON_upbot se reserva para las notificaciones privadas del propietario. El bot de acceso ADB es @habroremote_bot y tendrá sus propias credenciales y webhook.
 
 ## Estado
 **No desplegar sin configurar canal y bot, y superar pruebas de seguridad.** El PR está en borrador.
