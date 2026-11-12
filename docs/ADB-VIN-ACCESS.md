@@ -1,42 +1,40 @@
-# Acceso ADB automático por VIN — despliegue controlado
+# Acceso ADB con Telegram — configuración pendiente
 
-Estado: PR en borrador. No fusionar hasta completar pruebas de seguridad.
+## Funcionamiento
+El usuario introduce VIN (17 caracteres) y @usuario de Telegram en `/adb/solicitar`.
+HABRO genera un enlace privado al bot con un desafío aleatorio de 5 minutos.
+El usuario pulsa **Iniciar** en Telegram. El webhook verifica su identidad mediante el ID numérico de Telegram y consulta la pertenencia al grupo con `getChatMember`.
+Si pertenece, el VIN queda vinculado al ID de Telegram. La web comprueba el desafío con un secreto independiente que no se envía a Telegram, canjea un token de un solo uso y abre una sesión ADB de 30 minutos.
 
-## Secretos del Worker `ebro-remoteapp-landing`
-En Cloudflare > Workers & Pages > ebro-remoteapp-landing > Configuración > Variables y secretos, crear dos secretos **distintos**:
-- `HABRO_ADB_OWNER_TOKEN`: clave larga y aleatoria, solo para propietario.
-- `HABRO_ADB_COLLABORATOR_TOKEN`: clave larga y aleatoria, solo para colaborador.
+## Variables y secretos de Cloudflare Worker
+Crear en `ebro-remoteapp-landing`:
+- `HABRO_TELEGRAM_BOT_TOKEN` (secreto): token del bot obtenido de BotFather.
+- `HABRO_TELEGRAM_BOT_USERNAME` (variable): usuario del bot, sin @.
+- `HABRO_TELEGRAM_GROUP_ID` (variable): ID numérico del grupo de Telegram, habitualmente -100....
+- `HABRO_TELEGRAM_WEBHOOK_SECRET` (secreto): cadena aleatoria para validar la cabecera de Telegram.
+- `HABRO_ADB_OWNER_TOKEN` (secreto): clave independiente del propietario del panel.
+- `HABRO_ADB_COLLABORATOR_TOKEN` (secreto): clave distinta para el colaborador.
 
-No reutilizar `HABRO_ANALYTICS_ADMIN_TOKEN`. No introducir secretos en GitHub ni enviarlos por chat.
+No compartir los secretos en el chat ni subirlos a GitHub.
 
-## Rutas
-- `/admin/adb-vin`: gestión privada (exige clave en cada operación).
-- `/adb/solicitar`: acceso automático con VIN registrado y clave privada de alta.
-- `/adb/access`: acceso existente con token manual, permanece disponible.
+## Telegram
+1. Elegir el grupo autorizado. Añadir el bot como **administrador** del grupo para consultar otros miembros con `getChatMember`.
+2. Registrar el webhook del bot mediante Bot API `setWebhook`, URL `https://habroremote.com/adb/telegram/webhook`, con `secret_token` igual a `HABRO_TELEGRAM_WEBHOOK_SECRET`.
+3. Si el bot ya tiene un webhook activo, cambiarlo interrumpirá sus eventos anteriores. **No reutilizar un bot de producción sin revisar sus flujos actuales**.
+4. Comprobar `getWebhookInfo` y una solicitud de prueba.
+5. Confirmar que el Worker está desplegado y las variables disponibles antes de habilitar el enlace de acceso por VIN.
 
-## Alta de vehículo
-1. Acceder al panel como propietario.
-2. Registrar VIN completo (17 caracteres) y etiqueta opcional.
-3. Copiar la clave privada de alta de 64 caracteres, que solo se muestra una vez.
-4. Entregar esa clave al propietario mediante un canal seguro separado del VIN.
-5. El propietario introduce VIN + clave privada en `/adb/solicitar`.
-6. El Worker emite un token de un solo uso válido 30 minutos y lo canjea automáticamente por una sesión ADB de 30 minutos.
-7. El panel registra emisiones, canjes y denegaciones sin guardar el token completo.
+## Panel
+`https://habroremote.com/admin/adb-vin` permite ver VIN, etiquetas, tokens emitidos e historial, bloquear y reactivar. Cada administrador usa una clave distinta.
+El primer usuario de Telegram que verifica un VIN lo vincula a su cuenta. Los siguientes intentos desde otra cuenta quedan bloqueados. **Esta vinculación no acredita propiedad legal del coche**. Un administrador debe poder resolver disputas o bloquear el VIN.
 
-## Revocación
-Bloquear VIN invalida sesiones activas y los tokens no utilizados. Volver a habilitarlo no reactiva sesiones anteriores. Rotar la clave privada invalida sesiones y tokens previos.
+## Seguridad y pruebas
+- Nunca aceptar el @usuario escrito como identidad; la identidad real procede del webhook Telegram.
+- Token de un solo uso; sesión de 30 minutos; sin token completo en el historial.
+- Bloqueo del VIN revoca sesiones y tokens anteriores.
+- Desafíos de 5 minutos, secreto de navegador independiente y límites de solicitud por IP.
+- Probar usuario fuera del grupo, usuario sin username, cambio de username, VIN ya vinculado, webhook repetido, caducidad, revocación, reingreso al grupo, múltiples dispositivos.
+- Los miembros que abandonen el grupo conservarían una sesión ya emitida hasta su caducidad (máximo 30 minutos), salvo revocación administrativa.
 
-## Pruebas previas a producción
-- VIN inexistente y clave incorrecta: denegados.
-- Clave correcta: token y sesión con caducidad de 30 min.
-- Segundo canje del mismo token: denegado.
-- Deshabilitar VIN: revoca sesión y tokens sin canjear.
-- Reactivar VIN: no revive sesiones previas.
-- Rotar clave: invalida credenciales anteriores.
-- Seis intentos incorrectos por IP/VIN en 15 min: bloqueo temporal.
-- Verificar acceso independiente de propietario y colaborador.
-- Verificar que las páginas privadas no quedan indexadas ni cacheadas.
-- Validar que el panel no expone claves ni tokens completos en el historial.
-
-## Limitaciones conocidas
-La clave privada de alta demuestra posesión de una credencial emitida por HABRO, no identidad legal. El alta y entrega inicial deben comprobarse fuera de banda. La interfaz de administración es funcional, pero requiere pruebas de usabilidad y seguridad antes del despliegue.
+## Estado
+**No desplegar sin configurar grupo y bot, y superar pruebas de seguridad.** El PR está en borrador.
