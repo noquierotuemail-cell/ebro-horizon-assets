@@ -1,3 +1,5 @@
+import { telegramState } from './adb-telegram-state.js';
+import { telegramWebhook } from './adb-telegram-gateway.js';
 import { vinPanel } from './adb-vin-pages.js';
 import { vinStateRequest, vinSessionAllowed } from './adb-vin-access.js';
 import app from './index.js';
@@ -245,6 +247,7 @@ export class HabroMetrics {
     if (request.method === 'POST' && url.pathname === '/adb/validate') return this.adbValidate(request);
     if (request.method === 'POST' && url.pathname === '/adb/registry') return this.adbRegistry(request);
     if (request.method === 'POST' && url.pathname.startsWith('/vin/')) return vinStateRequest(this.state.storage,request);
+    if (request.method === 'POST' && url.pathname.startsWith('/telegram/')) return telegramState(this.state.storage,request);
     return new Response('Not found', { status: 404 });
   }
 
@@ -1063,6 +1066,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    if (url.pathname === '/adb/telegram/webhook') return telegramWebhook(request,env,adbStateCall);
     if (url.pathname === '/admin/adb-vin' || url.pathname === '/adb/solicitar') {
       const outcome = await vinPanel(request,env,adbStateCall);
       if (outcome?.token) return redeemAdbAccess(request,env,outcome.token,'/adb/');
