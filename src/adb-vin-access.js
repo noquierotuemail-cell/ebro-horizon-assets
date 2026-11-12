@@ -34,6 +34,7 @@ export async function vinStateRequest(storage,request){
     const record=await storage.get(key(vin));
     if(!record)return reply({ok:false,error:'not_registered'},404);
     record.enabled=b.enabled===true;record.updatedAt=now;
+    if(!record.enabled)record.generation=(record.generation||0)+1;
     await storage.put(key(vin),record);
     await audit(storage,record.enabled?'enabled':'disabled',vin,actor);
     // Disable all live sessions for VIN by checking record status on each validation.
