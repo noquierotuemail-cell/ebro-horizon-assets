@@ -29,6 +29,7 @@ export async function vinPanel(request,env,call){
       const {response,data}=await call(env,'/telegram/poll',{nonce,browserSecret});
       if(response.ok&&data?.token)return {token:data.token};
       if(response.ok&&data?.status==='pending')return page('Esperando a Telegram','<p>La confirmación aún no ha llegado. Abre el bot, pulsa Iniciar y después vuelve aquí.</p><form method="post"><input type="hidden" name="action" value="poll"><input type="hidden" name="nonce" value="'+escape(nonce)+'"><input type="hidden" name="browserSecret" value="'+escape(browserSecret)+'"><button>Comprobar de nuevo</button></form>');
+      if(data?.error==='vin_token_limit')return page('Límite de accesos alcanzado','<p>Este VIN ya ha recibido los dos tokens de acceso permitidos. Para solicitar otro, escribe en el grupo de Telegram de HABRO. Un administrador podrá revisar tu solicitud.</p><a href="/adb/solicitar">Volver al acceso</a>');
       return page('Solicitud caducada','<p>Vuelve a iniciar la verificación.</p><a href="/adb/solicitar">Empezar de nuevo</a>');
     }
     return new Response('Bad request',{status:400});
