@@ -64,7 +64,12 @@ export async function telegramWebhookSetup(request,env){
   const headers={'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Robots-Tag':'noindex, nofollow','Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'"};
   const render=message=>new Response('<!doctype html><html lang="es"><meta name="viewport" content="width=device-width,initial-scale=1"><meta charset="utf-8"><title>HABRO · Activar webhook Telegram</title><main style="max-width:550px;margin:50px auto;padding:24px;font:16px system-ui"><h1>Activar Telegram HABRO</h1><p>Registra el webhook del bot sin mostrar su token secreto. Solo el propietario puede hacerlo.</p><form method="post"><label>Clave de administrador HABRO ADB<br><input type="password" name="password" required autocomplete="off" style="width:100%;padding:12px;margin:12px 0"></label><button style="padding:14px;background:#087dff;color:white;border:0;border-radius:8px">Registrar webhook</button></form><p role="status">'+String(message||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</p></main></html>',{headers});
   if(request.method==='GET')return render('');
-  if(request.method!=='POST'||request.headers.get('Origin')!==new URL(request.url).origin)return new Response('Forbidden',{status:403});
+  if(request.method!=='POST')return new Response('Method not allowed',{status:405});
+  const origin=request.headers.get('Origin');
+  const fetchSite=request.headers.get('Sec-Fetch-Site');
+  const sameOrigin=new URL(request.url).origin;
+  if((origin&&origin!==sameOrigin)||(fetchSite&&fetchSite!=='same-origin'))return new Response('Forbidden',{status:403});
+  // Safari can omit Origin for a same-origin form POST. The independent owner password remains mandatory.
   if(!env.HABRO_ADB_OWNER_TOKEN||!env.HABRO_TELEGRAM_BOT_TOKEN||!env.HABRO_TELEGRAM_WEBHOOK_SECRET)return render('Faltan secretos de Cloudflare. Configura la clave de propietario y los secretos del bot.');
   let form;try{form=await request.formData();}catch{return render('Formulario no válido.');}
   if(String(form.get('password')||'')!==env.HABRO_ADB_OWNER_TOKEN)return render('Clave incorrecta.');
