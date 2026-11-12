@@ -23,4 +23,5 @@ test('VIN gets at most two tokens, third request requires Telegram group escalat
    else{assert.equal(result.httpStatus,429);assert.equal(result.error,'vin_token_limit');}
  }
  assert.equal(db.data.get('vin:vehicle:'+vin).issued,2);
+ assert.equal([...db.data.keys()].filter(k=>k.startsWith('adb:token:')).length,2);
 });
