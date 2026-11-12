@@ -1,3 +1,5 @@
+import { vinPanel } from './adb-vin-pages.js';
+import { vinStateRequest, vinSessionAllowed } from './adb-vin-access.js';
 import app from './index.js';
 import { serveAdb } from './adb-assets.js';
 import { serveDesayHelper } from './adb-desay-helper.js';
@@ -242,6 +244,7 @@ export class HabroMetrics {
     if (request.method === 'POST' && url.pathname === '/adb/redeem') return this.adbRedeem(request);
     if (request.method === 'POST' && url.pathname === '/adb/validate') return this.adbValidate(request);
     if (request.method === 'POST' && url.pathname === '/adb/registry') return this.adbRegistry(request);
+    if (request.method === 'POST' && url.pathname.startsWith('/vin/')) return vinStateRequest(this.state.storage,request);
     return new Response('Not found', { status: 404 });
   }
 
@@ -287,7 +290,7 @@ export class HabroMetrics {
       const record = await txn.get(key);
       const persistent = record?.persistent === true;
       const twelveHours = record?.twelveHours === true;
-      if (!record || (!persistent && record.usedAt) || (!persistent && Number(record.expiresAt || 0) <= now)) return;
+      if (!record || (!persistent && record.usedAt) || (!persistent && Number(record.expiresAt || 0) <= now) || !(await vinSessionAllowed(txn,record))) return;
       record.redemptionCount = Number(record.redemptionCount || 0) + 1;
       record.lastUsedAt = now;
       if (!persistent) record.usedAt = now;
@@ -298,6 +301,8 @@ export class HabroMetrics {
         expiresAt: sessionExpiresAt,
         label: cleanAccessLabel(record.label),
         tokenId: tokenHash.slice(0, 10),
+        vin:record.vin||null,
+        generation:record.generation||0,
         revokedAt: null
       });
       result = { session, expiresAt:sessionExpiresAt, persistent, twelveHours };
@@ -315,7 +320,7 @@ export class HabroMetrics {
     const key = `adb:session:${sessionHash}`;
     const record = await this.state.storage.get(key);
     const now = Date.now();
-    if (!record || record.revokedAt || Number(record.expiresAt || 0) <= now) {
+    if (!record || record.revokedAt || Number(record.expiresAt || 0) <= now || !(await vinSessionAllowed(this.state.storage,record))) {
       if (record) await this.state.storage.delete(key);
       return Response.json({ ok:true, valid:false });
     }
@@ -332,6 +337,7 @@ export class HabroMetrics {
       records.push({
         id: String(key).slice('adb:token:'.length, 'adb:token:'.length + 10),
         label: cleanAccessLabel(record.label) || 'Sin identificar',
+        vin: record.vin || null,
         createdAt: Number(record.createdAt || 0),
         expiresAt: record.expiresAt == null ? null : Number(record.expiresAt),
         usedAt: record.usedAt == null ? null : Number(record.usedAt),
@@ -1056,6 +1062,11 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    if (url.pathname === '/admin/adb-vin' || url.pathname === '/adb/solicitar') {
+      const outcome = await vinPanel(request,env,adbStateCall);
+      if (outcome?.token) return redeemAdbAccess(request,env,outcome.token,'/adb/');
+      return outcome;
+    }
     if (url.pathname === '/admin/adb-access') return adbAdminAccess(request, env);
     if (url.pathname === '/adb' || url.pathname.startsWith('/adb/')) return adbGateway(request, env);
 
