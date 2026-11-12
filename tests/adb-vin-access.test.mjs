@@ -31,6 +31,7 @@ test('VIN must be registered and requires possession proof; token lasts 30m',asy
  await call(db,'/vin/status',{vin,enabled:false});
  assert.equal(await vinSessionAllowed(db,{vin,generation:0}),false);
  await call(db,'/vin/status',{vin,enabled:true});
+ assert.equal(await vinSessionAllowed(db,{vin,generation:0}),false,'reenabling VIN must not restore old sessions');
  await call(db,'/vin/rotate',{vin});
  assert.equal(await vinSessionAllowed(db,{vin,generation:0}),false);
 });
