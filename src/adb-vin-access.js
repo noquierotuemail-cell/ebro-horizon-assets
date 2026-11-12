@@ -17,7 +17,7 @@ export async function vinStateRequest(storage,request){
   const vin=normalize(b.vin),now=Date.now(),actor=String(b.actor||'system').slice(0,60);
   if(path==='/vin/list'){
     const entries=await storage.list({prefix:'vin:vehicle:'});
-    const vehicles=[...entries.values()].map(v=>({vin:v.vin,label:v.label||'',enabled:v.enabled,createdAt:v.createdAt,updatedAt:v.updatedAt,issued:v.issued||0,lastIssuedAt:v.lastIssuedAt||null}));
+    const vehicles=[...entries.values()].map(v=>({vin:v.vin,label:v.label||'',enabled:v.enabled,createdAt:v.createdAt,updatedAt:v.updatedAt,issued:v.issued||0,issueLimit:v.issueLimit??2,lastIssuedAt:v.lastIssuedAt||null}));
     const logs=await storage.list({prefix:'vin:audit:',reverse:true,limit:300});
     return reply({ok:true,vehicles,events:[...logs.values()]});
   }
@@ -29,6 +29,14 @@ export async function vinStateRequest(storage,request){
     await storage.put(key(vin),{vin,label:String(b.label||'').slice(0,80),keyHash:await hex(enrollmentKey),enabled:true,createdAt:now,updatedAt:now,issued:0});
     await audit(storage,'enrolled',vin,actor);
     return reply({ok:true,vin,enrollmentKey});
+  }
+  if(path==='/vin/grant'){
+    const record=await storage.get(key(vin));
+    if(!record)return reply({ok:false,error:'not_registered'},404);
+    record.issueLimit=Math.max(Number(record.issueLimit??2),Number(record.issued||0))+1;
+    record.updatedAt=now;await storage.put(key(vin),record);
+    await audit(storage,'extra_token_granted',vin,actor);
+    return reply({ok:true,issueLimit:record.issueLimit});
   }
   if(path==='/vin/status'){
     const record=await storage.get(key(vin));
