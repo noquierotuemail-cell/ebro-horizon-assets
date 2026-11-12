@@ -53,6 +53,10 @@ export async function telegramState(storage,request){
     if(record.status!=='verified')return response({ok:false,error:'used'},410);
     const vehicle=await storage.get('vin:vehicle:'+record.vin);
     if(!vehicle?.enabled||vehicle.telegramId!==record.telegramId)return response({ok:false,error:'revoked'},403);
+    if(Number(vehicle.issued||0)>=Number(vehicle.issueLimit??2)){
+      await audit(storage,'limit_reached',record.vin,record.telegramId);
+      return response({ok:false,error:'vin_token_limit',message:'Has alcanzado el límite de dos tokens para este vehículo. Solicita otro acceso a través del grupo de Telegram de HABRO.'},429);
+    }
     const token=rand(),tokenHash=await hash(token),expiresAt=now+30*60_000;
     await storage.put('adb:token:'+tokenHash,{createdAt:now,expiresAt,usedAt:null,lastUsedAt:null,redemptionCount:0,persistent:false,twelveHours:false,label:record.vin+' @'+record.username,vin:record.vin,telegramId:record.telegramId,generation:vehicle.generation||0,sessionTtlMs:30*60_000});
     vehicle.issued=(vehicle.issued||0)+1;vehicle.lastIssuedAt=now;await storage.put('vin:vehicle:'+record.vin,vehicle);
