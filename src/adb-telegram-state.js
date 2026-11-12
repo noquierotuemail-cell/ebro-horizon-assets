@@ -16,8 +16,15 @@ export async function telegramState(storage,request){
     const vin=String(b.vin||'').trim().toUpperCase();
     const username=String(b.username||'').trim().replace(/^@/,'');
     if(!vinPattern.test(vin)||!usernamePattern.test(username))return response({ok:false,error:'invalid_input'},400);
+    const ipHash=await hash(String(b.ip||''));
+    const throttleKey='tg:rate:'+ipHash;
+    let throttle=await storage.get(throttleKey)||{count:0,until:now+15*60_000};
+    if(now>throttle.until)throttle={count:0,until:now+15*60_000};
+    if(throttle.count>=6)return response({ok:false,error:'try_later'},429);
+    throttle.count++;
+    await storage.put(throttleKey,throttle,{expirationTtl:900});
     const nonce=rand().slice(0,32),browserSecret=rand();
-    await storage.put(pendingKey(nonce),{vin,username:username.toLowerCase(),browserHash:await hash(browserSecret),createdAt:now,expiresAt:now+5*60_000,status:'pending',ipHash:await hash(String(b.ip||''))},{expirationTtl:360});
+    await storage.put(pendingKey(nonce),{vin,username:username.toLowerCase(),browserHash:await hash(browserSecret),createdAt:now,expiresAt:now+5*60_000,status:'pending',ipHash},{expirationTtl:360});
     return response({ok:true,nonce,browserSecret,expiresAt:now+5*60_000});
   }
   if(path==='/telegram/confirm'){
