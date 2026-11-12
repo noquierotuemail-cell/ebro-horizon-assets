@@ -26,6 +26,8 @@ const paths = new Set([
   "/adb/ota.html",
   "/adb/ota.js",
   "/adb/ota.css",
+  "/adb/ota-embedded.css",
+  "/adb/ota-embedded.mjs",
   "/adb/vendor/THIRD_PARTY_NOTICES.txt",
   "/adb/vendor/adb.js",
   "/adb/vendor/adb.js.LEGAL.txt",
@@ -38,7 +40,7 @@ const paths = new Set([
   "/adb/ayuda",
   "/adb/index"
 ]);
-const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
+const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; media-src 'self'; frame-src 'self'; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
 
 export async function serveAdb(request, env) {
   const url = new URL(request.url);
@@ -53,7 +55,7 @@ export async function serveAdb(request, env) {
   headers.set('X-Content-Type-Options', 'nosniff');
   headers.set('Referrer-Policy', 'no-referrer');
   headers.set('Permissions-Policy', 'usb=(self), camera=(), microphone=(), geolocation=()');
-  headers.set('Content-Security-Policy', csp);
+  headers.set('Content-Security-Policy', url.pathname === '/adb/ota.html' || url.pathname === '/adb/ota' ? csp.replace("frame-ancestors 'none'", "frame-ancestors 'self'") : csp);
   headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
   if (original.ok && /\.(?:mjs|js)$/.test(url.pathname)) headers.set('Content-Type', 'application/javascript; charset=utf-8');
   if (original.ok && url.pathname.endsWith('.mp4')) headers.set('Content-Type', 'video/mp4');

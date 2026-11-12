@@ -71,3 +71,11 @@ install.addEventListener('click',()=>{
   }
 });
 render();
+
+const otaFrame = document.getElementById('guidedOtaFrame');
+window.addEventListener('message', event => {
+  if (event.origin !== location.origin || event.source !== otaFrame?.contentWindow) return;
+  if (event.data?.type !== 'habro-ota-height') return;
+  const height = Number(event.data.height);
+  if (Number.isFinite(height) && height > 100 && height < 4000) otaFrame.style.height = height + 'px';
+});

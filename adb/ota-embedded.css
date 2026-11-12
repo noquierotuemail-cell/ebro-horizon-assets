@@ -1,0 +1,11 @@
+/* Embedded OTA calculator remains the same protected application, not a duplicate. */
+html.ota-embedded,html.ota-embedded body{background:transparent}
+html.ota-embedded .ota-page>.topbar,
+html.ota-embedded .ota-page>.ota-footer,
+html.ota-embedded .ota-switch,
+html.ota-embedded .ota-heading,
+html.ota-embedded .ota-how,
+html.ota-embedded .ota-bottom{display:none!important}
+html.ota-embedded .ota-workspace{padding:0!important;max-width:none!important;margin:0!important}
+html.ota-embedded .ota-layout{display:grid;grid-template-columns:1fr!important;gap:14px!important;margin:0!important}
+html.ota-embedded .ota-form-card,html.ota-embedded .ota-result-card{margin:0!important}

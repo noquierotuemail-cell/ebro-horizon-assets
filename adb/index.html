@@ -75,9 +75,21 @@
         <article class="card installer-step" aria-labelledby="installerPrepareTitle">
           <div class="installer-step-heading"><span class="installer-step-number" aria-hidden="true">01</span><div><p class="eyebrow">ANTES DE CONECTAR</p><h2 id="installerPrepareTitle">Prepara el coche</h2></div><i data-icon="key-round"></i></div>
           <p>Con el coche estacionado, activa ADB en su sistema. Si el menú OTA pide una clave diaria, utiliza la calculadora protegida de HABRO con los datos que solicita la pantalla del coche.</p>
-          <a class="button secondary installer-code-link" href="ota.html" target="_blank" rel="noopener"><i data-icon="key-round"></i> Calcular clave OTA <span aria-hidden="true">↗</span></a>
-          <p class="installer-note">En el procedimiento confirmado, abre la app de actualización OTA y pulsa 10 veces sobre «el software está actualizado». Después pulsa 9 veces sobre «modo de ingeniería de actualización del sistema». Activa ADB desde el menú antes de conectar con HABRO. Los textos pueden variar según el sistema.</p>
-          <a class="text-link" href="ayuda.html#acceso-ota" target="_blank" rel="noopener">Ver los vídeos de los 10 y 9 toques <span aria-hidden="true">↗</span></a>
+          <div class="guided-ota-integrated">
+            <h3>1. Obtén la clave OTA sin salir de la guía</h3>
+            <p>Introduce los datos en la calculadora. Después utiliza la clave en la pantalla del coche y continúa aquí mismo.</p>
+            <iframe id="guidedOtaFrame" title="Calculadora de clave OTA de HABRO" src="ota.html?embedded=1" loading="lazy" referrerpolicy="same-origin"></iframe>
+            <a class="text-link" href="ota.html" target="_blank" rel="noopener">Abrir calculadora por separado (opcional)</a>
+          </div>
+          <div class="guided-ota-videos">
+            <h3>2. Mira cómo abrir el menú de ingeniería</h3>
+            <p>Los vídeos están disponibles aquí, sin abrir otras páginas.</p>
+            <div class="guided-video-grid">
+              <figure><video controls playsinline preload="metadata" poster="assets/ota-10-toques.jpg"><source src="assets/ota-10-toques.mp4" type="video/mp4">Tu navegador no admite este vídeo.</video><figcaption>Primer vídeo: acceso al menú OTA (10 toques).</figcaption></figure>
+              <figure><video controls playsinline preload="metadata" poster="assets/ota-9-toques-adb.jpg"><source src="assets/ota-9-toques-adb.mp4" type="video/mp4">Tu navegador no admite este vídeo.</video><figcaption>Segundo vídeo: abrir las opciones de ingeniería (9 toques) y activar ADB.</figcaption></figure>
+            </div>
+          </div>
+          <p class="installer-note">Los textos y el número de pulsaciones pueden variar según el firmware. Sigue el procedimiento que corresponda a tu vehículo.</p>
           <details class="installer-engineering">
             <summary>Abrir menú OTA con ADB ya conectado</summary>
             <div class="installer-engineering-body"><p>Introduce la clave de seis dígitos. El menú se abrirá en el coche; allí podrás pulsar <strong>Open ADB</strong>.</p><label for="engineeringCode">Clave OTA del día</label><div class="installer-code-controls"><input id="engineeringCode" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off" spellcheck="false" placeholder="000000" aria-describedby="engineeringCodeHint"><button id="openEngineering" type="button" class="button secondary" data-device disabled>Abrir menú OTA</button></div><p id="engineeringCodeHint" class="installer-note">Esta acción requiere una sesión ADB conectada y autorizada.</p></div>
