@@ -41,10 +41,10 @@ export async function vinPanel(request,env,call){
   if(!actor)return page('Acceso denegado','<p>Clave de administración incorrecta.</p><a href="/admin/adb-vin">Volver</a>');
   const action=String(f.get('action')||'list'),vin=String(f.get('vin')||'').trim().toUpperCase();
   let info='';
-  if(['enroll','disable','enable','rotate'].includes(action)){
+  if(['enroll','disable','enable','rotate','grant'].includes(action)){
     if(!validVin(vin))info='<p>VIN no válido: introduce los 17 caracteres.</p>';
     else{
-      const endpoint=action==='enroll'?'/vin/enroll':action==='rotate'?'/vin/rotate':'/vin/status';
+      const endpoint=action==='enroll'?'/vin/enroll':action==='rotate'?'/vin/rotate':action==='grant'?'/vin/grant':'/vin/status';
       const {response,data}=await call(env,endpoint,{vin,label:String(f.get('label')||''),enabled:action==='enable',actor});
       info=response.ok?'<p>Operación realizada para '+escape(vin)+'.</p>':'<p>No se pudo completar la operación: '+escape(data?.error||'error')+'.</p>';
       if(response.ok&&data.enrollmentKey)info+='<section><strong>Clave privada de alta (mostrar una sola vez)</strong><p>Entrégala al titular por un canal seguro. No aparecerá de nuevo en el historial.</p><code>'+escape(data.enrollmentKey)+'</code></section>';
@@ -52,8 +52,8 @@ export async function vinPanel(request,env,call){
   }
   const {data}=await call(env,'/vin/list',{});
   const vehicles=data?.vehicles||[],events=data?.events||[];
-  const rows=vehicles.map(v=>'<tr><td>'+escape(v.vin)+'</td><td>'+escape(v.label)+'</td><td>'+(v.enabled?'Activo':'Bloqueado')+'</td><td>'+Number(v.issued||0)+'</td></tr>').join('');
+  const rows=vehicles.map(v=>'<tr><td>'+escape(v.vin)+'</td><td>'+escape(v.label)+'</td><td>'+(v.enabled?'Activo':'Bloqueado')+'</td><td>'+Number(v.issued||0)+' / '+Number(v.issueLimit??2)+'</td></tr>').join('');
   const history=events.slice(0,100).map(e=>'<tr><td>'+escape(new Date(e.at).toLocaleString('es-ES'))+'</td><td>'+escape(e.vin)+'</td><td>'+escape(e.event)+'</td><td>'+escape(e.actor)+'</td></tr>').join('');
   const auth='<label>Clave de administración (necesaria para cada operación)<input type="password" name="password" required autocomplete="off"></label>';
-  return page('Gestión privada de VIN y accesos',info+'<p>Cuenta: '+escape(actor)+'. Los tokens no se muestran completos en el historial.</p><section><h2>Registrar o gestionar vehículo</h2><form method="post">'+auth+'<label>VIN<input name="vin" required maxlength="17"></label><label>Identificador opcional<input name="label" maxlength="80"></label><label>Acción<select name="action"><option value="enroll">Registrar y crear clave privada</option><option value="disable">Bloquear VIN y sesiones</option><option value="enable">Reactivar VIN</option><option value="rotate">Renovar clave privada y revocar sesiones</option><option value="list">Actualizar listado</option></select></label><button>Confirmar</button></form></section><section><h2>Vehículos</h2><div style="overflow:auto"><table><tr><th>VIN</th><th>Etiqueta</th><th>Estado</th><th>Tokens emitidos</th></tr>'+rows+'</table></div></section><section><h2>Historial reciente</h2><div style="overflow:auto"><table><tr><th>Fecha</th><th>VIN</th><th>Evento</th><th>Actor</th></tr>'+history+'</table></div></section>');
+  return page('Gestión privada de VIN y accesos',info+'<p>Cuenta: '+escape(actor)+'. Los tokens no se muestran completos en el historial.</p><section><h2>Registrar o gestionar vehículo</h2><form method="post">'+auth+'<label>VIN<input name="vin" required maxlength="17"></label><label>Identificador opcional<input name="label" maxlength="80"></label><label>Acción<select name="action"><option value="enroll">Registrar y crear clave privada</option><option value="disable">Bloquear VIN y sesiones</option><option value="enable">Reactivar VIN</option><option value="rotate">Renovar clave privada y revocar sesiones</option><option value="grant">Autorizar un token adicional</option><option value="list">Actualizar listado</option></select></label><button>Confirmar</button></form></section><section><h2>Vehículos</h2><div style="overflow:auto"><table><tr><th>VIN</th><th>Etiqueta</th><th>Estado</th><th>Tokens emitidos / límite</th></tr>'+rows+'</table></div></section><section><h2>Historial reciente</h2><div style="overflow:auto"><table><tr><th>Fecha</th><th>VIN</th><th>Evento</th><th>Actor</th></tr>'+history+'</table></div></section>');
 }
