@@ -71,6 +71,7 @@ export async function vinStateRequest(storage,request){
       await audit(storage,'denied',vin,'self-service');
       return reply({ok:false,error:'not_authorized'},403);
     }
+    if(Number(record.issued||0)>=Number(record.issueLimit??2))return reply({ok:false,error:'vin_token_limit'},429);
     limit.count=0;await storage.put(limitKey,limit,{expirationTtl:900});
     // Single-use token; redemption creates a 30-minute session.
     const token=random(),hash=await hex(token),expiresAt=now+30*60_000;
