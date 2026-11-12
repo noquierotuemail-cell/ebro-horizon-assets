@@ -337,6 +337,7 @@ export class HabroMetrics {
       records.push({
         id: String(key).slice('adb:token:'.length, 'adb:token:'.length + 10),
         label: cleanAccessLabel(record.label) || 'Sin identificar',
+        vin: record.vin || null,
         createdAt: Number(record.createdAt || 0),
         expiresAt: record.expiresAt == null ? null : Number(record.expiresAt),
         usedAt: record.usedAt == null ? null : Number(record.usedAt),
