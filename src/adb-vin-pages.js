@@ -8,7 +8,7 @@ export async function vinPanel(request,env,call){
   const base=admin?'/admin/adb-vin':'/adb/solicitar';
   if(request.method==='GET'){
     if(!admin)return page('Acceso ADB por VIN','<p>Solo para vehículos previamente autorizados. Necesitas tu VIN y la clave privada de alta entregada por HABRO. El acceso dura 30 minutos.</p><form method="post"><label>VIN completo<input name="vin" required minlength="17" maxlength="17" autocomplete="off"></label><label>Clave privada de alta<input name="enrollmentKey" type="password" required minlength="64" maxlength="64" autocomplete="off"></label><button>Entrar en HABRO ADB</button></form>');
-    return page('Gestión privada de VIN y accesos','<p>Introduce tu clave de administrador para consultar vehículos y registrar nuevos. El acceso de tu compañero debe utilizar una clave distinta.</p><form method="post"><input type="hidden" name="action" value="list"><label>Clave de administración<input type="password" name="password" required autocomplete="off"></label><button>Acceder al panel</button></form>');
+    return page('Gestión privada de VIN y accesos','<p>Introduce tu clave de administrador para consultar vehículos y registrar nuevos. El acceso de tu compañero utiliza una clave distinta.</p><form method="post"><input type="hidden" name="action" value="list"><label>Clave de administración<input type="password" name="password" required autocomplete="off"></label><button>Acceder al panel</button></form>');
   }
   if(request.method!=='POST'||!validOrigin(request))return new Response('Forbidden',{status:403});
   let f;try{f=await request.formData();}catch{return new Response('Bad request',{status:400});}
@@ -20,7 +20,7 @@ export async function vinPanel(request,env,call){
     return {token:data.token};
   }
   const password=String(f.get('password')||'');
-  const owner=String(env.HABRO_ANALYTICS_ADMIN_TOKEN||'');
+  const owner=String(env.HABRO_ADB_OWNER_TOKEN||'');
   const collaborator=String(env.HABRO_ADB_COLLABORATOR_TOKEN||'');
   const actor=owner&&password===owner?'propietario':collaborator&&password===collaborator?'colaborador':null;
   if(!actor)return page('Acceso denegado','<p>Clave de administración incorrecta.</p><a href="/admin/adb-vin">Volver</a>');
