@@ -305,6 +305,7 @@ export class HabroMetrics {
         generation:record.generation||0,
         revokedAt: null
       });
+      if (record.vin) await txn.put('vin:audit:'+String(now).padStart(14,'0')+':'+sessionHash.slice(0,12),{at:now,event:'redeemed',vin:record.vin,actor:'self-service',detail:tokenHash.slice(0,10)});
       result = { session, expiresAt:sessionExpiresAt, persistent, twelveHours };
     });
     if (!result) return Response.json({ ok:false, error:'invalid_or_used_token' }, { status:401 });
