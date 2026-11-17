@@ -44,3 +44,6 @@ El primer usuario de Telegram que verifica un VIN lo vincula a su cuenta. Los si
 
 ## Registro seguro del webhook desde HABRO
 Tras configurar `HABRO_ADB_OWNER_TOKEN` como secreto en Cloudflare y desplegar el Worker, abrir `https://habroremote.com/admin/adb-telegram-setup`. Introducir la clave de propietario y pulsar **Registrar webhook**. El Worker llama a Telegram `setWebhook` con el token y el secreto guardados en Cloudflare, sin exponerlos al navegador. Confirmar respuesta y probar el bot.
+
+## Grupo de soporte compartido
+Chat ID confirmado por el propietario: `-5249979874`. Cuando `@habroremote_bot` verifica una identidad, envía al grupo el usuario Telegram, identificador numérico y VIN, sin tokens ni secretos. La variable opcional `HABRO_TELEGRAM_SUPPORT_CHAT_ID` permite cambiar el grupo sin modificar código. El bot debe pertenecer al grupo y tener permiso para publicar; si Telegram rechaza el envío se registra una advertencia y no se bloquea el acceso del usuario. El canal de suscripción `@HABRO_Remote` es independiente. Los mensajes del bot en el grupo no implican que JARVIS pueda procesarlos automáticamente: requiere su propio listener y permisos.
