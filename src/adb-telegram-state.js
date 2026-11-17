@@ -41,7 +41,7 @@ export async function telegramState(storage,request){
     record.status='verified';record.telegramId=id;record.verifiedAt=now;
     await storage.put(key,record,{expirationTtl:360});
     await audit(storage,'telegram_verified',record.vin,id);
-    return response({ok:true});
+    return response({ok:true,vin:record.vin});
   }
   if(path==='/telegram/poll'){
     const nonce=String(b.nonce||''),browserSecret=String(b.browserSecret||'');
